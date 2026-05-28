@@ -253,8 +253,20 @@ img, svg { display: block; }
   gap: 32px;
 }
 
-.nav-logo { flex-shrink: 0; }
-.nav-logo img.logo-svg { height: 36px; width: auto; display: block; }
+.nav-logo {
+  flex-shrink: 0;
+  height: 46px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo img.logo-svg {
+  height: 100px;
+  width: auto;
+  display: block;
+  margin-top: -24px;
+}
 .about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
 .footer-logo { height: 60px; width: auto; margin-bottom: 16px; display: block; }
 
