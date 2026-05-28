@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ASTRA Media – Social Media Agency</title>
+  <meta name="description" content="ASTRA Media – Social media agency. Strategia, content creation, advertising e branding per far crescere il tuo brand online." />
+  <meta name="theme-color" content="#07060F" />
+  <meta name="color-scheme" content="dark" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -20,17 +24,20 @@
   <nav id="navbar">
     <div class="nav-inner">
       <a href="#hero" class="nav-logo">
-        <svg class="logo-svg" viewBox="0 0 220 80" xmlns="http://www.w3.org/2000/svg">
+        <!-- Logo ASTRA: stella allungata orizzontalmente + testo + stellina -->
+        <svg class="logo-svg" viewBox="0 0 260 80" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#7B5CF0"/>
-              <stop offset="100%" stop-color="#B44FD8"/>
+              <stop offset="100%" stop-color="#9B6FF0"/>
             </linearGradient>
           </defs>
-          <!-- 4-point star -->
-          <polygon points="110,4 118,36 150,40 118,44 110,76 102,44 70,40 102,36" fill="url(#logoGrad)"/>
-          <!-- ASTRA text -->
-          <text x="110" y="46" text-anchor="middle" font-family="Syne" font-weight="800" font-size="22" fill="white" letter-spacing="6">ASTRA</text>
+          <!-- stella 4 punte: orizzontale molto allungata, verticale corta -->
+          <polygon points="130,6 137,36 248,40 137,44 130,74 123,44 12,40 123,36" fill="url(#logoGrad)"/>
+          <!-- ASTRA outline + fill -->
+          <text x="130" y="47" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="20" letter-spacing="8" stroke="rgba(0,0,0,.4)" stroke-width="3" paint-order="stroke" fill="white">ASTRA</text>
+          <!-- piccola stellina dopo la A finale -->
+          <polygon points="249,28 251,34 257,34 252,38 254,44 249,40 244,44 246,38 241,34 247,34" fill="white" opacity=".85"/>
         </svg>
       </a>
       <ul class="nav-links">
@@ -118,16 +125,20 @@
             <div class="about-card card-back"></div>
             <div class="about-card card-mid"></div>
             <div class="about-card card-front">
-              <svg class="about-logo-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+              <svg class="about-logo-svg" viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="aboutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="aboutGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stop-color="#7B5CF0"/>
-                    <stop offset="50%" stop-color="#FF2D78"/>
-                    <stop offset="100%" stop-color="#00F5FF"/>
+                    <stop offset="50%" stop-color="#B44FD8"/>
+                    <stop offset="100%" stop-color="#9060E0"/>
                   </linearGradient>
                 </defs>
-                <polygon points="110,15 122,88 195,110 122,132 110,205 98,132 25,110 98,88" fill="url(#aboutGrad)" opacity="0.9"/>
-                <text x="110" y="118" text-anchor="middle" font-family="Syne" font-weight="800" font-size="28" fill="white" letter-spacing="5">ASTRA</text>
+                <!-- stella 4 punte grande -->
+                <polygon points="160,8 170,58 308,70 170,82 160,132 150,82 12,70 150,58" fill="url(#aboutGrad)" opacity="0.95"/>
+                <!-- testo -->
+                <text x="160" y="79" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="28" letter-spacing="10" stroke="rgba(0,0,0,.45)" stroke-width="3" paint-order="stroke" fill="white">ASTRA</text>
+                <!-- stellina -->
+                <polygon points="308,48 311,57 321,57 313,63 316,72 308,66 300,72 303,63 295,57 305,57" fill="white" opacity=".85"/>
               </svg>
               <p class="about-card-label">Est. 2024</p>
             </div>
@@ -402,15 +413,16 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <svg class="footer-logo" viewBox="0 0 160 60" xmlns="http://www.w3.org/2000/svg">
+          <svg class="footer-logo" viewBox="0 0 240 72" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#7B5CF0"/>
-                <stop offset="100%" stop-color="#FF2D78"/>
+                <stop offset="100%" stop-color="#9B6FF0"/>
               </linearGradient>
             </defs>
-            <polygon points="30,4 35,26 57,30 35,34 30,56 25,34 3,30 25,26" fill="url(#footerGrad)"/>
-            <text x="70" y="36" font-family="Syne" font-weight="800" font-size="20" fill="white" letter-spacing="4">ASTRA</text>
+            <polygon points="120,5 127,32 228,36 127,40 120,67 113,40 12,36 113,32" fill="url(#footerGrad)"/>
+            <text x="120" y="43" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="18" letter-spacing="7" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke" fill="white">ASTRA</text>
+            <polygon points="228,22 230,28 237,28 231,32 233,38 228,34 223,38 225,32 219,28 226,28" fill="white" opacity=".8"/>
           </svg>
           <p>La tua agenzia di social media management. Trasformiamo la tua presenza online in risultati reali.</p>
         </div>
