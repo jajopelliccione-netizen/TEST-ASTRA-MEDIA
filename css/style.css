@@ -250,29 +250,26 @@ img, svg { display: block; }
   max-width: 1200px;
   margin: 0 auto;
   padding: 10px 24px;
-  gap: 32px;
+  gap: 16px;
 }
 
-.nav-logo {
-  flex-shrink: 0;
-}
+/* ── LOGO CIRCLE ─── */
+.nav-logo { flex-shrink: 0; }
 
-/* Gradient ring */
 .logo-circle {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   padding: 2.5px;
   background: linear-gradient(135deg, var(--purple), var(--pink), var(--cyan));
   flex-shrink: 0;
-  box-shadow: 0 0 10px rgba(123,92,240,.45);
-  transition: box-shadow .3s;
+  box-shadow: 0 0 14px rgba(123,92,240,.5), 0 0 28px rgba(123,92,240,.2);
+  transition: box-shadow .35s;
 }
 .nav-logo:hover .logo-circle {
-  box-shadow: 0 0 22px rgba(123,92,240,.75), 0 0 42px rgba(255,45,120,.3);
+  box-shadow: 0 0 24px rgba(123,92,240,.8), 0 0 50px rgba(255,45,120,.35);
 }
 
-/* Dark inner circle — clips the image */
 .logo-circle-inner {
   width: 100%;
   height: 100%;
@@ -282,7 +279,7 @@ img, svg { display: block; }
   position: relative;
 }
 
-/* Image: zoomed 185% and centered — crops the white PNG padding */
+/* Zoom 185% e centra — taglia il padding bianco del PNG */
 .logo-circle-inner img {
   position: absolute;
   width: 185%;
@@ -291,27 +288,40 @@ img, svg { display: block; }
   left: 50%;
   transform: translate(-50%, -50%);
 }
-.about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
-.footer-logo { height: 60px; width: auto; margin-bottom: 16px; display: block; }
+
+/* ── NAV PILL (links + cta) ─── */
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(123,92,240,.28);
+  border-radius: 50px;
+  padding: 6px 8px 6px 18px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 18px rgba(123,92,240,.1), inset 0 1px 0 rgba(255,255,255,.05);
+}
 
 .nav-links {
   display: flex;
-  gap: 32px;
-  margin-left: auto;
+  gap: 24px;
 }
 
 .nav-links a {
-  font-size: .9rem;
+  font-size: .875rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .25s;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-links a::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: -3px;
   left: 0;
   right: 0;
   height: 2px;
@@ -327,21 +337,25 @@ img, svg { display: block; }
 .nav-cta {
   display: inline-flex;
   align-items: center;
-  padding: 10px 22px;
+  padding: 8px 18px;
   border-radius: 50px;
-  font-size: .85rem;
+  font-size: .82rem;
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, var(--purple), var(--pink));
-  box-shadow: 0 0 20px rgba(123,92,240,.4);
+  box-shadow: 0 0 16px rgba(123,92,240,.4);
   transition: box-shadow .3s, transform .2s;
   white-space: nowrap;
+  margin-left: 8px;
 }
 
 .nav-cta:hover {
-  box-shadow: 0 0 40px rgba(123,92,240,.65), 0 0 70px rgba(255,45,120,.3);
+  box-shadow: 0 0 30px rgba(123,92,240,.65), 0 0 60px rgba(255,45,120,.3);
   transform: translateY(-1px);
 }
+
+.about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
+.footer-logo { height: 60px; width: auto; margin-bottom: 16px; display: block; }
 
 .burger {
   display: none;
@@ -1279,7 +1293,7 @@ footer {
 }
 
 @media (max-width: 768px) {
-  .nav-links, .nav-cta { display: none; }
+  .nav-pill { display: none; }
   .burger { display: flex; }
   .mobile-menu { display: flex; }
 
