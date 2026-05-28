@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 70 400 330">
+  <defs>
+    <linearGradient id="sg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7B69EE"/>
+      <stop offset="100%" stop-color="#5A48CC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 4-pointed star: bracci verticali più lunghi di quelli orizzontali,
+       notch molto stretto (stelle sottili/taglienti come nell'originale) -->
+  <polygon
+    points="235,80  243,240  390,255  243,270  235,420  227,270  80,255  227,240"
+    fill="url(#sg)"
+  />
+
+  <!-- ASTRA: bianco, outline scuro sottile, wide tracking -->
+  <text
+    x="235" y="268"
+    text-anchor="middle"
+    font-family="'Arial Black','Arial',sans-serif"
+    font-weight="900"
+    font-size="52"
+    letter-spacing="6"
+    stroke="#0a0818"
+    stroke-width="3"
+    paint-order="stroke fill"
+    fill="white"
+  >ASTRA</text>
+
+  <!-- stellina outline in alto a destra -->
+  <text
+    x="422" y="228"
+    text-anchor="middle"
+    font-family="Arial,sans-serif"
+    font-size="28"
+    fill="none"
+    stroke="white"
+    stroke-width="1.2"
+  >★</text>
+</svg>
