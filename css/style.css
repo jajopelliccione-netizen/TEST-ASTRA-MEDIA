@@ -253,49 +253,48 @@ img, svg { display: block; }
   align-items: center;
 }
 
-/* Ambilight — pannello luminoso dietro il logo, blur pesante, nessuna forma */
+/* Layer 1 — pannello luce principale, blur medio */
 .nav-logo::before {
   content: '';
   position: absolute;
   inset: 8px;
   border-radius: 8px;
+  background-color: var(--ambi-c1, rgba(123,92,240,.9));
   filter: blur(28px);
-  animation: ambiBack1 4s linear infinite;
+  opacity: 0;
+  transition: opacity .7s ease, background-color 1.4s ease;
+  animation: ambiBreath 3.5s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Secondo strato più grande — fa sembrare che la luce sbordi molto */
+/* Layer 2 — alone più largo, colore secondario della sezione */
 .nav-logo::after {
   content: '';
   position: absolute;
   inset: 8px;
   border-radius: 8px;
-  filter: blur(48px);
-  opacity: .85;
-  animation: ambiBack2 6s linear infinite;
+  background-color: var(--ambi-c2, rgba(0,245,255,.8));
+  filter: blur(52px);
+  opacity: 0;
+  transition: opacity .7s ease, background-color 1.4s ease;
+  animation: ambiBreath 5s ease-in-out infinite alternate-reverse;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Ciclo viola → rosa → cyan → viola */
-@keyframes ambiBack1 {
-  0%   { background-color: rgba(123,92,240,.95); }
-  33%  { background-color: rgba(255,45,120,.95); }
-  66%  { background-color: rgba(0,245,255,.9);   }
-  100% { background-color: rgba(123,92,240,.95); }
-}
+/* Compare solo quando il logo va sopra al contenuto scrollando */
+#navbar.scrolled .nav-logo::before { opacity: 1; }
+#navbar.scrolled .nav-logo::after  { opacity: .8; }
 
-/* Ciclo sfasato: parte da rosa così i due layer non si sovrappongono mai uguali */
-@keyframes ambiBack2 {
-  0%   { background-color: rgba(255,45,120,.85); }
-  33%  { background-color: rgba(0,245,255,.85);  }
-  66%  { background-color: rgba(123,92,240,.85); }
-  100% { background-color: rgba(255,45,120,.85); }
+/* Respiro leggero — non cambia il colore, solo la scala */
+@keyframes ambiBreath {
+  from { transform: scale(1);    }
+  to   { transform: scale(1.12); }
 }
 
 .nav-logo-img {
-  height: 64px;
+  height: 90px;
   width: auto;
   display: block;
   position: relative;

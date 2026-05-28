@@ -283,3 +283,28 @@ if (form) {
 const navStyle = document.createElement('style');
 navStyle.textContent = '.nav-links a.active{color:#fff}.nav-links a.active::after{transform:scaleX(1)}';
 document.head.appendChild(navStyle);
+
+/* ── AMBILIGHT: colori sincronizzati con la sezione sotto il logo ── */
+// Ogni sezione ha due colori che rispecchiano la sua palette visiva
+const ambiPalette = {
+  'hero':           ['rgba(123,92,240,.92)', 'rgba(0,245,255,.82)'],   // viola + cyan (come badge e gradient)
+  'about':          ['rgba(123,92,240,.92)', 'rgba(180,79,216,.82)'],  // viola + viola chiaro (chip e icone)
+  'services':       ['rgba(255,215,0,.88)',  'rgba(123,92,240,.82)'],  // giallo + viola (tag "più richiesto" + carte)
+  'collaborations': ['rgba(0,245,255,.85)',  'rgba(0,229,160,.78)'],   // cyan + verde (avatar testimonial)
+  'cta-band':       ['rgba(255,45,120,.92)', 'rgba(123,92,240,.82)'],  // rosa + viola (bottone CTA)
+  'contact':        ['rgba(123,92,240,.92)', 'rgba(255,45,120,.82)'],  // viola + rosa (form focus + icone)
+};
+
+const ambiObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const colors = ambiPalette[entry.target.id];
+      if (colors) {
+        navbar.style.setProperty('--ambi-c1', colors[0]);
+        navbar.style.setProperty('--ambi-c2', colors[1]);
+      }
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('section[id]').forEach(s => ambiObs.observe(s));
