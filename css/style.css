@@ -253,43 +253,66 @@ img, svg { display: block; }
   align-items: center;
 }
 
-/* Orbita rotante — appare quando si scrolla (logo sopra contenuto) */
+/* ── AMBILIGHT BLOB 1: blob di colore che ruota e si deforma ── */
 .nav-logo::before {
   content: '';
   position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  border-top-color: var(--purple);
-  border-right-color: var(--pink);
-  opacity: 0;
-  animation: navOrbit 2.5s linear infinite;
+  inset: -20px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(123,92,240,.7),
+    rgba(255,45,120,.6),
+    rgba(0,245,255,.55),
+    rgba(123,92,240,.45),
+    rgba(255,45,120,.65),
+    rgba(123,92,240,.7)
+  );
+  filter: blur(18px);
+  border-radius: 44% 56% 58% 42% / 52% 46% 54% 48%;
+  opacity: .18;
+  animation: ambiSpin 6s linear infinite, ambiMorph 9s ease-in-out infinite alternate;
   pointer-events: none;
-  transition: opacity .5s;
+  transition: opacity .6s;
   z-index: 0;
 }
 
-/* Alone nebulare — appare quando si scrolla */
+/* ── AMBILIGHT BLOB 2: macchie colorate che derivano ── */
 .nav-logo::after {
   content: '';
   position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(123,92,240,.22) 0%, rgba(255,45,120,.1) 50%, transparent 70%);
-  opacity: 0;
-  animation: navNebula 2.2s ease-in-out infinite alternate;
+  inset: -24px;
+  background:
+    radial-gradient(ellipse 65% 50% at 32% 58%, rgba(255,45,120,.6), transparent 68%),
+    radial-gradient(ellipse 50% 68% at 74% 32%, rgba(0,245,255,.5), transparent 62%),
+    radial-gradient(ellipse 58% 45% at 55% 75%, rgba(123,92,240,.45), transparent 65%);
+  filter: blur(20px);
+  border-radius: 60% 40% 48% 52% / 44% 60% 40% 56%;
+  opacity: .16;
+  animation: ambiDrift 7s ease-in-out infinite alternate;
   pointer-events: none;
-  transition: opacity .5s;
+  transition: opacity .6s;
   z-index: 0;
 }
 
-#navbar.scrolled .nav-logo::before,
-#navbar.scrolled .nav-logo::after { opacity: 1; }
+/* In alto alla pagina: sempre presente ma appena percettibile */
+/* Quando si scrolla: si intensifica per far risaltare il logo sul contenuto */
+#navbar.scrolled .nav-logo::before { opacity: .88; }
+#navbar.scrolled .nav-logo::after  { opacity: .75; }
 
-@keyframes navOrbit { to { transform: rotate(360deg); } }
-@keyframes navNebula {
-  from { transform: scale(.9); opacity: .6; }
-  to   { transform: scale(1.1); opacity: 1; }
+@keyframes ambiSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ambiMorph {
+  0%   { border-radius: 44% 56% 58% 42% / 52% 46% 54% 48%; }
+  30%  { border-radius: 62% 38% 46% 54% / 48% 64% 36% 52%; }
+  60%  { border-radius: 36% 64% 54% 46% / 62% 38% 58% 42%; }
+  100% { border-radius: 54% 46% 40% 60% / 42% 54% 46% 58%; }
+}
+@keyframes ambiDrift {
+  0%   { transform: scale(1)    translate(0,    0   ); border-radius: 60% 40% 48% 52% / 44% 60% 40% 56%; }
+  40%  { transform: scale(1.14) translate(5px, -5px ); border-radius: 42% 58% 64% 36% / 58% 42% 54% 46%; }
+  70%  { transform: scale(.88)  translate(-4px, 4px ); border-radius: 66% 34% 42% 58% / 46% 58% 42% 54%; }
+  100% { transform: scale(1.06) translate(3px, -2px ); border-radius: 50% 50% 56% 44% / 62% 38% 56% 44%; }
 }
 
 .nav-logo-img {
@@ -298,11 +321,6 @@ img, svg { display: block; }
   display: block;
   position: relative;
   z-index: 1;
-  transition: filter .4s;
-}
-
-#navbar.scrolled .nav-logo-img {
-  filter: drop-shadow(0 0 5px rgba(123,92,240,.75)) drop-shadow(0 0 12px rgba(255,45,120,.45));
 }
 
 /* ── NAV PILL (links + cta) ─── */
