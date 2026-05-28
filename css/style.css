@@ -255,17 +255,41 @@ img, svg { display: block; }
 
 .nav-logo {
   flex-shrink: 0;
-  height: 46px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
 }
 
-.nav-logo img.logo-svg {
-  height: 100px;
-  width: auto;
-  display: block;
-  margin-top: -24px;
+/* Gradient ring */
+.logo-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 2.5px;
+  background: linear-gradient(135deg, var(--purple), var(--pink), var(--cyan));
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(123,92,240,.45);
+  transition: box-shadow .3s;
+}
+.nav-logo:hover .logo-circle {
+  box-shadow: 0 0 22px rgba(123,92,240,.75), 0 0 42px rgba(255,45,120,.3);
+}
+
+/* Dark inner circle — clips the image */
+.logo-circle-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Image: zoomed 185% and centered — crops the white PNG padding */
+.logo-circle-inner img {
+  position: absolute;
+  width: 185%;
+  height: 185%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
 .footer-logo { height: 60px; width: auto; margin-bottom: 16px; display: block; }
