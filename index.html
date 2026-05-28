@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASTRA Media – Social Media Agency</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ─── CANVAS PARTICLES ─── -->
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- ─── CURSOR GLOW ─── -->
+  <div class="cursor-glow" id="cursor-glow"></div>
+
+  <!-- ═══════════════════════════════════ NAV ═══════════════════════════════════ -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">
+        <svg class="logo-svg" viewBox="0 0 220 80" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7B5CF0"/>
+              <stop offset="100%" stop-color="#B44FD8"/>
+            </linearGradient>
+          </defs>
+          <!-- 4-point star -->
+          <polygon points="110,4 118,36 150,40 118,44 110,76 102,44 70,40 102,36" fill="url(#logoGrad)"/>
+          <!-- ASTRA text -->
+          <text x="110" y="46" text-anchor="middle" font-family="Syne" font-weight="800" font-size="22" fill="white" letter-spacing="6">ASTRA</text>
+        </svg>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about">Chi Siamo</a></li>
+        <li><a href="#services">Servizi</a></li>
+        <li><a href="#collaborations">Collaborazioni</a></li>
+        <li><a href="#contact">Contatti</a></li>
+      </ul>
+      <a href="#contact" class="nav-cta">Lavora con noi</a>
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <!-- mobile menu -->
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#about" class="mob-link">Chi Siamo</a>
+      <a href="#services" class="mob-link">Servizi</a>
+      <a href="#collaborations" class="mob-link">Collaborazioni</a>
+      <a href="#contact" class="mob-link">Contatti</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-content">
+      <div class="hero-badge reveal">
+        <span class="badge-dot"></span> Social Media Agency
+      </div>
+      <h1 class="hero-title reveal">
+        Portiamo il tuo<br/>
+        <span class="gradient-text">brand</span> tra le stelle
+      </h1>
+      <p class="hero-sub reveal">
+        Strategia, creatività e dati al servizio della tua presenza online.<br/>
+        Con ASTRA il tuo profilo decolla davvero.
+      </p>
+      <div class="hero-actions reveal">
+        <a href="#services" class="btn-primary">Scopri i servizi</a>
+        <a href="#contact" class="btn-outline">Contattaci</a>
+      </div>
+      <!-- floating stats -->
+      <div class="hero-stats reveal">
+        <div class="stat">
+          <span class="stat-num" data-target="50">0</span><span class="stat-suffix">+</span>
+          <p>Clienti gestiti</p>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="2">0</span><span class="stat-suffix">M+</span>
+          <p>Impression generate</p>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="98">0</span><span class="stat-suffix">%</span>
+          <p>Clienti soddisfatti</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- big background logo -->
+    <div class="hero-logo-bg">
+      <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bgLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7B5CF0" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#FF2D78" stop-opacity="0.15"/>
+          </linearGradient>
+        </defs>
+        <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#bgLogoGrad)"/>
+      </svg>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Scorri</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════ ABOUT ═══════════════════════════════════ -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-visual reveal">
+          <div class="about-card-stack">
+            <div class="about-card card-back"></div>
+            <div class="about-card card-mid"></div>
+            <div class="about-card card-front">
+              <svg class="about-logo-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="aboutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#7B5CF0"/>
+                    <stop offset="50%" stop-color="#FF2D78"/>
+                    <stop offset="100%" stop-color="#00F5FF"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="110,15 122,88 195,110 122,132 110,205 98,132 25,110 98,88" fill="url(#aboutGrad)" opacity="0.9"/>
+                <text x="110" y="118" text-anchor="middle" font-family="Syne" font-weight="800" font-size="28" fill="white" letter-spacing="5">ASTRA</text>
+              </svg>
+              <p class="about-card-label">Est. 2024</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-text reveal">
+          <span class="section-tag">Chi Siamo</span>
+          <h2>Non siamo solo un'<span class="gradient-text">agenzia</span>,<br/>siamo il tuo team creativo</h2>
+          <p>
+            ASTRA Media nasce dalla passione di due amici per la comunicazione digitale e il mondo dei social media.
+            Crediamo che ogni brand meriti una presenza online autentica, strategica e memorabile.
+          </p>
+          <p>
+            Offriamo un approccio personalizzato: analizziamo il tuo pubblico, costruiamo una narrativa coerente
+            e produciamo contenuti che convertono follower in clienti reali.
+          </p>
+          <div class="about-values">
+            <div class="value-chip"><span>✦</span> Creatività</div>
+            <div class="value-chip"><span>✦</span> Strategia</div>
+            <div class="value-chip"><span>✦</span> Risultati</div>
+            <div class="value-chip"><span>✦</span> Passione</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════ SERVICES ═══════════════════════════════════ -->
+  <section id="services">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Cosa Offriamo</span>
+        <h2>Servizi pensati per <span class="gradient-text">crescere</span></h2>
+        <p>Dalla strategia alla pubblicazione, gestiamo ogni aspetto della tua identità digitale.</p>
+      </div>
+
+      <div class="services-grid">
+
+        <div class="service-card reveal" style="--delay:0s">
+          <div class="service-icon" style="--c1:#7B5CF0;--c2:#B44FD8">
+            <svg viewBox="0 0 40 40"><path d="M20 4C11.2 4 4 11.2 4 20s7.2 16 16 16 16-7.2 16-16S28.8 4 20 4zm0 6c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4zm0 22.4c-3.3 0-6.2-1.7-8-4.2.4-2.6 5.4-4 8-4s7.6 1.4 8 4c-1.8 2.5-4.7 4.2-8 4.2z" fill="white"/></svg>
+          </div>
+          <h3>Social Media Management</h3>
+          <p>Gestione completa dei tuoi profili su Instagram, TikTok, Facebook e LinkedIn. Pianificazione editoriale, pubblicazione e community management.</p>
+          <ul class="service-list">
+            <li>Calendario editoriale mensile</li>
+            <li>Pubblicazione contenuti</li>
+            <li>Gestione commenti e DM</li>
+          </ul>
+          <div class="service-tag">Più richiesto</div>
+        </div>
+
+        <div class="service-card reveal" style="--delay:.1s">
+          <div class="service-icon" style="--c1:#FF2D78;--c2:#FF6B6B">
+            <svg viewBox="0 0 40 40"><path d="M8 8h24v4H8V8zm0 8h16v4H8v-4zm0 8h24v4H8v-4zm0 8h16v4H8v-4z" fill="white"/></svg>
+          </div>
+          <h3>Content Creation</h3>
+          <p>Produciamo contenuti visivi di qualità professionale: foto, video, reel, storie e grafiche che rispecchiano l'identità del tuo brand.</p>
+          <ul class="service-list">
+            <li>Shooting fotografico</li>
+            <li>Montaggio video e Reels</li>
+            <li>Grafica professionale</li>
+          </ul>
+        </div>
+
+        <div class="service-card reveal" style="--delay:.2s">
+          <div class="service-icon" style="--c1:#00F5FF;--c2:#0099CC">
+            <svg viewBox="0 0 40 40"><path d="M20 4l4 12h12l-10 7 4 12-10-7-10 7 4-12-10-7h12z" fill="white"/></svg>
+          </div>
+          <h3>Strategia & Crescita</h3>
+          <p>Analisi del pubblico target, studio dei competitor e definizione di una strategia di crescita organica e a pagamento per raggiungere i tuoi obiettivi.</p>
+          <ul class="service-list">
+            <li>Analisi competitor</li>
+            <li>Strategia di crescita</li>
+            <li>Report mensili dettagliati</li>
+          </ul>
+        </div>
+
+        <div class="service-card reveal" style="--delay:.3s">
+          <div class="service-icon" style="--c1:#FFD700;--c2:#FF8C00">
+            <svg viewBox="0 0 40 40"><rect x="6" y="6" width="12" height="12" rx="2" fill="white"/><rect x="22" y="6" width="12" height="12" rx="2" fill="white"/><rect x="6" y="22" width="12" height="12" rx="2" fill="white"/><rect x="22" y="22" width="12" height="12" rx="2" fill="white"/></svg>
+          </div>
+          <h3>Advertising & ADS</h3>
+          <p>Campagne pubblicitarie su Meta, TikTok e Google ottimizzate per massimizzare il ROI. Gestione budget, A/B testing e ottimizzazione continua.</p>
+          <ul class="service-list">
+            <li>Campagne Meta e TikTok Ads</li>
+            <li>Retargeting avanzato</li>
+            <li>Ottimizzazione ROI</li>
+          </ul>
+        </div>
+
+        <div class="service-card reveal" style="--delay:.4s">
+          <div class="service-icon" style="--c1:#B44FD8;--c2:#7B5CF0">
+            <svg viewBox="0 0 40 40"><path d="M36 8H4L18 22v10l4 2V22L36 8z" fill="white"/></svg>
+          </div>
+          <h3>Influencer Marketing</h3>
+          <p>Selezione e gestione di collaborazioni con creator e micro-influencer in linea con il tuo brand. Campagne autentiche che generano risultati misurabili.</p>
+          <ul class="service-list">
+            <li>Scouting influencer</li>
+            <li>Gestione collaborazioni</li>
+            <li>Misurazione performance</li>
+          </ul>
+        </div>
+
+        <div class="service-card reveal" style="--delay:.5s">
+          <div class="service-icon" style="--c1:#00E5A0;--c2:#00B87A">
+            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="4" fill="white"/><path d="M20 6v4M20 30v4M6 20h4M30 20h4M9.9 9.9l2.8 2.8M27.3 27.3l2.8 2.8M9.9 30.1l2.8-2.8M27.3 12.7l2.8-2.8" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Branding & Identità</h3>
+          <p>Creiamo o raffiniamo l'identità visiva del tuo brand: logo, palette colori, tone of voice e linee guida per una comunicazione sempre coerente.</p>
+          <ul class="service-list">
+            <li>Logo e visual identity</li>
+            <li>Brand guidelines</li>
+            <li>Tone of voice</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ COLLABORATIONS ═══════════════════════════════ -->
+  <section id="collaborations">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Con Chi Lavoriamo</span>
+        <h2>Brand che hanno scelto <span class="gradient-text">ASTRA</span></h2>
+        <p>Abbiamo collaborato con realtà di diversi settori, portando risultati concreti.</p>
+      </div>
+
+      <div class="collab-ticker-wrap">
+        <div class="collab-ticker">
+          <!-- duplicated for infinite loop -->
+          <div class="collab-item">✦ Fashion Brand</div>
+          <div class="collab-item">✦ Ristorante Gourmet</div>
+          <div class="collab-item">✦ Fitness Studio</div>
+          <div class="collab-item">✦ Startup Tech</div>
+          <div class="collab-item">✦ Luxury Hotel</div>
+          <div class="collab-item">✦ Beauty & Spa</div>
+          <div class="collab-item">✦ Music Artist</div>
+          <div class="collab-item">✦ E-commerce</div>
+          <div class="collab-item">✦ Fashion Brand</div>
+          <div class="collab-item">✦ Ristorante Gourmet</div>
+          <div class="collab-item">✦ Fitness Studio</div>
+          <div class="collab-item">✦ Startup Tech</div>
+          <div class="collab-item">✦ Luxury Hotel</div>
+          <div class="collab-item">✦ Beauty & Spa</div>
+          <div class="collab-item">✦ Music Artist</div>
+          <div class="collab-item">✦ E-commerce</div>
+        </div>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal" style="--delay:0s">
+          <div class="stars">★★★★★</div>
+          <p>"ASTRA ha trasformato il nostro Instagram da zero a 10k follower in tre mesi. Contenuti incredibili e strategia impeccabile."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg,#7B5CF0,#FF2D78)">M</div>
+            <div>
+              <strong>Marco R.</strong>
+              <span>Owner – Fashion Brand</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal" style="--delay:.15s">
+          <div class="stars">★★★★★</div>
+          <p>"Finalmente un'agenzia che capisce davvero il nostro settore. I Reels che producono hanno un engagement altissimo."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg,#00F5FF,#00E5A0)">S</div>
+            <div>
+              <strong>Sara L.</strong>
+              <span>Marketing Manager – Fitness Studio</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal" style="--delay:.3s">
+          <div class="stars">★★★★★</div>
+          <p>"Le campagne ADS gestite da ASTRA ci hanno portato un ROAS di 5x. Professionalità e risultati concreti."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: linear-gradient(135deg,#FFD700,#FF8C00)">G</div>
+            <div>
+              <strong>Giulia M.</strong>
+              <span>CEO – E-commerce</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════ CTA BAND ═══════════════════════════════════ -->
+  <section id="cta-band">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2>Pronto a far decollare il tuo brand?</h2>
+        <p>Parliamo dei tuoi obiettivi e costruiamo insieme la strategia giusta.</p>
+        <a href="#contact" class="btn-primary btn-large">Inizia adesso →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════ CONTACT ═══════════════════════════════════ -->
+  <section id="contact">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <span class="section-tag">Contatti</span>
+          <h2>Parliamo del tuo <span class="gradient-text">progetto</span></h2>
+          <p>Compila il form o scrivici direttamente via email o Instagram. Ti rispondiamo entro 24 ore.</p>
+
+          <div class="contact-items">
+            <a href="mailto:info@astramedia.it" class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="currentColor"/></svg>
+              </div>
+              <span>info@astramedia.it</span>
+            </a>
+            <a href="https://instagram.com/astramedia" target="_blank" rel="noopener" class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="currentColor"/></svg>
+              </div>
+              <span>@astramedia</span>
+            </a>
+          </div>
+        </div>
+
+        <form class="contact-form reveal" id="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Nome</label>
+              <input type="text" id="name" name="name" placeholder="Il tuo nome" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="tua@email.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="service">Servizio di interesse</label>
+            <select id="service" name="service">
+              <option value="">Seleziona un servizio</option>
+              <option value="smm">Social Media Management</option>
+              <option value="content">Content Creation</option>
+              <option value="ads">Advertising & ADS</option>
+              <option value="branding">Branding & Identità</option>
+              <option value="influencer">Influencer Marketing</option>
+              <option value="strategy">Strategia & Crescita</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Messaggio</label>
+            <textarea id="message" name="message" rows="4" placeholder="Raccontaci del tuo brand e dei tuoi obiettivi…" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-full">
+            <span class="btn-text">Invia messaggio</span>
+            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z" fill="currentColor"/></svg>
+          </button>
+          <div class="form-success" id="form-success">
+            ✓ Messaggio inviato! Ti risponderemo presto.
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <svg class="footer-logo" viewBox="0 0 160 60" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7B5CF0"/>
+                <stop offset="100%" stop-color="#FF2D78"/>
+              </linearGradient>
+            </defs>
+            <polygon points="30,4 35,26 57,30 35,34 30,56 25,34 3,30 25,26" fill="url(#footerGrad)"/>
+            <text x="70" y="36" font-family="Syne" font-weight="800" font-size="20" fill="white" letter-spacing="4">ASTRA</text>
+          </svg>
+          <p>La tua agenzia di social media management. Trasformiamo la tua presenza online in risultati reali.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Navigazione</h4>
+          <a href="#about">Chi Siamo</a>
+          <a href="#services">Servizi</a>
+          <a href="#collaborations">Collaborazioni</a>
+          <a href="#contact">Contatti</a>
+        </div>
+        <div class="footer-links">
+          <h4>Servizi</h4>
+          <a href="#services">Social Media Management</a>
+          <a href="#services">Content Creation</a>
+          <a href="#services">Advertising & ADS</a>
+          <a href="#services">Branding & Identità</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 ASTRA Media. Tutti i diritti riservati.</p>
+        <p>Made with ✦ in Italy</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
