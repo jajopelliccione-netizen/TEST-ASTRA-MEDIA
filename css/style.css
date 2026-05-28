@@ -254,9 +254,9 @@ img, svg { display: block; }
 }
 
 .nav-logo { flex-shrink: 0; }
-.nav-logo img.logo-svg { width: 150px; height: auto; display: block; }
-.about-logo-svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
-.footer-logo { width: 180px; height: auto; margin-bottom: 16px; display: block; }
+.nav-logo img.logo-svg { height: 44px; width: auto; display: block; }
+.about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
+.footer-logo { height: 60px; width: auto; margin-bottom: 16px; display: block; }
 
 .nav-links {
   display: flex;
