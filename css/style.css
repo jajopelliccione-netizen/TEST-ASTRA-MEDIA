@@ -234,14 +234,6 @@ img, svg { display: block; }
   left: 0;
   right: 0;
   z-index: 100;
-  transition: background .4s, backdrop-filter .4s, border-color .4s;
-}
-
-#navbar.scrolled {
-  background: rgba(7,6,15,.82);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
 }
 
 .nav-inner {
@@ -253,40 +245,64 @@ img, svg { display: block; }
   gap: 16px;
 }
 
-/* ── LOGO CIRCLE ─── */
-.nav-logo { flex-shrink: 0; }
-
-.logo-circle {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  padding: 2.5px;
-  background: linear-gradient(135deg, var(--purple), var(--pink), var(--cyan));
+/* ── LOGO NAV ─── */
+.nav-logo {
   flex-shrink: 0;
-  box-shadow: 0 0 14px rgba(123,92,240,.5), 0 0 28px rgba(123,92,240,.2);
-  transition: box-shadow .35s;
-}
-.nav-logo:hover .logo-circle {
-  box-shadow: 0 0 24px rgba(123,92,240,.8), 0 0 50px rgba(255,45,120,.35);
-}
-
-.logo-circle-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--bg);
-  overflow: hidden;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
-/* Zoom 185% e centra — taglia il padding bianco del PNG */
-.logo-circle-inner img {
+/* Orbita rotante — appare quando si scrolla (logo sopra contenuto) */
+.nav-logo::before {
+  content: '';
   position: absolute;
-  width: 185%;
-  height: 185%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--purple);
+  border-right-color: var(--pink);
+  opacity: 0;
+  animation: navOrbit 2.5s linear infinite;
+  pointer-events: none;
+  transition: opacity .5s;
+  z-index: 0;
+}
+
+/* Alone nebulare — appare quando si scrolla */
+.nav-logo::after {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123,92,240,.22) 0%, rgba(255,45,120,.1) 50%, transparent 70%);
+  opacity: 0;
+  animation: navNebula 2.2s ease-in-out infinite alternate;
+  pointer-events: none;
+  transition: opacity .5s;
+  z-index: 0;
+}
+
+#navbar.scrolled .nav-logo::before,
+#navbar.scrolled .nav-logo::after { opacity: 1; }
+
+@keyframes navOrbit { to { transform: rotate(360deg); } }
+@keyframes navNebula {
+  from { transform: scale(.9); opacity: .6; }
+  to   { transform: scale(1.1); opacity: 1; }
+}
+
+.nav-logo-img {
+  height: 48px;
+  width: auto;
+  display: block;
+  position: relative;
+  z-index: 1;
+  transition: filter .4s;
+}
+
+#navbar.scrolled .nav-logo-img {
+  filter: drop-shadow(0 0 5px rgba(123,92,240,.75)) drop-shadow(0 0 12px rgba(255,45,120,.45));
 }
 
 /* ── NAV PILL (links + cta) ─── */
@@ -637,74 +653,66 @@ img, svg { display: block; }
   align-items: center;
 }
 
-/* card stack */
-.about-card-stack {
-  position: relative;
-  width: 320px;
-  height: 360px;
+/* service cloud (about visual) */
+.service-cloud {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
-.about-card {
-  position: absolute;
-  width: 280px;
-  height: 320px;
-  border-radius: 24px;
-  border: 1px solid;
-}
-
-.card-back {
-  top: 30px; left: 30px;
-  border-color: rgba(255,45,120,.25);
-  background: rgba(255,45,120,.05);
-  transform: rotate(8deg);
-  animation: cardFloat1 6s ease-in-out infinite;
-}
-
-.card-mid {
-  top: 15px; left: 15px;
-  border-color: rgba(0,245,255,.25);
-  background: rgba(0,245,255,.04);
-  transform: rotate(4deg);
-  animation: cardFloat2 7s ease-in-out infinite;
-}
-
-.card-front {
-  top: 0; left: 0;
-  border-color: rgba(123,92,240,.5);
-  background: rgba(123,92,240,.08);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+.sc-chip {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 20px;
+  padding: 20px 14px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 12px;
+  text-align: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: chipFloat 6s ease-in-out infinite;
+  transition: border-color .3s, box-shadow .3s;
+}
+
+.sc-chip:hover {
+  border-color: rgba(123,92,240,.4);
+  box-shadow: 0 8px 28px rgba(123,92,240,.15);
+}
+
+/* staggered float delays + alternate-row vertical offset */
+.sc-chip:nth-child(1) { animation-delay: 0s; }
+.sc-chip:nth-child(2) { animation-delay: .7s;  margin-top: 22px; }
+.sc-chip:nth-child(3) { animation-delay: 1.4s; }
+.sc-chip:nth-child(4) { animation-delay: 2.1s; margin-top: 22px; }
+.sc-chip:nth-child(5) { animation-delay: 2.8s; }
+.sc-chip:nth-child(6) { animation-delay: 3.5s; margin-top: 22px; }
+
+@keyframes chipFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.sc-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 16px;
-  box-shadow: 0 0 60px rgba(123,92,240,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
 }
+.sc-icon svg { width: 26px; height: 26px; }
 
-.about-logo-svg { width: 160px; height: 160px; }
-
-.about-card-label {
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .2em;
-  text-transform: uppercase;
+.sc-chip span {
+  font-size: .78rem;
+  font-weight: 600;
   color: var(--text-muted);
-  background: rgba(123,92,240,.15);
-  padding: 6px 16px;
-  border-radius: 50px;
-  border: 1px solid var(--border);
-}
-
-@keyframes cardFloat1 {
-  0%,100% { transform: rotate(8deg) translateY(0); }
-  50%      { transform: rotate(10deg) translateY(-8px); }
-}
-
-@keyframes cardFloat2 {
-  0%,100% { transform: rotate(4deg) translateY(0); }
-  50%      { transform: rotate(5deg) translateY(-5px); }
+  line-height: 1.3;
 }
 
 .about-text h2 {
@@ -1287,7 +1295,7 @@ footer {
 @media (max-width: 1024px) {
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
-  .about-card-stack { margin: 0 auto; }
+  .service-cloud { margin: 0 auto; }
   .about-text { text-align: center; }
   .about-values { justify-content: center; }
 }
@@ -1313,14 +1321,13 @@ footer {
 
 @media (max-width: 480px) {
   .hero-actions { flex-direction: column; align-items: center; }
-  .about-card-stack { width: 280px; height: 320px; }
-  .about-card { width: 240px; height: 280px; }
+  .service-cloud { max-width: 300px; }
   .contact-form { padding: 28px 20px; }
 }
 
 /* ── GPU hints for animated elements ─────────────────────────── */
 .hero-logo-bg,
-.about-card,
+.sc-chip,
 .gradient-text {
   will-change: transform;
 }
