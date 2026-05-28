@@ -253,42 +253,45 @@ img, svg { display: block; }
   align-items: center;
 }
 
-/* Ambilight layer 1 — glow viola che si espande come luce sul muro */
+/* Ambilight — pannello luminoso dietro il logo, blur pesante, nessuna forma */
 .nav-logo::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: url('../logo.png') center / contain no-repeat;
-  filter: blur(30px) saturate(6) brightness(3.2);
-  opacity: .6;
-  transform: scale(1.4);
-  animation: ambiPulse 3s ease-in-out infinite alternate;
+  inset: 8px;
+  border-radius: 8px;
+  filter: blur(28px);
+  animation: ambiBack1 4s linear infinite;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Ambilight layer 2 — color shift continuo: viola → cyan → rosa → viola */
+/* Secondo strato più grande — fa sembrare che la luce sbordi molto */
 .nav-logo::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: url('../logo.png') center / contain no-repeat;
-  opacity: .55;
-  transform: scale(1.6);
-  animation: ambiColor 5s ease-in-out infinite alternate;
+  inset: 8px;
+  border-radius: 8px;
+  filter: blur(48px);
+  opacity: .85;
+  animation: ambiBack2 6s linear infinite;
   pointer-events: none;
   z-index: 0;
 }
 
-@keyframes ambiPulse {
-  from { opacity: .45; transform: scale(1.3); filter: blur(26px) saturate(5) brightness(2.8); }
-  to   { opacity: .72; transform: scale(1.55); filter: blur(36px) saturate(7) brightness(3.8); }
+/* Ciclo viola → rosa → cyan → viola */
+@keyframes ambiBack1 {
+  0%   { background: rgba(123,92,240,.95); }
+  33%  { background: rgba(255,45,120,.95); }
+  66%  { background: rgba(0,245,255,.9);   }
+  100% { background: rgba(123,92,240,.95); }
 }
-@keyframes ambiColor {
-  0%   { filter: blur(40px) saturate(7) brightness(3.5) hue-rotate(-50deg); opacity: .4;  transform: scale(1.5); }
-  33%  { filter: blur(40px) saturate(7) brightness(3.5) hue-rotate(80deg);  opacity: .65; transform: scale(1.7); }
-  66%  { filter: blur(40px) saturate(7) brightness(3.5) hue-rotate(170deg); opacity: .5;  transform: scale(1.4); }
-  100% { filter: blur(40px) saturate(7) brightness(3.5) hue-rotate(260deg); opacity: .45; transform: scale(1.6); }
+
+/* Ciclo sfasato: parte da rosa così i due layer non si sovrappongono mai uguali */
+@keyframes ambiBack2 {
+  0%   { background: rgba(255,45,120,.85); }
+  33%  { background: rgba(0,245,255,.85);  }
+  66%  { background: rgba(123,92,240,.85); }
+  100% { background: rgba(255,45,120,.85); }
 }
 
 .nav-logo-img {
