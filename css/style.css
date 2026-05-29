@@ -1634,7 +1634,17 @@ footer {
   .testimonials-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
   .form-row { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 16px;
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+  .footer-logo { margin: 0 auto 16px; max-width: 180px; }
+  .footer-brand p { margin: 0 auto; font-size: .75rem; }
+  .footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: 6px; }
 
   .hero-logo-bg { display: none; }
 
