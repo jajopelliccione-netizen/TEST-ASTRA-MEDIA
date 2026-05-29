@@ -256,14 +256,21 @@
     // ── AUTH GATE ──────────────────────────────────────────────────
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = '/admin/login.html'; return; }
-      const snap = await getDoc(doc(db, 'admins', user.uid));
-      if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
-
-      currentAdminUid = user.uid;
-      document.getElementById('admin-email').textContent = user.email;
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('main-layout').style.display = 'flex';
-      loadClients();
+      try {
+        const snap = await getDoc(doc(db, 'admins', user.uid));
+        if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+        currentAdminUid = user.uid;
+        document.getElementById('admin-email').textContent = user.email;
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('main-layout').style.display = 'flex';
+        loadClients();
+      } catch (err) {
+        document.getElementById('loading-state').innerHTML =
+          `<div style="text-align:center;padding:40px;">
+            <p style="color:var(--pink);margin-bottom:12px;">Errore: ${err.message}</p>
+            <button onclick="location.reload()" class="btn btn-outline btn-sm">Riprova</button>
+          </div>`;
+      }
     });
 
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
