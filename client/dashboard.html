@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Astra Studio</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="portal-nav">
+    <div class="portal-nav-logo">
+      <img src="../logo.png" alt="Astra Studio" />
+      <span>Astra Studio</span>
+      <span class="portal-nav-badge">Area Clienti</span>
+    </div>
+    <div class="portal-nav-right">
+      <span class="portal-nav-user" id="user-email"></span>
+      <button class="btn-logout" id="logout-btn">Esci</button>
+    </div>
+  </nav>
+
+  <div class="portal-wrap" id="main-content" style="display:none;">
+
+    <!-- WELCOME -->
+    <div style="margin-bottom:32px;">
+      <h1 class="section-heading" id="welcome-title">Ciao! 👋</h1>
+      <p class="section-sub" id="welcome-sub">Benvenuto nella tua area personale.</p>
+    </div>
+
+    <!-- PACKAGE + STATS -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- BOZZA SITO -->
+    <div class="card" style="margin-bottom:20px;" id="draft-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Bozza Sito Web
+      </div>
+      <div id="draft-content">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <p>Nessuna bozza disponibile al momento.</p>
+          <p style="margin-top:6px;font-size:.82rem;">Il tuo progetto è in preparazione. Ti notificheremo presto!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT SOCIAL -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Report Social Media
+      </div>
+      <div id="reports-content">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 14l3-3 3 3 4-4"/></svg>
+          <p>Nessun report disponibile.</p>
+          <p style="margin-top:6px;font-size:.82rem;">I tuoi report mensili appariranno qui.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- REFERRAL -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Programma Referral
+      </div>
+      <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:16px;">
+        Porta un amico o un'azienda da noi e ottieni uno <strong style="color:var(--green);">sconto del 10%</strong> sul tuo prossimo rinnovo.
+      </p>
+      <div class="referral-box" id="referral-box">
+        <span class="referral-link" id="referral-link">Caricamento…</span>
+        <button class="copy-btn" id="copy-btn">Copia</button>
+      </div>
+      <p style="margin-top:14px;font-size:.82rem;color:var(--text-muted);">
+        Referral completati: <strong id="referral-count" style="color:var(--cyan);">0</strong>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-state" style="display:flex;align-items:center;justify-content:center;height:100vh;">
+    <div style="text-align:center;">
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;"></div>
+      <p style="color:var(--text-muted);font-size:.9rem;">Caricamento…</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .report-table { width:100%; border-collapse:collapse; }
+    .report-table th { text-align:left;padding:8px 12px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border); }
+    .report-table td { padding:12px;border-bottom:1px solid rgba(123,92,240,.08);font-size:.88rem; }
+    .report-table tr:last-child td { border-bottom:none; }
+  </style>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const loading = document.getElementById('loading-state');
+    const main    = document.getElementById('main-content');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = '/client/login.html'; return; }
+
+      document.getElementById('user-email').textContent = user.email;
+
+      const snap = await getDoc(doc(db, 'clients', user.uid));
+      if (!snap.exists()) {
+        loading.innerHTML = '<div style="text-align:center;padding:40px;"><p style="color:var(--text-muted);">Profilo non ancora configurato.<br>Contatta <a href="mailto:info@astragency.it" style="color:var(--purple);">info@astragency.it</a></p></div>';
+        return;
+      }
+
+      const data = snap.data();
+      loading.style.display = 'none';
+      main.style.display = 'block';
+
+      // Welcome
+      document.getElementById('welcome-title').textContent = `Ciao, ${data.displayName || user.email.split('@')[0]}! 👋`;
+      document.getElementById('welcome-sub').textContent   = `Pacchetto attivo: ${data.package || '—'}`;
+
+      // Stats
+      const statsRow = document.getElementById('stats-row');
+      const latestReport = data.reports && data.reports.length ? data.reports[data.reports.length - 1] : null;
+      statsRow.innerHTML = `
+        <div class="stat-card">
+          <span class="label">Pacchetto</span>
+          <span class="value" style="font-size:1.1rem;margin-top:4px;">${data.package || '—'}</span>
+          <span class="badge badge-purple" style="margin-top:8px;">${data.packageStatus || 'Attivo'}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Follower Totali</span>
+          <span class="value" style="color:var(--purple);">${latestReport ? latestReport.followers.toLocaleString('it') : '—'}</span>
+          ${latestReport ? `<span class="trend">↑ Aggiornato ${latestReport.month}</span>` : ''}
+        </div>
+        <div class="stat-card">
+          <span class="label">Reach Mensile</span>
+          <span class="value" style="color:var(--pink);">${latestReport ? latestReport.reach.toLocaleString('it') : '—'}</span>
+          ${latestReport ? `<span class="trend">${latestReport.month}</span>` : ''}
+        </div>
+        <div class="stat-card">
+          <span class="label">Engagement Rate</span>
+          <span class="value" style="color:var(--cyan);">${latestReport ? latestReport.engagement + '%' : '—'}</span>
+          ${latestReport ? `<span class="trend">${latestReport.posts} post</span>` : ''}
+        </div>
+      `;
+
+      // Draft
+      if (data.websiteDraft && data.websiteDraft.url) {
+        const statusMap = {
+          in_revisione: ['pending', 'In revisione'],
+          approvato:    ['approved', 'Approvato'],
+          completato:   ['active', 'Completato'],
+          in_lavorazione: ['draft', 'In lavorazione'],
+        };
+        const [statusClass, statusLabel] = statusMap[data.websiteDraft.status] || ['draft', 'In lavorazione'];
+        document.getElementById('draft-content').innerHTML = `
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            <div>
+              <p style="font-weight:600;margin-bottom:6px;">${data.websiteDraft.description || 'Bozza sito web'}</p>
+              <span class="status-dot ${statusClass}">${statusLabel}</span>
+            </div>
+            <a href="${data.websiteDraft.url}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+              Visualizza bozza ↗
+            </a>
+          </div>
+        `;
+      }
+
+      // Reports
+      if (data.reports && data.reports.length) {
+        document.getElementById('reports-content').innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="report-table">
+              <thead><tr>
+                <th>Mese</th><th>Follower</th><th>Reach</th><th>Engagement</th><th>Post</th>
+              </tr></thead>
+              <tbody>
+                ${[...data.reports].reverse().map(r => `
+                  <tr>
+                    <td>${r.month}</td>
+                    <td style="color:var(--purple);font-weight:600;">${r.followers.toLocaleString('it')}</td>
+                    <td>${r.reach.toLocaleString('it')}</td>
+                    <td style="color:var(--cyan);">${r.engagement}%</td>
+                    <td>${r.posts}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      // Referral
+      const referralUrl = `https://astragency.it/?ref=${data.referralCode || user.uid.slice(0,8)}`;
+      document.getElementById('referral-link').textContent  = referralUrl;
+      document.getElementById('referral-count').textContent = data.referralCount || 0;
+
+      document.getElementById('copy-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(referralUrl);
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copiato!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copia'; btn.classList.remove('copied'); }, 2000);
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+  </script>
+</body>
+</html>

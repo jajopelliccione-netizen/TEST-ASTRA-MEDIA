@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Astra Studio</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="../logo.png" alt="Astra Studio" />
+        <span>Astra Studio</span>
+      </div>
+      <span class="badge badge-pink" style="display:block;text-align:center;margin-bottom:24px;">Pannello Admin</span>
+      <h1 class="login-title">Accesso Admin</h1>
+      <p class="login-sub">Accesso riservato al team Astra Studio.</p>
+
+      <div class="login-error" id="login-error"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" placeholder="admin@astragency.it" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="submit-btn">
+          Accedi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (snap.exists()) window.location.href = '/admin/dashboard.html';
+    });
+
+    const errEl = document.getElementById('login-error');
+    const btn   = document.getElementById('submit-btn');
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      btn.textContent = 'Accesso in corso…';
+      btn.disabled = true;
+
+      try {
+        const cred = await signInWithEmailAndPassword(
+          auth,
+          document.getElementById('email').value.trim(),
+          document.getElementById('password').value
+        );
+        const snap = await getDoc(doc(db, 'admins', cred.user.uid));
+        if (!snap.exists()) {
+          errEl.textContent = 'Accesso negato. Non sei un amministratore.';
+          errEl.classList.add('show');
+          await auth.signOut();
+        }
+      } catch (err) {
+        const msgs = {
+          'auth/invalid-credential': 'Email o password errati.',
+          'auth/too-many-requests':  'Troppi tentativi. Attendi qualche minuto.',
+        };
+        errEl.textContent = msgs[err.code] || 'Errore di accesso.';
+        errEl.classList.add('show');
+      }
+      btn.textContent = 'Accedi';
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>

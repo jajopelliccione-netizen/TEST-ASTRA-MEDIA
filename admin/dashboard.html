@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard – Astra Studio</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="portal-nav">
+    <div class="portal-nav-logo">
+      <img src="../logo.png" alt="Astra Studio" />
+      <span>Astra Studio</span>
+      <span class="portal-nav-badge" style="background:rgba(255,45,120,.12);border-color:rgba(255,45,120,.35);color:var(--pink);">Admin</span>
+    </div>
+    <div class="portal-nav-right">
+      <span class="portal-nav-user" id="admin-email"></span>
+      <button class="btn-logout" id="logout-btn">Esci</button>
+    </div>
+  </nav>
+
+  <div class="admin-layout" id="main-layout" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-section">Gestione</div>
+      <a class="sidebar-link active" data-section="clients" onclick="showSection('clients')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Clienti
+      </a>
+      <a class="sidebar-link" data-section="partners" onclick="showSection('partners')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Partner
+      </a>
+      <div class="sidebar-section">Sito</div>
+      <a class="sidebar-link" href="/" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Vai al Sito
+      </a>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="admin-main">
+
+      <!-- SECTION: CLIENTI -->
+      <section id="section-clients">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1 class="section-heading">Clienti</h1>
+            <p class="section-sub" style="margin-bottom:0;">Gestisci i tuoi clienti e i loro dati.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openAddClient()">+ Nuovo cliente</button>
+        </div>
+
+        <div class="card">
+          <div id="clients-table-wrap">
+            <div class="empty-state">
+              <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+              <p>Caricamento clienti…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: PARTNER -->
+      <section id="section-partners" style="display:none;">
+        <div style="margin-bottom:24px;">
+          <h1 class="section-heading">Richieste Partner</h1>
+          <p class="section-sub" style="margin-bottom:0;">Aziende che vogliono collaborare con Astra Studio.</p>
+        </div>
+        <div class="card">
+          <div id="partners-table-wrap">
+            <div class="empty-state">
+              <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+              <p>Caricamento richieste…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-state" style="display:flex;align-items:center;justify-content:center;height:100vh;">
+    <div style="text-align:center;">
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;"></div>
+      <p style="color:var(--text-muted);">Verifica accesso…</p>
+    </div>
+  </div>
+
+  <!-- MODAL: Aggiungi/Modifica Cliente -->
+  <div class="modal-overlay" id="client-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Nuovo Cliente</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <form id="client-form">
+        <input type="hidden" id="edit-uid" />
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Nome completo</label>
+            <input class="form-input" id="f-name" placeholder="Mario Rossi" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Azienda</label>
+            <input class="form-input" id="f-company" placeholder="Nome azienda" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Email (login cliente)</label>
+            <input class="form-input" type="email" id="f-email" placeholder="mario@email.it" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password (solo nuovo)</label>
+            <input class="form-input" type="password" id="f-password" placeholder="Min. 8 caratteri" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Pacchetto</label>
+            <select class="form-select" id="f-package">
+              <option value="Starter">Starter</option>
+              <option value="Growth">Growth</option>
+              <option value="Premium">Premium</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Codice Referral</label>
+            <input class="form-input" id="f-referral" placeholder="Es. MARIO2024" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL Bozza Sito</label>
+          <input class="form-input" id="f-draft-url" placeholder="https://..." type="url" />
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Descrizione bozza</label>
+            <input class="form-input" id="f-draft-desc" placeholder="Es. Bozza sito e-commerce" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stato bozza</label>
+            <select class="form-select" id="f-draft-status">
+              <option value="in_lavorazione">In lavorazione</option>
+              <option value="in_revisione">In revisione</option>
+              <option value="approvato">Approvato</option>
+              <option value="completato">Completato</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Annulla</button>
+          <button type="submit" class="btn btn-primary" id="save-btn">Salva</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Report -->
+  <div class="modal-overlay" id="report-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Aggiungi Report</h2>
+        <button class="modal-close" onclick="closeReportModal()">✕</button>
+      </div>
+      <form id="report-form">
+        <input type="hidden" id="report-uid" />
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Mese (es. Maggio 2025)</label>
+            <input class="form-input" id="r-month" placeholder="Maggio 2025" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Follower totali</label>
+            <input class="form-input" type="number" id="r-followers" placeholder="1250" required />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Reach mensile</label>
+            <input class="form-input" type="number" id="r-reach" placeholder="45000" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Engagement %</label>
+            <input class="form-input" type="number" step="0.1" id="r-engagement" placeholder="3.2" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Post pubblicati</label>
+          <input class="form-input" type="number" id="r-posts" placeholder="28" required />
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button type="button" class="btn btn-outline" onclick="closeReportModal()">Annulla</button>
+          <button type="submit" class="btn btn-primary">Aggiungi Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import {
+      onAuthStateChanged, signOut,
+      createUserWithEmailAndPassword, initializeApp
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import {
+      doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion, query, orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+
+    // Secondary app for creating users without logging out admin
+    const secondaryApp  = fbInit({
+      apiKey: "AIzaSyCOQaxFQ5qzOu7cjfaRmGkk4XlqySh4BcA",
+      authDomain: "astragency-88b1a.firebaseapp.com",
+      projectId: "astragency-88b1a",
+    }, 'secondary');
+    const secondaryAuth = getAuth(secondaryApp);
+
+    let currentAdminUid = null;
+    let allClients = [];
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    window.showSection = (name) => {
+      ['clients','partners'].forEach(s => {
+        document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
+      });
+      document.querySelectorAll('.sidebar-link[data-section]').forEach(l => {
+        l.classList.toggle('active', l.dataset.section === name);
+      });
+      if (name === 'partners') loadPartners();
+    };
+
+    // ── AUTH GATE ──────────────────────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = '/admin/login.html'; return; }
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+
+      currentAdminUid = user.uid;
+      document.getElementById('admin-email').textContent = user.email;
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('main-layout').style.display = 'flex';
+      loadClients();
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+    // ── LOAD CLIENTS ───────────────────────────────────────────────
+    async function loadClients() {
+      const snap = await getDocs(collection(db, 'clients'));
+      allClients = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+      renderClientsTable();
+    }
+
+    function renderClientsTable() {
+      const wrap = document.getElementById('clients-table-wrap');
+      if (!allClients.length) {
+        wrap.innerHTML = '<div class="empty-state"><p>Nessun cliente ancora. Aggiungine uno!</p></div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="portal-table">
+            <thead><tr>
+              <th>Cliente</th><th>Pacchetto</th><th>Report</th><th>Bozza</th><th>Azioni</th>
+            </tr></thead>
+            <tbody>
+              ${allClients.map(c => `
+                <tr>
+                  <td>
+                    <div style="font-weight:600;">${c.displayName || '—'}</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);">${c.email || ''}</div>
+                  </td>
+                  <td><span class="badge badge-purple">${c.package || '—'}</span></td>
+                  <td>${c.reports ? c.reports.length + ' report' : '—'}</td>
+                  <td>
+                    ${c.websiteDraft && c.websiteDraft.url
+                      ? `<span class="status-dot ${c.websiteDraft.status === 'completato' ? 'active' : 'pending'}">${c.websiteDraft.status || '—'}</span>`
+                      : '<span style="color:var(--text-muted);font-size:.82rem;">Nessuna</span>'}
+                  </td>
+                  <td>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                      <button class="btn btn-outline btn-sm" onclick="editClient('${c.uid}')">Modifica</button>
+                      <button class="btn btn-green btn-sm" onclick="openReport('${c.uid}')">+ Report</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // ── LOAD PARTNERS ──────────────────────────────────────────────
+    async function loadPartners() {
+      const snap = await getDocs(collection(db, 'partners'));
+      const partners = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const wrap = document.getElementById('partners-table-wrap');
+      if (!partners.length) {
+        wrap.innerHTML = '<div class="empty-state"><p>Nessuna richiesta partner ancora.</p></div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="portal-table">
+            <thead><tr><th>Azienda</th><th>Email</th><th>Sito</th><th>Messaggio</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <tbody>
+              ${partners.map(p => `
+                <tr>
+                  <td style="font-weight:600;">${p.companyName}</td>
+                  <td style="font-size:.85rem;">${p.email}</td>
+                  <td>${p.website ? `<a href="${p.website}" target="_blank" style="color:var(--purple);font-size:.82rem;">Visita ↗</a>` : '—'}</td>
+                  <td style="font-size:.82rem;max-width:200px;color:var(--text-muted);">${p.message}</td>
+                  <td>
+                    <span class="badge ${p.status === 'approved' ? 'badge-green' : p.status === 'rejected' ? 'badge-pink' : 'badge-yellow'}">
+                      ${p.status === 'approved' ? 'Approvato' : p.status === 'rejected' ? 'Rifiutato' : 'In attesa'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-green btn-sm" onclick="updatePartner('${p.id}','approved')">✓</button>
+                      <button class="btn btn-outline btn-sm" style="color:var(--pink);border-color:rgba(255,45,120,.3);" onclick="updatePartner('${p.id}','rejected')">✕</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    window.updatePartner = async (id, status) => {
+      await updateDoc(doc(db, 'partners', id), { status });
+      showToast(status === 'approved' ? 'Partner approvato!' : 'Partner rifiutato.');
+      loadPartners();
+    };
+
+    // ── ADD/EDIT CLIENT ────────────────────────────────────────────
+    window.openAddClient = () => {
+      document.getElementById('modal-title').textContent = 'Nuovo Cliente';
+      document.getElementById('client-form').reset();
+      document.getElementById('edit-uid').value = '';
+      document.getElementById('f-password').required = true;
+      document.getElementById('client-modal').classList.add('open');
+    };
+
+    window.editClient = (uid) => {
+      const c = allClients.find(x => x.uid === uid);
+      if (!c) return;
+      document.getElementById('modal-title').textContent = 'Modifica Cliente';
+      document.getElementById('edit-uid').value        = uid;
+      document.getElementById('f-name').value          = c.displayName || '';
+      document.getElementById('f-company').value       = c.company || '';
+      document.getElementById('f-email').value         = c.email || '';
+      document.getElementById('f-package').value       = c.package || 'Starter';
+      document.getElementById('f-referral').value      = c.referralCode || '';
+      document.getElementById('f-draft-url').value     = c.websiteDraft?.url || '';
+      document.getElementById('f-draft-desc').value    = c.websiteDraft?.description || '';
+      document.getElementById('f-draft-status').value  = c.websiteDraft?.status || 'in_lavorazione';
+      document.getElementById('f-password').required = false;
+      document.getElementById('client-modal').classList.add('open');
+    };
+
+    window.closeModal = () => document.getElementById('client-modal').classList.remove('open');
+
+    document.getElementById('client-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      btn.textContent = 'Salvataggio…'; btn.disabled = true;
+
+      const editUid = document.getElementById('edit-uid').value;
+      const data = {
+        displayName:   document.getElementById('f-name').value.trim(),
+        company:       document.getElementById('f-company').value.trim(),
+        email:         document.getElementById('f-email').value.trim(),
+        package:       document.getElementById('f-package').value,
+        referralCode:  document.getElementById('f-referral').value.trim() || Math.random().toString(36).slice(2,8).toUpperCase(),
+        referralCount: 0,
+        websiteDraft: {
+          url:         document.getElementById('f-draft-url').value.trim(),
+          description: document.getElementById('f-draft-desc').value.trim(),
+          status:      document.getElementById('f-draft-status').value,
+        },
+      };
+
+      try {
+        if (editUid) {
+          await setDoc(doc(db, 'clients', editUid), data, { merge: true });
+          showToast('Cliente aggiornato!');
+        } else {
+          const pass = document.getElementById('f-password').value;
+          const cred = await createUserWithEmailAndPassword(secondaryAuth, data.email, pass);
+          await setDoc(doc(db, 'clients', cred.user.uid), { ...data, reports: [], createdAt: new Date() });
+          await secondaryAuth.signOut();
+          showToast('Cliente creato con successo!');
+        }
+        closeModal();
+        await loadClients();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      btn.textContent = 'Salva'; btn.disabled = false;
+    });
+
+    // ── ADD REPORT ─────────────────────────────────────────────────
+    window.openReport = (uid) => {
+      document.getElementById('report-uid').value = uid;
+      document.getElementById('report-form').reset();
+      document.getElementById('report-modal').classList.add('open');
+    };
+    window.closeReportModal = () => document.getElementById('report-modal').classList.remove('open');
+
+    document.getElementById('report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('report-uid').value;
+      const report = {
+        month:       document.getElementById('r-month').value.trim(),
+        followers:   parseInt(document.getElementById('r-followers').value),
+        reach:       parseInt(document.getElementById('r-reach').value),
+        engagement:  parseFloat(document.getElementById('r-engagement').value),
+        posts:       parseInt(document.getElementById('r-posts').value),
+        createdAt:   new Date().toISOString(),
+      };
+      await updateDoc(doc(db, 'clients', uid), { reports: arrayUnion(report) });
+      showToast('Report aggiunto!');
+      closeReportModal();
+      await loadClients();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accesso Clienti – Astra Studio</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="../logo.png" alt="Astra Studio" />
+        <span>Astra Studio</span>
+      </div>
+      <h1 class="login-title">Area Clienti</h1>
+      <p class="login-sub">Accedi per vedere il tuo progetto, i report e il tuo link referral.</p>
+
+      <div class="login-error" id="login-error"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" placeholder="tuaemail@esempio.it" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="submit-btn">
+          Accedi
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:20px;font-size:.82rem;color:var(--text-muted);">
+        Problemi di accesso? Contatta
+        <a href="mailto:info@astragency.it" style="color:var(--purple);">info@astragency.it</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth } from '../js/firebase-config.js';
+    import {
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { db } from '../js/firebase-config.js';
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+      window.location.href = adminSnap.exists()
+        ? '/admin/dashboard.html'
+        : '/client/dashboard.html';
+    });
+
+    const form  = document.getElementById('login-form');
+    const errEl = document.getElementById('login-error');
+    const btn   = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      btn.textContent = 'Accesso in corso…';
+      btn.disabled = true;
+
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById('email').value.trim(),
+          document.getElementById('password').value
+        );
+      } catch (err) {
+        const msgs = {
+          'auth/user-not-found':  'Nessun account trovato con questa email.',
+          'auth/wrong-password':  'Password errata. Riprova.',
+          'auth/invalid-email':   'Formato email non valido.',
+          'auth/too-many-requests': 'Troppi tentativi. Attendi qualche minuto.',
+          'auth/invalid-credential': 'Email o password errati.',
+        };
+        errEl.textContent = msgs[err.code] || 'Errore di accesso. Riprova.';
+        errEl.classList.add('show');
+        btn.textContent = 'Accedi';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

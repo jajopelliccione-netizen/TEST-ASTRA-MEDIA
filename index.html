@@ -672,12 +672,63 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2024 Astra Studio. Tutti i diritti riservati.</p>
+        <p>© 2025 Astra Studio. Tutti i diritti riservati.</p>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+          <a href="/privacy.html" style="color:var(--text-muted);font-size:.82rem;">Privacy Policy</a>
+          <a href="/cookie-policy.html" style="color:var(--text-muted);font-size:.82rem;">Cookie Policy</a>
+          <a href="/termini.html" style="color:var(--text-muted);font-size:.82rem;">Termini e Condizioni</a>
+          <a href="/client/login.html" style="color:var(--text-muted);font-size:.82rem;">Area Clienti</a>
+        </div>
         <p>Made with ✦ in Italy</p>
       </div>
     </div>
   </footer>
 
+  <!-- COOKIE BANNER -->
+  <div id="cookie-banner" style="
+    position:fixed;bottom:0;left:0;right:0;z-index:999;
+    background:rgba(13,11,26,.97);border-top:1px solid rgba(123,92,240,.3);
+    backdrop-filter:blur(20px);padding:20px 24px;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    transform:translateY(100%);transition:transform .4s ease;
+  ">
+    <div style="flex:1;min-width:260px;">
+      <p style="font-size:.85rem;color:#D4CEEF;line-height:1.5;">
+        Utilizziamo cookie tecnici necessari al funzionamento del sito. Per maggiori informazioni consulta la nostra
+        <a href="/cookie-policy.html" style="color:#7B5CF0;">Cookie Policy</a> e la
+        <a href="/privacy.html" style="color:#7B5CF0;">Privacy Policy</a>.
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;flex-shrink:0;">
+      <button id="cookie-reject" style="
+        padding:9px 18px;border-radius:8px;border:1px solid rgba(123,92,240,.3);
+        background:transparent;color:#9B91C7;font-size:.82rem;font-weight:600;
+        cursor:pointer;font-family:'Space Grotesk',sans-serif;
+      ">Solo necessari</button>
+      <button id="cookie-accept" style="
+        padding:9px 18px;border-radius:8px;border:none;
+        background:linear-gradient(135deg,#7B5CF0,#FF2D78);
+        color:#fff;font-size:.82rem;font-weight:600;
+        cursor:pointer;font-family:'Space Grotesk',sans-serif;
+      ">Accetta tutti</button>
+    </div>
+  </div>
+
   <script src="js/main.js"></script>
+  <script>
+    (function() {
+      const consent = localStorage.getItem('cookie_consent');
+      const banner  = document.getElementById('cookie-banner');
+      if (!consent) {
+        setTimeout(() => { banner.style.transform = 'translateY(0)'; }, 800);
+      }
+      function closeBanner(val) {
+        localStorage.setItem('cookie_consent', val);
+        banner.style.transform = 'translateY(100%)';
+      }
+      document.getElementById('cookie-accept').addEventListener('click', () => closeBanner('all'));
+      document.getElementById('cookie-reject').addEventListener('click', () => closeBanner('necessary'));
+    })();
+  </script>
 </body>
 </html>
