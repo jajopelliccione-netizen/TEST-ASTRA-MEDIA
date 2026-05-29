@@ -58,6 +58,113 @@ img, svg { display: block; }
   will-change: transform;
 }
 
+/* ── AMBIENT NEBULAS ─────────────────────────────────────────── */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.amb-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+
+/* Nebula viola — in alto a sinistra, grande */
+.amb-orb-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(123,92,240,.13) 0%, rgba(123,92,240,.04) 45%, transparent 70%);
+  top: -180px; left: -180px;
+  animation: nebulaDrift1 22s ease-in-out infinite alternate;
+}
+
+/* Nebula rosa — in basso a destra */
+.amb-orb-2 {
+  width: 560px; height: 560px;
+  background: radial-gradient(circle, rgba(255,45,120,.11) 0%, rgba(255,45,120,.03) 45%, transparent 70%);
+  bottom: 5%; right: -120px;
+  animation: nebulaDrift2 19s ease-in-out infinite alternate;
+}
+
+/* Nebula cyan — centro-destra */
+.amb-orb-3 {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(0,245,255,.08) 0%, rgba(0,245,255,.02) 45%, transparent 70%);
+  top: 38%; right: 8%;
+  animation: nebulaDrift3 26s ease-in-out infinite alternate;
+}
+
+/* Nebula gialla/oro — centro basso */
+.amb-orb-4 {
+  width: 340px; height: 340px;
+  background: radial-gradient(circle, rgba(255,215,0,.07) 0%, rgba(255,150,0,.02) 45%, transparent 70%);
+  bottom: 28%; left: 12%;
+  animation: nebulaDrift4 30s ease-in-out infinite alternate;
+}
+
+/* Light streak 1 — diagonale viola */
+.amb-streak {
+  position: absolute;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+.amb-streak-1 {
+  width: 3px; height: 320px;
+  background: linear-gradient(180deg, transparent, rgba(123,92,240,.35), rgba(180,79,216,.5), rgba(123,92,240,.35), transparent);
+  top: 18%; left: 22%;
+  transform: rotate(-35deg);
+  filter: blur(1.5px);
+  animation: streakPulse1 7s ease-in-out infinite;
+}
+.amb-streak-2 {
+  width: 2px; height: 240px;
+  background: linear-gradient(180deg, transparent, rgba(0,245,255,.3), rgba(0,245,255,.45), rgba(0,245,255,.3), transparent);
+  top: 55%; right: 18%;
+  transform: rotate(25deg);
+  filter: blur(1px);
+  animation: streakPulse2 9s ease-in-out infinite;
+}
+
+@keyframes nebulaDrift1 {
+  0%   { transform: translate(0, 0)    scale(1);    opacity: .7; }
+  33%  { transform: translate(80px, 60px)  scale(1.1);  opacity: 1; }
+  66%  { transform: translate(40px, 130px) scale(.95);  opacity: .8; }
+  100% { transform: translate(120px, 40px) scale(1.05); opacity: .9; }
+}
+@keyframes nebulaDrift2 {
+  0%   { transform: translate(0, 0)     scale(1);   opacity: .6; }
+  40%  { transform: translate(-70px, -50px) scale(1.15); opacity: .95; }
+  100% { transform: translate(-30px, -100px) scale(.9); opacity: .7; }
+}
+@keyframes nebulaDrift3 {
+  0%   { transform: translate(0, 0)    scale(1);   opacity: .5; }
+  50%  { transform: translate(-40px, -60px) scale(1.2); opacity: .85; }
+  100% { transform: translate(30px, 40px)  scale(.88); opacity: .6; }
+}
+@keyframes nebulaDrift4 {
+  0%   { transform: translate(0, 0)   scale(1);    opacity: .4; }
+  40%  { transform: translate(50px, -30px) scale(1.18); opacity: .75; }
+  100% { transform: translate(-20px, 50px) scale(.92); opacity: .55; }
+}
+@keyframes streakPulse1 {
+  0%,100% { opacity: .25; transform: rotate(-35deg) scaleY(.8); }
+  50%     { opacity: .75; transform: rotate(-35deg) scaleY(1.1); }
+}
+@keyframes streakPulse2 {
+  0%,100% { opacity: .2;  transform: rotate(25deg) scaleY(.85); }
+  50%     { opacity: .65; transform: rotate(25deg) scaleY(1.15); }
+}
+
+/* Disabilita le animazioni pesanti su mobile */
+@media (max-width: 768px) {
+  .amb-orb-1 { width: 380px; height: 380px; }
+  .amb-orb-2 { width: 300px; height: 300px; }
+  .amb-orb-3, .amb-orb-4, .amb-streak { display: none; }
+}
+
 /* ── CURSOR GLOW (subtle, desktop only) ──────────────────────── */
 .cursor-glow {
   position: fixed;
@@ -488,6 +595,12 @@ img, svg { display: block; }
 @keyframes meshPulse {
   0%   { opacity: .7; }
   100% { opacity: 1; }
+}
+
+@keyframes sectionPulse {
+  0%   { opacity: .5; transform: scale(1)    translateY(0); }
+  50%  { opacity: .9; transform: scale(1.12) translateY(-20px); }
+  100% { opacity: .6; transform: scale(.95)  translateY(15px); }
 }
 
 .hero-content {
@@ -957,6 +1070,15 @@ img, svg { display: block; }
   position: relative;
   z-index: 2;
 }
+#collaborations::after {
+  content: '';
+  position: absolute;
+  top: 10%; right: -10%;
+  width: 55%; height: 80%;
+  background: radial-gradient(ellipse, rgba(0,245,255,.06) 0%, transparent 65%);
+  pointer-events: none;
+  animation: sectionPulse 8s ease-in-out infinite alternate;
+}
 
 /* ticker */
 .collab-ticker-wrap {
@@ -1140,6 +1262,24 @@ img, svg { display: block; }
   padding: 120px 0;
   position: relative;
   z-index: 2;
+}
+#contact::before {
+  content: '';
+  position: absolute;
+  top: -5%; left: -5%;
+  width: 60%; height: 70%;
+  background: radial-gradient(ellipse, rgba(123,92,240,.08) 0%, transparent 65%);
+  pointer-events: none;
+  animation: sectionPulse 11s ease-in-out infinite alternate;
+}
+#contact::after {
+  content: '';
+  position: absolute;
+  bottom: -5%; right: -5%;
+  width: 50%; height: 60%;
+  background: radial-gradient(ellipse, rgba(255,45,120,.07) 0%, transparent 65%);
+  pointer-events: none;
+  animation: sectionPulse 9s ease-in-out infinite alternate-reverse;
 }
 
 .contact-grid {
@@ -1499,6 +1639,24 @@ footer {
   padding: 120px 0;
   position: relative;
   z-index: 2;
+}
+#packages::before {
+  content: '';
+  position: absolute;
+  top: 5%; left: -8%;
+  width: 50%; height: 90%;
+  background: radial-gradient(ellipse, rgba(255,45,120,.07) 0%, transparent 65%);
+  pointer-events: none;
+  animation: sectionPulse 10s ease-in-out infinite alternate-reverse;
+}
+#packages::after {
+  content: '';
+  position: absolute;
+  bottom: 5%; right: -8%;
+  width: 45%; height: 70%;
+  background: radial-gradient(ellipse, rgba(123,92,240,.07) 0%, transparent 65%);
+  pointer-events: none;
+  animation: sectionPulse 12s ease-in-out infinite alternate;
 }
 
 .packages-grid {
