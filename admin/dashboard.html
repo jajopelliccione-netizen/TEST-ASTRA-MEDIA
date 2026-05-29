@@ -216,13 +216,11 @@
   <script type="module">
     import { auth, db } from '../js/firebase-config.js';
     import {
-      onAuthStateChanged, signOut,
-      createUserWithEmailAndPassword, initializeApp
+      onAuthStateChanged, signOut, createUserWithEmailAndPassword, getAuth
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
-      doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion, query, orderBy
+      doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 
     // Secondary app for creating users without logging out admin
