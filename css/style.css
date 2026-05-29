@@ -255,7 +255,7 @@ img, svg { display: block; }
 
 /* Ambilight: drop-shadow segue il contorno esatto del logo PNG */
 .nav-logo-img {
-  height: 110px;
+  height: 130px;
   width: auto;
   display: block;
   position: relative;
@@ -266,25 +266,53 @@ img, svg { display: block; }
 
 /* Appare solo quando si scrolla sopra contenuto */
 #navbar.scrolled .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(123,92,240,.85)) drop-shadow(0 0 30px rgba(123,92,240,.45)) drop-shadow(0 0 55px rgba(123,92,240,.2));
+  filter:
+    drop-shadow(0 0 6px rgba(123,92,240,1))
+    drop-shadow(0 0 16px rgba(123,92,240,.95))
+    drop-shadow(0 0 38px rgba(123,92,240,.7))
+    drop-shadow(0 0 80px rgba(123,92,240,.45));
 }
 #navbar.scrolled.section-about .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(123,92,240,.85)) drop-shadow(0 0 30px rgba(180,79,216,.5)) drop-shadow(0 0 55px rgba(123,92,240,.2));
+  filter:
+    drop-shadow(0 0 6px rgba(180,79,216,1))
+    drop-shadow(0 0 16px rgba(180,79,216,.95))
+    drop-shadow(0 0 38px rgba(123,92,240,.75))
+    drop-shadow(0 0 80px rgba(180,79,216,.45));
 }
 #navbar.scrolled.section-services .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(255,215,0,.82)) drop-shadow(0 0 30px rgba(123,92,240,.5)) drop-shadow(0 0 55px rgba(255,215,0,.22));
+  filter:
+    drop-shadow(0 0 6px rgba(255,215,0,1))
+    drop-shadow(0 0 16px rgba(255,215,0,.95))
+    drop-shadow(0 0 38px rgba(255,150,0,.7))
+    drop-shadow(0 0 80px rgba(255,215,0,.42));
 }
 #navbar.scrolled.section-collaborations .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(0,245,255,.82)) drop-shadow(0 0 30px rgba(0,229,160,.5)) drop-shadow(0 0 55px rgba(0,245,255,.22));
+  filter:
+    drop-shadow(0 0 6px rgba(0,245,255,1))
+    drop-shadow(0 0 16px rgba(0,245,255,.95))
+    drop-shadow(0 0 38px rgba(0,229,160,.72))
+    drop-shadow(0 0 80px rgba(0,245,255,.42));
 }
 #navbar.scrolled.section-packages .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(255,45,120,.85)) drop-shadow(0 0 30px rgba(123,92,240,.5)) drop-shadow(0 0 55px rgba(255,45,120,.22));
+  filter:
+    drop-shadow(0 0 6px rgba(255,45,120,1))
+    drop-shadow(0 0 16px rgba(255,45,120,.95))
+    drop-shadow(0 0 38px rgba(123,92,240,.72))
+    drop-shadow(0 0 80px rgba(255,45,120,.42));
 }
 #navbar.scrolled.section-cta-band .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(255,45,120,.85)) drop-shadow(0 0 30px rgba(123,92,240,.45)) drop-shadow(0 0 55px rgba(255,45,120,.2));
+  filter:
+    drop-shadow(0 0 6px rgba(255,45,120,1))
+    drop-shadow(0 0 16px rgba(255,45,120,.95))
+    drop-shadow(0 0 38px rgba(255,45,120,.72))
+    drop-shadow(0 0 80px rgba(123,92,240,.42));
 }
 #navbar.scrolled.section-contact .nav-logo-img {
-  filter: drop-shadow(0 0 14px rgba(123,92,240,.85)) drop-shadow(0 0 30px rgba(255,45,120,.5)) drop-shadow(0 0 55px rgba(123,92,240,.22));
+  filter:
+    drop-shadow(0 0 6px rgba(123,92,240,1))
+    drop-shadow(0 0 16px rgba(255,45,120,.85))
+    drop-shadow(0 0 38px rgba(123,92,240,.72))
+    drop-shadow(0 0 80px rgba(255,45,120,.42));
 }
 
 /* ── NAV PILL (links + cta) ─── */
@@ -353,7 +381,7 @@ img, svg { display: block; }
 }
 
 .about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
-.footer-logo { height: 96px; width: auto; margin-bottom: 16px; display: block; }
+.footer-logo { height: auto; width: 100%; max-width: 260px; margin-bottom: 20px; display: block; }
 
 .burger {
   display: none;
@@ -1273,36 +1301,38 @@ footer {
   gap: 12px;
 }
 
-/* ═══════════════════════════════════ PHONE MOCKUP ══════════════ */
+/* ═══════════════════════════════════ MONITOR MOCKUP ════════════ */
 .device-scene {
   position: relative;
-  width: 380px;
-  height: 500px;
+  width: 100%;
+  max-width: 480px;
+  height: 420px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.phone-wrap {
+.monitor-wrap {
   position: relative;
   z-index: 1;
-  animation: phoneFloat 5.5s ease-in-out infinite;
-  transform: rotate(-5deg);
+  width: 100%;
+  animation: monitorFloat 6s ease-in-out infinite;
   filter:
-    drop-shadow(0 32px 64px rgba(123,92,240,.55))
-    drop-shadow(0 8px 24px rgba(255,45,120,.2));
+    drop-shadow(0 22px 52px rgba(123,92,240,.6))
+    drop-shadow(0 6px 18px rgba(255,45,120,.22))
+    drop-shadow(0 -2px 18px rgba(0,245,255,.1));
 }
 
-.phone-svg {
-  width: 220px;
+.monitor-svg {
+  width: 100%;
   height: auto;
   display: block;
 }
 
-@keyframes phoneFloat {
-  0%, 100% { transform: rotate(-5deg) translateY(0); }
-  50%       { transform: rotate(-5deg) translateY(-22px); }
+@keyframes monitorFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-16px); }
 }
 
 /* Notification chips */
@@ -1345,22 +1375,22 @@ footer {
 }
 
 .ph-chip-1 {
-  top: 48px;
-  right: -4px;
+  top: 24px;
+  right: -8px;
   animation-delay: 0s;
   box-shadow: 0 4px 20px rgba(253,29,29,.18);
 }
 
 .ph-chip-2 {
-  bottom: 130px;
+  bottom: 110px;
   left: -8px;
   animation-delay: .9s;
   box-shadow: 0 4px 20px rgba(255,45,120,.18);
 }
 
 .ph-chip-3 {
-  bottom: 64px;
-  right: -4px;
+  bottom: 54px;
+  right: -8px;
   animation-delay: 1.8s;
   box-shadow: 0 4px 20px rgba(123,92,240,.22);
 }
@@ -1578,8 +1608,7 @@ footer {
   .cta-inner { padding: 48px 28px; }
   .team-visual { max-width: 300px; }
 
-  .device-scene { width: 280px; height: 400px; }
-  .phone-svg { width: 175px; }
+  .device-scene { max-width: 340px; height: 300px; }
   .ph-chip { display: none; }
 }
 

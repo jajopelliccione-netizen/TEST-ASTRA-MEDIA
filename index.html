@@ -111,145 +111,163 @@
         <div class="about-visual reveal">
           <div class="device-scene">
 
-            <!-- Phone SVG mockup -->
-            <div class="phone-wrap">
-              <svg class="phone-svg" viewBox="0 0 230 468" xmlns="http://www.w3.org/2000/svg">
+            <!-- Monitor SVG mockup -->
+            <div class="monitor-wrap">
+              <svg class="monitor-svg" viewBox="0 0 440 352" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="ph_body" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#221b3c"/>
-                    <stop offset="100%" stop-color="#0e0c1c"/>
+                  <linearGradient id="mn_frame" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#221d3e"/>
+                    <stop offset="100%" stop-color="#0f0d1e"/>
                   </linearGradient>
-                  <linearGradient id="ph_ring" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient id="mn_screen" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#0c0920"/>
+                    <stop offset="100%" stop-color="#060410"/>
+                  </linearGradient>
+                  <linearGradient id="mn_ring" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stop-color="#7B5CF0"/>
                     <stop offset="45%" stop-color="#FF2D78"/>
                     <stop offset="100%" stop-color="#00F5FF"/>
                   </linearGradient>
-                  <linearGradient id="ph_img" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#4a30b8"/>
-                    <stop offset="100%" stop-color="#d42870"/>
+                  <linearGradient id="mn_area1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(123,92,240,.42)"/>
+                    <stop offset="100%" stop-color="rgba(123,92,240,0)"/>
                   </linearGradient>
-                  <linearGradient id="ph_s1" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#FF2D78"/><stop offset="100%" stop-color="#FFD700"/>
+                  <linearGradient id="mn_area2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(255,45,120,.28)"/>
+                    <stop offset="100%" stop-color="rgba(255,45,120,0)"/>
                   </linearGradient>
-                  <linearGradient id="ph_s2" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#7B5CF0"/><stop offset="100%" stop-color="#B44FD8"/>
+                  <linearGradient id="mn_stand" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#18152c"/>
+                    <stop offset="50%" stop-color="#28224a"/>
+                    <stop offset="100%" stop-color="#18152c"/>
                   </linearGradient>
-                  <linearGradient id="ph_s3" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#00E5A0"/>
-                  </linearGradient>
-                  <linearGradient id="ph_statbg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(123,92,240,.18)"/>
-                    <stop offset="100%" stop-color="rgba(123,92,240,.06)"/>
-                  </linearGradient>
-                  <clipPath id="ph_clip">
-                    <rect x="14" y="14" width="202" height="440" rx="34"/>
+                  <clipPath id="mn_clip">
+                    <rect x="14" y="13" width="412" height="246" rx="12"/>
                   </clipPath>
                 </defs>
 
-                <!-- Drop shadow -->
-                <rect x="20" y="24" width="200" height="440" rx="44" fill="rgba(0,0,0,.5)"/>
+                <!-- Stand neck -->
+                <rect x="205" y="260" width="30" height="50" rx="7" fill="url(#mn_stand)"/>
+                <rect x="205" y="260" width="30" height="50" rx="7" fill="none" stroke="rgba(123,92,240,.2)" stroke-width="1"/>
+                <!-- Base -->
+                <ellipse cx="220" cy="316" rx="82" ry="12" fill="#161330"/>
+                <ellipse cx="220" cy="316" rx="82" ry="12" fill="none" stroke="rgba(123,92,240,.22)" stroke-width="1.2"/>
+                <!-- Base glow -->
+                <ellipse cx="220" cy="323" rx="62" ry="7" fill="rgba(123,92,240,.15)"/>
 
-                <!-- Phone body -->
-                <rect x="12" y="12" width="206" height="444" rx="44" fill="url(#ph_body)"/>
+                <!-- Monitor frame -->
+                <rect x="6" y="6" width="428" height="260" rx="22" fill="url(#mn_frame)"/>
+                <!-- Gradient ring -->
+                <rect x="6" y="6" width="428" height="260" rx="22" fill="none" stroke="url(#mn_ring)" stroke-width="2"/>
+                <!-- Inner bezel highlight -->
+                <rect x="9" y="9" width="422" height="254" rx="19" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+                <!-- Camera dot -->
+                <circle cx="220" cy="11" r="3.5" fill="rgba(255,255,255,.14)"/>
 
-                <!-- Gradient ring border -->
-                <rect x="12" y="12" width="206" height="444" rx="44" fill="none" stroke="url(#ph_ring)" stroke-width="2.5"/>
+                <!-- Screen content (clipped) -->
+                <g clip-path="url(#mn_clip)">
+                  <rect x="14" y="13" width="412" height="246" fill="url(#mn_screen)"/>
 
-                <!-- Inner screen bezel -->
-                <rect x="14" y="14" width="202" height="440" rx="34" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
-
-                <!-- ── SCREEN CONTENT ── -->
-                <g clip-path="url(#ph_clip)">
-                  <rect x="14" y="14" width="202" height="440" fill="#07050e"/>
-
-                  <!-- Status bar -->
-                  <text x="28" y="44" fill="rgba(255,255,255,.9)" font-size="13" font-family="'Space Grotesk',sans-serif" font-weight="700">9:41</text>
-
-                  <!-- Dynamic island -->
-                  <rect x="76" y="24" width="78" height="24" rx="12" fill="#010005"/>
-
-                  <!-- Battery -->
-                  <rect x="174" y="33" width="22" height="11" rx="3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.2"/>
-                  <rect x="196" y="36" width="2.5" height="5" rx="1" fill="rgba(255,255,255,.4)"/>
-                  <rect x="175.5" y="34.5" width="17" height="8" rx="1.5" fill="rgba(255,255,255,.82)"/>
-
+                  <!-- Nav bar bg -->
+                  <rect x="14" y="13" width="412" height="34" fill="rgba(255,255,255,.02)"/>
+                  <!-- Logo circle -->
+                  <circle cx="32" cy="30" r="10" fill="url(#mn_ring)"/>
+                  <text x="32" y="34" text-anchor="middle" fill="white" font-size="10" font-family="'Syne',sans-serif" font-weight="700">A</text>
+                  <!-- Title -->
+                  <text x="48" y="34" fill="rgba(255,255,255,.88)" font-size="12" font-family="'Syne',sans-serif" font-weight="700">ASTRA Media</text>
+                  <text x="149" y="34" fill="rgba(255,255,255,.3)" font-size="12" font-family="sans-serif"> · Analytics</text>
+                  <!-- Window dots -->
+                  <circle cx="394" cy="30" r="5" fill="rgba(255,45,120,.55)"/>
+                  <circle cx="408" cy="30" r="5" fill="rgba(255,215,0,.45)"/>
+                  <circle cx="422" cy="30" r="5" fill="rgba(0,229,160,.45)"/>
                   <!-- Separator -->
-                  <line x1="14" y1="60" x2="216" y2="60" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+                  <line x1="14" y1="47" x2="426" y2="47" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
 
-                  <!-- ── STORIES ── -->
-                  <circle cx="42" cy="92" r="24" fill="url(#ph_s1)" opacity=".85"/>
-                  <circle cx="42" cy="92" r="20" fill="#110e1e"/>
-                  <line x1="42" y1="84" x2="42" y2="100" stroke="rgba(255,255,255,.65)" stroke-width="2.2" stroke-linecap="round"/>
-                  <line x1="34" y1="92" x2="50" y2="92" stroke="rgba(255,255,255,.65)" stroke-width="2.2" stroke-linecap="round"/>
-                  <text x="42" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">il tuo</text>
+                  <!-- ── STAT CARDS ── -->
+                  <!-- Card 1 – Follower (purple) -->
+                  <rect x="22" y="55" width="118" height="62" rx="11" fill="rgba(123,92,240,.12)"/>
+                  <rect x="22" y="55" width="118" height="62" rx="11" fill="none" stroke="rgba(123,92,240,.3)" stroke-width="1"/>
+                  <text x="34" y="73" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif" letter-spacing=".5">FOLLOWER</text>
+                  <text x="34" y="97" fill="white" font-size="23" font-family="'Syne',sans-serif" font-weight="700">12.4K</text>
+                  <text x="128" y="100" text-anchor="end" fill="#00E5A0" font-size="11" font-family="'Space Grotesk',sans-serif" font-weight="600">↑ 18%</text>
+                  <!-- Sparkline -->
+                  <polyline points="100,112 106,107 112,110 118,103 124,106 130,98 136,93 140,89" fill="none" stroke="rgba(123,92,240,.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-                  <circle cx="98" cy="92" r="24" fill="url(#ph_s2)"/>
-                  <circle cx="98" cy="92" r="20" fill="#1a1530"/>
-                  <text x="98" y="98" text-anchor="middle" fill="white" font-size="18" font-family="'Syne',sans-serif" font-weight="700">A</text>
-                  <text x="98" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">astra</text>
+                  <!-- Card 2 – Reach (pink) -->
+                  <rect x="155" y="55" width="118" height="62" rx="11" fill="rgba(255,45,120,.1)"/>
+                  <rect x="155" y="55" width="118" height="62" rx="11" fill="none" stroke="rgba(255,45,120,.3)" stroke-width="1"/>
+                  <text x="167" y="73" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif" letter-spacing=".5">REACH</text>
+                  <text x="167" y="97" fill="white" font-size="23" font-family="'Syne',sans-serif" font-weight="700">+48%</text>
+                  <text x="261" y="100" text-anchor="end" fill="#FF2D78" font-size="14" font-family="sans-serif">↑</text>
+                  <!-- Sparkline -->
+                  <polyline points="233,112 239,107 245,110 251,103 257,106 263,99 269,95 273,90" fill="none" stroke="rgba(255,45,120,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-                  <circle cx="154" cy="92" r="24" fill="url(#ph_s3)"/>
-                  <circle cx="154" cy="92" r="20" fill="#081818"/>
-                  <text x="154" y="98" text-anchor="middle" fill="#00F5FF" font-size="12" font-family="'Space Grotesk',sans-serif" font-weight="700">TK</text>
-                  <text x="154" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">tiktok</text>
+                  <!-- Card 3 – Engagement (cyan) -->
+                  <rect x="288" y="55" width="118" height="62" rx="11" fill="rgba(0,245,255,.07)"/>
+                  <rect x="288" y="55" width="118" height="62" rx="11" fill="none" stroke="rgba(0,245,255,.24)" stroke-width="1"/>
+                  <text x="300" y="73" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif" letter-spacing=".5">ENGAGEMENT</text>
+                  <text x="300" y="97" fill="white" font-size="23" font-family="'Syne',sans-serif" font-weight="700">9.2%</text>
+                  <text x="394" y="100" text-anchor="end" fill="#00F5FF" font-size="12" font-family="sans-serif">★</text>
+                  <!-- Sparkline -->
+                  <polyline points="364,112 370,108 376,110 382,104 388,107 394,100 400,97 404,93" fill="none" stroke="rgba(0,245,255,.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-                  <circle cx="210" cy="92" r="24" fill="url(#ph_s1)" opacity=".8"/>
-                  <circle cx="210" cy="92" r="20" fill="#1a0e20"/>
-                  <text x="210" y="98" text-anchor="middle" fill="#FF2D78" font-size="11" font-family="'Space Grotesk',sans-serif" font-weight="700">IG</text>
-                  <text x="210" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">insta</text>
+                  <!-- ── CHART ── -->
+                  <text x="22" y="136" fill="rgba(255,255,255,.3)" font-size="8.5" font-family="'Space Grotesk',sans-serif" letter-spacing=".5">CRESCITA · ULTIMI 6 MESI</text>
 
-                  <line x1="14" y1="134" x2="216" y2="134" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                  <!-- Grid -->
+                  <line x1="22" y1="146" x2="418" y2="146" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                  <line x1="22" y1="160" x2="418" y2="160" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                  <line x1="22" y1="174" x2="418" y2="174" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                  <line x1="22" y1="188" x2="418" y2="188" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                  <line x1="22" y1="202" x2="418" y2="202" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+                  <line x1="22" y1="216" x2="418" y2="216" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
 
-                  <!-- ── POST HEADER ── -->
-                  <circle cx="34" cy="154" r="14" fill="url(#ph_img)"/>
-                  <text x="34" y="159" text-anchor="middle" fill="white" font-size="12" font-family="'Syne',sans-serif" font-weight="700">A</text>
-                  <text x="54" y="149" fill="rgba(255,255,255,.9)" font-size="11" font-family="'Space Grotesk',sans-serif" font-weight="600">astra_media</text>
-                  <text x="54" y="163" fill="rgba(255,255,255,.4)" font-size="8.5" font-family="sans-serif">Milano · Sponsorizzato</text>
-                  <circle cx="190" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
-                  <circle cx="198" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
-                  <circle cx="206" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
+                  <!-- Area fill – follower -->
+                  <path d="M22,228 C42,223 62,220 86,216 C110,212 128,208 152,204 C172,200 192,195 216,190 C236,185 256,180 280,174 C300,168 320,162 344,156 C364,150 390,144 418,138 L418,228 Z" fill="url(#mn_area1)"/>
+                  <!-- Area fill – reach (lighter, slightly lower) -->
+                  <path d="M22,232 C42,228 62,226 86,223 C110,220 128,218 152,216 C172,213 192,210 216,207 C236,204 256,201 280,198 C300,194 320,190 344,186 C364,182 390,178 418,174 L418,232 Z" fill="url(#mn_area2)"/>
 
-                  <!-- ── POST IMAGE ── -->
-                  <rect x="14" y="172" width="202" height="172" fill="url(#ph_img)"/>
-                  <circle cx="115" cy="258" r="72" fill="rgba(255,255,255,.03)"/>
-                  <circle cx="115" cy="258" r="46" fill="rgba(255,255,255,.04)"/>
-                  <circle cx="115" cy="258" r="24" fill="rgba(255,255,255,.07)"/>
-                  <text x="115" y="267" text-anchor="middle" fill="rgba(255,255,255,.96)" font-size="28" font-family="'Syne',sans-serif" font-weight="700" letter-spacing="2">ASTRA</text>
-                  <text x="115" y="283" text-anchor="middle" fill="rgba(255,255,255,.48)" font-size="9" font-family="'Space Grotesk',sans-serif" letter-spacing="4">MEDIA AGENCY</text>
+                  <!-- Line – reach (dashed pink) -->
+                  <path d="M22,232 C42,228 62,226 86,223 C110,220 128,218 152,216 C172,213 192,210 216,207 C236,204 256,201 280,198 C300,194 320,190 344,186 C364,182 390,178 418,174" fill="none" stroke="rgba(255,45,120,.55)" stroke-width="1.8" stroke-dasharray="5,3" stroke-linecap="round"/>
+                  <!-- Line – follower (solid gradient) -->
+                  <path d="M22,228 C42,223 62,220 86,216 C110,212 128,208 152,204 C172,200 192,195 216,190 C236,185 256,180 280,174 C300,168 320,162 344,156 C364,150 390,144 418,138" fill="none" stroke="url(#mn_ring)" stroke-width="2.5" stroke-linecap="round"/>
 
-                  <!-- ── ACTIONS ── -->
-                  <path d="M26 360c-1-5 4-9 8-6 1 1 2 2 3 4 1-2 2-3 3-4 4-3 9 1 8 6-1 4-6 8-11 11-5-3-10-7-11-11z" fill="rgba(255,255,255,.7)"/>
-                  <path d="M48 356a8 8 0 0116 0 8 8 0 01-8 8l-3 4-1-4a8 8 0 01-4-8z" fill="none" stroke="rgba(255,255,255,.65)" stroke-width="1.6"/>
-                  <path d="M72 354l11-5-11-5v4c-5 0-9 3-9 8 2-3 5-5 9-5v3z" fill="rgba(255,255,255,.65)"/>
-                  <path d="M203 352v16l-6-4-6 4v-16h12z" fill="rgba(255,255,255,.65)"/>
+                  <!-- Data points -->
+                  <circle cx="22"  cy="228" r="3"   fill="#7B5CF0" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="86"  cy="216" r="3"   fill="#8E5BE8" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="152" cy="204" r="3"   fill="#A850D0" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="216" cy="190" r="3"   fill="#C640A8" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="280" cy="174" r="3"   fill="#E03090" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="344" cy="156" r="3"   fill="#F42878" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/>
+                  <circle cx="418" cy="138" r="4.5" fill="#FF2D78" stroke="white" stroke-width="2"/>
 
-                  <text x="22" y="382" fill="rgba(255,255,255,.88)" font-size="10" font-family="'Space Grotesk',sans-serif" font-weight="600">12.487 Mi piace</text>
-                  <text x="22" y="396" font-size="9.5" font-family="'Space Grotesk',sans-serif">
-                    <tspan fill="rgba(255,255,255,.88)" font-weight="600">astra_media</tspan>
-                    <tspan fill="rgba(255,255,255,.5)"> Cresciamo il tuo brand ✨</tspan>
-                  </text>
+                  <!-- Tooltip -->
+                  <rect x="384" y="120" width="46" height="20" rx="5" fill="rgba(123,92,240,.95)"/>
+                  <text x="407" y="134" text-anchor="middle" fill="white" font-size="9" font-family="'Space Grotesk',sans-serif" font-weight="700">12.4K</text>
+                  <polygon points="407,140 402,140 407,144 412,140" fill="rgba(123,92,240,.95)"/>
 
-                  <!-- ── STATS BAR ── -->
-                  <rect x="14" y="410" width="202" height="44" fill="url(#ph_statbg)"/>
-                  <line x1="14" y1="410" x2="216" y2="410" stroke="rgba(123,92,240,.3)" stroke-width="1"/>
-                  <text x="52" y="427" text-anchor="middle" fill="#B44FD8" font-size="14" font-family="'Syne',sans-serif" font-weight="700">+2.4K</text>
-                  <text x="52" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">follower</text>
-                  <line x1="97" y1="415" x2="97" y2="451" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-                  <text x="120" y="427" text-anchor="middle" fill="#FF2D78" font-size="14" font-family="'Syne',sans-serif" font-weight="700">+48%</text>
-                  <text x="120" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">reach</text>
-                  <line x1="145" y1="415" x2="145" y2="451" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-                  <text x="183" y="427" text-anchor="middle" fill="#00F5FF" font-size="14" font-family="'Syne',sans-serif" font-weight="700">9.2%</text>
-                  <text x="183" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">eng.</text>
+                  <!-- Month labels -->
+                  <text x="22"  y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Gen</text>
+                  <text x="86"  y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Feb</text>
+                  <text x="152" y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Mar</text>
+                  <text x="216" y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Apr</text>
+                  <text x="280" y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Mag</text>
+                  <text x="344" y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Giu</text>
+                  <text x="418" y="238" text-anchor="middle" fill="rgba(255,255,255,.26)" font-size="7.5" font-family="sans-serif">Lug</text>
+
+                  <!-- Legend -->
+                  <rect x="22" y="247" width="18" height="3" rx="1.5" fill="url(#mn_ring)"/>
+                  <text x="44" y="251" fill="rgba(255,255,255,.38)" font-size="7.5" font-family="sans-serif">Follower</text>
+                  <line x1="110" y1="249" x2="128" y2="249" stroke="rgba(255,45,120,.55)" stroke-width="1.8" stroke-dasharray="5,3"/>
+                  <text x="132" y="251" fill="rgba(255,255,255,.38)" font-size="7.5" font-family="sans-serif">Reach</text>
                 </g>
 
-                <!-- Side buttons -->
-                <rect x="9" y="162" width="4" height="30" rx="2" fill="#1c1a30"/>
-                <rect x="9" y="200" width="4" height="30" rx="2" fill="#1c1a30"/>
-                <rect x="217" y="180" width="4" height="46" rx="2" fill="#1c1a30"/>
+                <!-- Top edge light -->
+                <rect x="6" y="6" width="428" height="5" rx="3" fill="rgba(255,255,255,.04)"/>
               </svg>
             </div>
 
-            <!-- Notification chips -->
+            <!-- Floating notification chips -->
             <div class="ph-chip ph-chip-1">
               <span class="ph-chip-icon" style="background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
