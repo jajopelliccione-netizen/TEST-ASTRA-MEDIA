@@ -1587,6 +1587,17 @@ footer {
   .about-text { text-align: center; }
   .about-values { justify-content: center; }
   .packages-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto 56px; }
+
+  /* Hero fits in one screen on tablet */
+  #hero { padding: 96px 24px 36px; }
+  .hero-title {
+    font-size: clamp(2.4rem, 5.8vw, 4rem);
+    margin-bottom: 16px;
+  }
+  .hero-sub { margin-bottom: 28px; font-size: .95rem; }
+  .hero-actions { margin-bottom: 36px; }
+  .hero-stats { padding: 16px 24px; }
+  .stat-num { font-size: 1.8rem; }
 }
 
 @media (max-width: 768px) {
