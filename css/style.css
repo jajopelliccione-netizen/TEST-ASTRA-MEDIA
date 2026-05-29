@@ -467,7 +467,22 @@ img, svg { display: block; }
 }
 
 .about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
-.footer-logo { height: auto; width: 100%; max-width: 260px; margin-bottom: 20px; display: block; }
+.footer-logo {
+  height: auto;
+  width: 100%;
+  max-width: 260px;
+  margin-bottom: 20px;
+  display: block;
+  animation: footerLogoGlow 5s ease-in-out infinite;
+}
+
+@keyframes footerLogoGlow {
+  0%   { filter: drop-shadow(0 0 8px rgba(123,92,240,1))   drop-shadow(0 0 22px rgba(123,92,240,.7))  drop-shadow(0 0 40px rgba(123,92,240,.4)); }
+  25%  { filter: drop-shadow(0 0 8px rgba(180,79,216,1))   drop-shadow(0 0 22px rgba(255,45,120,.8))  drop-shadow(0 0 40px rgba(255,45,120,.4)); }
+  50%  { filter: drop-shadow(0 0 8px rgba(255,45,120,1))   drop-shadow(0 0 22px rgba(255,45,120,.7))  drop-shadow(0 0 40px rgba(0,245,255,.35)); }
+  75%  { filter: drop-shadow(0 0 8px rgba(0,245,255,.9))   drop-shadow(0 0 22px rgba(0,245,255,.65))  drop-shadow(0 0 40px rgba(123,92,240,.4)); }
+  100% { filter: drop-shadow(0 0 8px rgba(123,92,240,1))   drop-shadow(0 0 22px rgba(123,92,240,.7))  drop-shadow(0 0 40px rgba(123,92,240,.4)); }
+}
 
 .burger {
   display: none;
