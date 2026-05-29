@@ -1622,8 +1622,21 @@ footer {
   .burger { display: flex; }
   .mobile-menu { display: flex; }
 
-  /* Ambilight off on mobile – glow bleeds into page content */
-  #navbar .nav-logo-img { filter: none !important; transition: none !important; }
+  /* Logo più piccolo su mobile + ambilight off */
+  #navbar .nav-logo-img {
+    filter: none !important;
+    transition: none !important;
+    height: 72px;
+  }
+
+  /* Hero: padding sufficiente a liberare la navbar */
+  #hero { padding: 86px 24px 20px; }
+
+  /* Statistiche in riga anche su mobile */
+  .hero-stats { flex-wrap: nowrap; padding: 10px 12px; }
+  .stat-divider { display: block; }
+  .stat { padding: 0 8px; }
+  .stat-num { font-size: 1.3rem; }
 
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
