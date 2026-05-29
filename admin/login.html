@@ -25,8 +25,8 @@
 
       <form id="login-form">
         <div class="form-group">
-          <label class="form-label" for="email">Email</label>
-          <input class="form-input" type="email" id="email" placeholder="admin@astragency.it" required />
+          <label class="form-label" for="email">Username o Email</label>
+          <input class="form-input" type="text" id="email" placeholder="es. admin" autocomplete="username" required />
         </div>
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
@@ -60,11 +60,21 @@
       btn.disabled = true;
 
       try {
-        const cred = await signInWithEmailAndPassword(
-          auth,
-          document.getElementById('email').value.trim(),
-          document.getElementById('password').value
-        );
+        let input = document.getElementById('email').value.trim();
+
+        // Se non è una email, cerca l'alias username → email
+        if (!input.includes('@')) {
+          const aliasSnap = await getDoc(doc(db, 'auth_aliases', input.toLowerCase()));
+          if (!aliasSnap.exists()) {
+            errEl.textContent = 'Username non trovato.';
+            errEl.classList.add('show');
+            btn.textContent = 'Accedi'; btn.disabled = false;
+            return;
+          }
+          input = aliasSnap.data().email;
+        }
+
+        const cred = await signInWithEmailAndPassword(auth, input, document.getElementById('password').value);
         const snap = await getDoc(doc(db, 'admins', cred.user.uid));
         if (!snap.exists()) {
           errEl.textContent = 'Accesso negato. Non sei un amministratore.';
@@ -73,7 +83,7 @@
         }
       } catch (err) {
         const msgs = {
-          'auth/invalid-credential': 'Email o password errati.',
+          'auth/invalid-credential': 'Credenziali errate.',
           'auth/too-many-requests':  'Troppi tentativi. Attendi qualche minuto.',
         };
         errEl.textContent = msgs[err.code] || 'Errore di accesso.';
