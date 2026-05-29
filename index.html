@@ -110,62 +110,165 @@
       <div class="about-grid">
         <div class="about-visual reveal">
           <div class="device-scene">
-            <div class="device-glow"></div>
 
-            <!-- 3D Laptop -->
-            <div class="device-laptop">
-              <div class="laptop-lid">
-                <div class="laptop-camera"></div>
-                <div class="laptop-display">
-                  <div class="dash-header">
-                    <div class="dash-avatar"></div>
-                    <div class="dash-info">
-                      <span class="dash-name">ASTRA Media</span>
-                      <span class="dash-sub">Analytics Dashboard</span>
-                    </div>
-                    <div class="dash-badge">● LIVE</div>
-                  </div>
-                  <div class="dash-stats">
-                    <div class="dash-stat"><span class="dash-num">12.4K</span><span class="dash-lbl">Follower</span></div>
-                    <div class="dash-stat"><span class="dash-num" style="color:#FF2D78">+48%</span><span class="dash-lbl">Reach</span></div>
-                    <div class="dash-stat"><span class="dash-num" style="color:#00F5FF">9.2%</span><span class="dash-lbl">Eng.</span></div>
-                  </div>
-                  <div class="dash-chart">
-                    <div class="dash-bar" style="--h:45%"></div>
-                    <div class="dash-bar" style="--h:68%"></div>
-                    <div class="dash-bar" style="--h:52%"></div>
-                    <div class="dash-bar" style="--h:85%"></div>
-                    <div class="dash-bar" style="--h:70%"></div>
-                    <div class="dash-bar" style="--h:93%"></div>
-                    <div class="dash-bar" style="--h:76%"></div>
-                  </div>
-                  <div class="dash-posts">
-                    <div class="dash-post"></div>
-                    <div class="dash-post"></div>
-                    <div class="dash-post"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="laptop-base">
-                <div class="laptop-keyboard">
-                  <div class="kbd-r"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                  <div class="kbd-r"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                  <div class="kbd-r"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                </div>
-                <div class="laptop-pad"></div>
-              </div>
+            <!-- Phone SVG mockup -->
+            <div class="phone-wrap">
+              <svg class="phone-svg" viewBox="0 0 230 468" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="ph_body" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#221b3c"/>
+                    <stop offset="100%" stop-color="#0e0c1c"/>
+                  </linearGradient>
+                  <linearGradient id="ph_ring" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#7B5CF0"/>
+                    <stop offset="45%" stop-color="#FF2D78"/>
+                    <stop offset="100%" stop-color="#00F5FF"/>
+                  </linearGradient>
+                  <linearGradient id="ph_img" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#4a30b8"/>
+                    <stop offset="100%" stop-color="#d42870"/>
+                  </linearGradient>
+                  <linearGradient id="ph_s1" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FF2D78"/><stop offset="100%" stop-color="#FFD700"/>
+                  </linearGradient>
+                  <linearGradient id="ph_s2" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#7B5CF0"/><stop offset="100%" stop-color="#B44FD8"/>
+                  </linearGradient>
+                  <linearGradient id="ph_s3" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#00E5A0"/>
+                  </linearGradient>
+                  <linearGradient id="ph_statbg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(123,92,240,.18)"/>
+                    <stop offset="100%" stop-color="rgba(123,92,240,.06)"/>
+                  </linearGradient>
+                  <clipPath id="ph_clip">
+                    <rect x="14" y="14" width="202" height="440" rx="34"/>
+                  </clipPath>
+                </defs>
+
+                <!-- Drop shadow -->
+                <rect x="20" y="24" width="200" height="440" rx="44" fill="rgba(0,0,0,.5)"/>
+
+                <!-- Phone body -->
+                <rect x="12" y="12" width="206" height="444" rx="44" fill="url(#ph_body)"/>
+
+                <!-- Gradient ring border -->
+                <rect x="12" y="12" width="206" height="444" rx="44" fill="none" stroke="url(#ph_ring)" stroke-width="2.5"/>
+
+                <!-- Inner screen bezel -->
+                <rect x="14" y="14" width="202" height="440" rx="34" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+
+                <!-- ── SCREEN CONTENT ── -->
+                <g clip-path="url(#ph_clip)">
+                  <rect x="14" y="14" width="202" height="440" fill="#07050e"/>
+
+                  <!-- Status bar -->
+                  <text x="28" y="44" fill="rgba(255,255,255,.9)" font-size="13" font-family="'Space Grotesk',sans-serif" font-weight="700">9:41</text>
+
+                  <!-- Dynamic island -->
+                  <rect x="76" y="24" width="78" height="24" rx="12" fill="#010005"/>
+
+                  <!-- Battery -->
+                  <rect x="174" y="33" width="22" height="11" rx="3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.2"/>
+                  <rect x="196" y="36" width="2.5" height="5" rx="1" fill="rgba(255,255,255,.4)"/>
+                  <rect x="175.5" y="34.5" width="17" height="8" rx="1.5" fill="rgba(255,255,255,.82)"/>
+
+                  <!-- Separator -->
+                  <line x1="14" y1="60" x2="216" y2="60" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+
+                  <!-- ── STORIES ── -->
+                  <circle cx="42" cy="92" r="24" fill="url(#ph_s1)" opacity=".85"/>
+                  <circle cx="42" cy="92" r="20" fill="#110e1e"/>
+                  <line x1="42" y1="84" x2="42" y2="100" stroke="rgba(255,255,255,.65)" stroke-width="2.2" stroke-linecap="round"/>
+                  <line x1="34" y1="92" x2="50" y2="92" stroke="rgba(255,255,255,.65)" stroke-width="2.2" stroke-linecap="round"/>
+                  <text x="42" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">il tuo</text>
+
+                  <circle cx="98" cy="92" r="24" fill="url(#ph_s2)"/>
+                  <circle cx="98" cy="92" r="20" fill="#1a1530"/>
+                  <text x="98" y="98" text-anchor="middle" fill="white" font-size="18" font-family="'Syne',sans-serif" font-weight="700">A</text>
+                  <text x="98" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">astra</text>
+
+                  <circle cx="154" cy="92" r="24" fill="url(#ph_s3)"/>
+                  <circle cx="154" cy="92" r="20" fill="#081818"/>
+                  <text x="154" y="98" text-anchor="middle" fill="#00F5FF" font-size="12" font-family="'Space Grotesk',sans-serif" font-weight="700">TK</text>
+                  <text x="154" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">tiktok</text>
+
+                  <circle cx="210" cy="92" r="24" fill="url(#ph_s1)" opacity=".8"/>
+                  <circle cx="210" cy="92" r="20" fill="#1a0e20"/>
+                  <text x="210" y="98" text-anchor="middle" fill="#FF2D78" font-size="11" font-family="'Space Grotesk',sans-serif" font-weight="700">IG</text>
+                  <text x="210" y="124" text-anchor="middle" fill="rgba(255,255,255,.38)" font-size="8.5" font-family="'Space Grotesk',sans-serif">insta</text>
+
+                  <line x1="14" y1="134" x2="216" y2="134" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+
+                  <!-- ── POST HEADER ── -->
+                  <circle cx="34" cy="154" r="14" fill="url(#ph_img)"/>
+                  <text x="34" y="159" text-anchor="middle" fill="white" font-size="12" font-family="'Syne',sans-serif" font-weight="700">A</text>
+                  <text x="54" y="149" fill="rgba(255,255,255,.9)" font-size="11" font-family="'Space Grotesk',sans-serif" font-weight="600">astra_media</text>
+                  <text x="54" y="163" fill="rgba(255,255,255,.4)" font-size="8.5" font-family="sans-serif">Milano · Sponsorizzato</text>
+                  <circle cx="190" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
+                  <circle cx="198" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
+                  <circle cx="206" cy="154" r="2.2" fill="rgba(255,255,255,.4)"/>
+
+                  <!-- ── POST IMAGE ── -->
+                  <rect x="14" y="172" width="202" height="172" fill="url(#ph_img)"/>
+                  <circle cx="115" cy="258" r="72" fill="rgba(255,255,255,.03)"/>
+                  <circle cx="115" cy="258" r="46" fill="rgba(255,255,255,.04)"/>
+                  <circle cx="115" cy="258" r="24" fill="rgba(255,255,255,.07)"/>
+                  <text x="115" y="267" text-anchor="middle" fill="rgba(255,255,255,.96)" font-size="28" font-family="'Syne',sans-serif" font-weight="700" letter-spacing="2">ASTRA</text>
+                  <text x="115" y="283" text-anchor="middle" fill="rgba(255,255,255,.48)" font-size="9" font-family="'Space Grotesk',sans-serif" letter-spacing="4">MEDIA AGENCY</text>
+
+                  <!-- ── ACTIONS ── -->
+                  <path d="M26 360c-1-5 4-9 8-6 1 1 2 2 3 4 1-2 2-3 3-4 4-3 9 1 8 6-1 4-6 8-11 11-5-3-10-7-11-11z" fill="rgba(255,255,255,.7)"/>
+                  <path d="M48 356a8 8 0 0116 0 8 8 0 01-8 8l-3 4-1-4a8 8 0 01-4-8z" fill="none" stroke="rgba(255,255,255,.65)" stroke-width="1.6"/>
+                  <path d="M72 354l11-5-11-5v4c-5 0-9 3-9 8 2-3 5-5 9-5v3z" fill="rgba(255,255,255,.65)"/>
+                  <path d="M203 352v16l-6-4-6 4v-16h12z" fill="rgba(255,255,255,.65)"/>
+
+                  <text x="22" y="382" fill="rgba(255,255,255,.88)" font-size="10" font-family="'Space Grotesk',sans-serif" font-weight="600">12.487 Mi piace</text>
+                  <text x="22" y="396" font-size="9.5" font-family="'Space Grotesk',sans-serif">
+                    <tspan fill="rgba(255,255,255,.88)" font-weight="600">astra_media</tspan>
+                    <tspan fill="rgba(255,255,255,.5)"> Cresciamo il tuo brand ✨</tspan>
+                  </text>
+
+                  <!-- ── STATS BAR ── -->
+                  <rect x="14" y="410" width="202" height="44" fill="url(#ph_statbg)"/>
+                  <line x1="14" y1="410" x2="216" y2="410" stroke="rgba(123,92,240,.3)" stroke-width="1"/>
+                  <text x="52" y="427" text-anchor="middle" fill="#B44FD8" font-size="14" font-family="'Syne',sans-serif" font-weight="700">+2.4K</text>
+                  <text x="52" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">follower</text>
+                  <line x1="97" y1="415" x2="97" y2="451" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+                  <text x="120" y="427" text-anchor="middle" fill="#FF2D78" font-size="14" font-family="'Syne',sans-serif" font-weight="700">+48%</text>
+                  <text x="120" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">reach</text>
+                  <line x1="145" y1="415" x2="145" y2="451" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+                  <text x="183" y="427" text-anchor="middle" fill="#00F5FF" font-size="14" font-family="'Syne',sans-serif" font-weight="700">9.2%</text>
+                  <text x="183" y="439" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5" font-family="sans-serif">eng.</text>
+                </g>
+
+                <!-- Side buttons -->
+                <rect x="9" y="162" width="4" height="30" rx="2" fill="#1c1a30"/>
+                <rect x="9" y="200" width="4" height="30" rx="2" fill="#1c1a30"/>
+                <rect x="217" y="180" width="4" height="46" rx="2" fill="#1c1a30"/>
+              </svg>
             </div>
 
-            <!-- Floating social badges -->
-            <div class="dev-badge dev-badge-1">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            <!-- Notification chips -->
+            <div class="ph-chip ph-chip-1">
+              <span class="ph-chip-icon" style="background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </span>
+              <span class="ph-chip-text"><strong>+127</strong> nuovi follower</span>
             </div>
-            <div class="dev-badge dev-badge-2">
-              <svg viewBox="0 0 24 24" width="19" height="19" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+            <div class="ph-chip ph-chip-2">
+              <span class="ph-chip-icon" style="background:linear-gradient(135deg,#FF2D78,#FF6B6B)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </span>
+              <span class="ph-chip-text"><strong>12.4K</strong> Mi piace</span>
             </div>
-            <div class="dev-badge dev-badge-3">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M3 3v18h18V3H3zm2 2h14v14H5V5zm2 10v2h2v-2H7zm4-4v6h2v-6h-2zm4-4v10h2V7h-2z"/></svg>
+            <div class="ph-chip ph-chip-3">
+              <span class="ph-chip-icon" style="background:linear-gradient(135deg,#7B5CF0,#00F5FF)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M3 17l5-6 4 5 4-8 5 9" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span class="ph-chip-text"><strong>+48%</strong> reach ↑</span>
             </div>
+
           </div>
         </div>
 
