@@ -396,14 +396,17 @@ img, svg { display: block; }
 
 .mob-link {
   display: block;
-  padding: 16px 24px;
+  padding: 14px 24px;
   font-weight: 500;
   color: white;
   border-bottom: none;
-  transition: color .2s;
+  background: rgba(7,6,15,.82);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: color .2s, background .2s;
 }
 
-.mob-link:hover { color: white; background: rgba(123,92,240,.1); }
+.mob-link:hover { background: rgba(123,92,240,.25); }
 
 /* ═══════════════════════════════════ HERO ══════════════════════ */
 #hero {
@@ -513,10 +516,16 @@ img, svg { display: block; }
   gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 60px;
+  margin-bottom: 0;
 }
 
 .hero-stats {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -527,8 +536,7 @@ img, svg { display: block; }
   padding: 24px 40px;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  flex-wrap: wrap;
-  gap: 0;
+  flex-wrap: nowrap;
 }
 
 .stat {
@@ -1570,8 +1578,8 @@ footer {
     margin-bottom: 12px;
   }
   .hero-sub { margin-bottom: 18px; font-size: .88rem; }
-  .hero-actions { margin-bottom: 20px; gap: 12px; }
-  .hero-stats { padding: 12px 20px; }
+  .hero-actions { gap: 12px; }
+  .hero-stats { padding: 12px 20px; bottom: 28px; }
   .stat-num { font-size: 1.55rem; }
   .stat { padding: 0 12px; }
 }
@@ -1584,8 +1592,7 @@ footer {
     margin-bottom: 10px;
   }
   .hero-sub { margin-bottom: 14px; }
-  .hero-actions { margin-bottom: 16px; }
-  .hero-stats { padding: 10px 16px; }
+  .hero-stats { padding: 10px 16px; bottom: 20px; }
   .stat-num { font-size: 1.4rem; }
 }
 
@@ -1604,11 +1611,11 @@ footer {
   /* Hero: padding sufficiente a liberare la navbar */
   #hero { padding: 100px 24px 20px; }
 
-  /* Statistiche in riga anche su mobile */
-  .hero-stats { flex-wrap: nowrap; padding: 10px 12px; }
-  .stat-divider { display: block; }
+  /* Stats ancorati in basso su mobile */
+  .hero-stats { padding: 10px 12px; bottom: 16px; width: calc(100% - 32px); }
   .stat { padding: 0 8px; }
-  .stat-num { font-size: 1.3rem; }
+  .stat-num { font-size: 1.25rem; }
+  .stat-divider { display: block; }
 
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
@@ -1617,9 +1624,6 @@ footer {
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
 
   .hero-logo-bg { display: none; }
-  .hero-stats { gap: 20px; padding: 20px 24px; }
-  .stat { padding: 0 16px; }
-  .stat-divider { display: none; }
 
   .cta-inner { padding: 48px 28px; }
   .team-visual { max-width: 300px; }
