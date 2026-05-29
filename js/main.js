@@ -1,5 +1,5 @@
 /* ================================================================
-   ASTRA MEDIA – MAIN JS  (optimized)
+   ASTRA STUDIO – MAIN JS  (optimized)
 ================================================================ */
 
 const isMobile = () => window.innerWidth < 768;
