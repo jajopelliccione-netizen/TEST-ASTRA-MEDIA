@@ -1865,6 +1865,10 @@ footer {
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+  .contact-info { text-align: center; }
+  .contact-info > p { margin-left: auto; margin-right: auto; max-width: 340px; }
+  .contact-items { align-items: center; }
+  .contact-item { justify-content: center; }
   .form-row { grid-template-columns: 1fr; }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
