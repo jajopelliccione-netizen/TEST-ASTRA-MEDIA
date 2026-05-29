@@ -1620,6 +1620,9 @@ footer {
   .burger { display: flex; }
   .mobile-menu { display: flex; }
 
+  /* Ambilight off on mobile – glow bleeds into page content */
+  #navbar .nav-logo-img { filter: none !important; transition: none !important; }
+
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
