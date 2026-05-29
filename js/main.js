@@ -30,8 +30,8 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   const dpr    = Math.min(window.devicePixelRatio || 1, 2);
   let W, H, stars, animId;
 
-  const STAR_COUNT  = isMobile() ? 80 : 140;
-  const NEBULA_ORBS = isMobile() ? 3  : 5;
+  const STAR_COUNT  = isMobile() ? 130 : 220;
+  const NEBULA_ORBS = isMobile() ? 5   : 8;
 
   function resize() {
     const w = window.innerWidth;
@@ -48,8 +48,8 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     stars = Array.from({ length: STAR_COUNT }, () => ({
       x:           Math.random() * W,
       y:           Math.random() * H,
-      r:           Math.random() * 1.4 + .2,
-      alpha:       Math.random() * .55 + .2,
+      r:           Math.random() * 2.0 + .3,
+      alpha:       Math.random() * .7 + .25,
       speed:       Math.random() * .25 + .04,
       twinkleSpd:  Math.random() * .015 + .004,
       twinkleDir:  Math.random() > .5 ? 1 : -1,
@@ -73,7 +73,7 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       const cx = (n.rx + Math.cos(n.angle) * .07) * W;
       const cy = (n.ry + Math.sin(n.angle) * .05) * H;
       const g  = ctx.createRadialGradient(cx, cy, 0, cx, cy, n.r);
-      g.addColorStop(0, n.color + '.05)');
+      g.addColorStop(0, n.color + '.10)');
       g.addColorStop(1, n.color + '0)');
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -88,7 +88,7 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       s.y -= s.speed;
       if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
       s.alpha += s.twinkleSpd * s.twinkleDir;
-      if (s.alpha > .85 || s.alpha < .1) s.twinkleDir *= -1;
+      if (s.alpha > .95 || s.alpha < .1) s.twinkleDir *= -1;
       ctx.globalAlpha = s.alpha;
       ctx.fillStyle   = s.color;
       ctx.beginPath();

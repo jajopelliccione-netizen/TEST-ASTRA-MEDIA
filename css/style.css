@@ -607,9 +607,10 @@ img, svg { display: block; }
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background:
-    radial-gradient(ellipse 60% 60% at 20% 30%, rgba(123,92,240,.16) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 50% at 80% 70%, rgba(255,45,120,.12) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 40% at 60% 20%, rgba(0,245,255,.08) 0%, transparent 70%);
+    radial-gradient(ellipse 65% 65% at 20% 30%, rgba(123,92,240,.30) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 55% at 80% 70%, rgba(255,45,120,.22) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 45% at 60% 20%, rgba(0,245,255,.15) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 40% 85%, rgba(180,79,216,.14) 0%, transparent 65%);
   animation: meshPulse 10s ease-in-out infinite alternate;
   will-change: opacity;
 }
@@ -821,6 +822,9 @@ img, svg { display: block; }
   padding: 120px 0;
   position: relative;
   z-index: 2;
+  background:
+    radial-gradient(ellipse 55% 70% at 5%  50%, rgba(123,92,240,.09) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 60% at 95% 50%, rgba(255,45,120,.08) 0%, transparent 65%);
 }
 
 #about::before {
@@ -947,8 +951,18 @@ img, svg { display: block; }
   padding: 120px 0;
   position: relative;
   z-index: 2;
-  background: linear-gradient(180deg, transparent 0%, rgba(123,92,240,.04) 50%, transparent 100%);
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(123,92,240,.09) 50%, transparent 100%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(123,92,240,.06) 0%, transparent 70%);
   contain: layout style;
+}
+#services::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 80%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(123,92,240,.6), rgba(255,45,120,.5), transparent);
+  pointer-events: none;
 }
 
 .services-grid {
@@ -958,15 +972,15 @@ img, svg { display: block; }
 }
 
 .service-card {
-  background: rgba(255,255,255,.03);
-  border: 1px solid var(--border);
+  background: rgba(123,92,240,.05);
+  border: 1px solid rgba(123,92,240,.2);
   border-radius: 24px;
   padding: 36px 28px;
   position: relative;
   overflow: hidden;
-  /* solo transform e border-color — nessun box-shadow in transition */
-  transition: transform .35s cubic-bezier(.4,0,.2,1), border-color .35s, opacity .35s;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), border-color .35s, box-shadow .35s, opacity .35s;
   cursor: default;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25), 0 0 30px rgba(123,92,240,.08), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 /* ombra via pseudo-elemento: cambia opacity (GPU) non box-shadow (repaint) */
@@ -1144,13 +1158,14 @@ img, svg { display: block; }
 }
 
 .testimonial-card {
-  background: rgba(255,255,255,.03);
-  border: 1px solid var(--border);
+  background: rgba(123,92,240,.05);
+  border: 1px solid rgba(123,92,240,.18);
   border-radius: 20px;
   padding: 32px 28px;
   position: relative;
   overflow: hidden;
-  transition: transform .35s, border-color .35s;
+  transition: transform .35s, border-color .35s, box-shadow .35s;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2), 0 0 25px rgba(123,92,240,.07), inset 0 1px 0 rgba(255,255,255,.04);
 }
 
 .testimonial-card::before {
