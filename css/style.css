@@ -28,7 +28,7 @@
   --font-head: 'Syne', sans-serif;
 }
 
-html { scroll-behavior: smooth; font-size: 16px; }
+html { scroll-behavior: smooth; font-size: 16px; overflow-x: hidden; }
 
 body {
   font-family: var(--font-body);
@@ -1864,11 +1864,17 @@ footer {
 
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
+  /* Clip pseudo-element glows that extend beyond section bounds */
+  #collaborations, #packages, #contact { overflow: hidden; }
+
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
-  .contact-info { text-align: center; }
-  .contact-info > p { margin-left: auto; margin-right: auto; max-width: 340px; }
-  .contact-items { align-items: center; }
-  .contact-item { justify-content: center; }
+  .contact-info,
+  .contact-info h2,
+  .contact-info > p { text-align: center !important; }
+  .contact-info .section-tag { margin-left: auto; margin-right: auto; }
+  .contact-info > p { max-width: 340px; margin-left: auto !important; margin-right: auto !important; }
+  .contact-items { align-items: stretch; max-width: 400px; margin: 0 auto; }
+  .contact-item { width: 100%; }
   .form-row { grid-template-columns: 1fr; }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
