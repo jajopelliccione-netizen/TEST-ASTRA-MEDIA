@@ -119,6 +119,29 @@
     </div>
   </div>
 
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="admin-mobile-nav">
+    <div class="admin-mobile-nav-inner">
+      <button class="admin-mobile-tab active" onclick="showSection('clients')" data-section="clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Clienti
+      </button>
+      <button class="admin-mobile-tab" onclick="showSection('partners')" data-section="partners">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Partner
+      </button>
+      <button class="admin-mobile-tab" onclick="showSection('contacts')" data-section="contacts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="mob-badge" id="mob-contacts-badge" style="display:none;"></span>
+        Messaggi
+      </button>
+      <a class="admin-mobile-tab" href="/" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Sito
+      </a>
+    </div>
+  </nav>
+
   <!-- MODAL: Aggiungi/Modifica Cliente -->
   <div class="modal-overlay" id="client-modal">
     <div class="modal">
@@ -290,7 +313,7 @@
       ['clients','partners','contacts'].forEach(s => {
         document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
       });
-      document.querySelectorAll('.sidebar-link[data-section]').forEach(l => {
+      document.querySelectorAll('[data-section]').forEach(l => {
         l.classList.toggle('active', l.dataset.section === name);
       });
       if (name === 'partners') loadPartners();
@@ -458,9 +481,15 @@
     function startContactsBadge() {
       onSnapshot(collection(db, 'contacts'), (snap) => {
         const count = snap.docs.filter(d => d.data().status === 'new').length;
-        const badge = document.getElementById('contacts-badge');
-        if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
-        else { badge.style.display = 'none'; }
+        const badge    = document.getElementById('contacts-badge');
+        const mobBadge = document.getElementById('mob-contacts-badge');
+        if (count > 0) {
+          badge.textContent = count; badge.style.display = 'inline';
+          mobBadge.textContent = count; mobBadge.style.display = 'inline';
+        } else {
+          badge.style.display = 'none';
+          mobBadge.style.display = 'none';
+        }
       });
     }
 

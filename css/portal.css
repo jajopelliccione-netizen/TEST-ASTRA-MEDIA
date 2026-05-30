@@ -299,10 +299,80 @@ a    { text-decoration: none; color: inherit; }
 }
 .admin-main { flex: 1; margin-left: 220px; padding: 32px; }
 
+/* ── ADMIN MOBILE BOTTOM NAV ────────────────────────────────────── */
+.admin-mobile-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  background: rgba(13,11,26,.97);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.admin-mobile-nav-inner { display: flex; }
+.admin-mobile-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 4px 8px; font-size: .6rem; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--text-muted); cursor: pointer;
+  transition: color .2s; position: relative; border: none; background: none;
+  font-family: var(--font-body); text-decoration: none;
+}
+.admin-mobile-tab svg { width: 21px; height: 21px; }
+.admin-mobile-tab.active { color: var(--purple); }
+.admin-mobile-tab .mob-badge {
+  position: absolute; top: 6px; right: calc(50% - 16px);
+  background: var(--pink); color: #fff;
+  font-size: .55rem; font-weight: 700; min-width: 16px; text-align: center;
+  padding: 1px 5px; border-radius: 99px;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+
+  /* Navbar */
+  .portal-nav { padding: 0 14px; height: 58px; }
+  .portal-nav-logo img { height: 28px; }
+  .portal-nav-logo > span:first-of-type { display: none; }
+  .portal-nav-badge { display: none; }
+  .btn-logout { padding: 6px 12px; font-size: .75rem; }
+
+  /* Client portal wrap */
+  .portal-wrap { padding: 74px 14px 40px; }
+
+  /* Stats 2×2 */
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .stat-card { padding: 14px 12px; }
+  .stat-card .value { font-size: 1.45rem; }
+
+  /* Cards */
+  .card { padding: 16px 14px; border-radius: 14px; }
+
+  /* Referral: stack */
+  .referral-box { flex-direction: column; align-items: stretch; gap: 10px; }
+  .copy-btn { text-align: center; padding: 10px; }
+
+  /* Admin layout */
   .admin-sidebar { display: none; }
-  .admin-main { margin-left: 0; padding: 16px; }
-  .portal-wrap { padding: 88px 16px 40px; }
-  .portal-nav { padding: 0 16px; }
+  .admin-main { margin-left: 0; padding: 16px 14px 88px; }
+  .admin-mobile-nav { display: block; }
+
+  /* Grids */
+  .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 14px; }
+
+  /* Tables */
+  .portal-table th { padding: 8px 10px; font-size: .7rem; }
+  .portal-table td { padding: 12px 10px; font-size: .84rem; }
+
+  /* Modal: bottom sheet */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    max-width: 100%; border-radius: 22px 22px 0 0;
+    max-height: 92vh; padding: 22px 18px 32px;
+  }
+
+  /* Toast: above bottom nav */
+  .toast { bottom: 82px; right: 14px; left: 14px; text-align: center; font-size: .84rem; }
+
+  /* Section heading */
+  .section-heading { font-size: 1.25rem; }
+  .section-sub { font-size: .84rem; margin-bottom: 18px; }
 }
