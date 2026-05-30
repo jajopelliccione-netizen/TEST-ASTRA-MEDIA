@@ -434,8 +434,8 @@
         startContactsBadge();
         // Avvia listener notifiche ORA che l'auth è confermata
         if ('Notification' in window && Notification.permission === 'granted') {
-          document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
           startNotificationListeners();
+          registerFcmToken();
         }
         // Mostra modal notifiche se non ancora attivate
         setTimeout(() => {
@@ -888,7 +888,7 @@
     window.requestNotifications = async () => {
       if (!('Notification' in window)) return;
       const perm = await Notification.requestPermission();
-      document.getElementById('notif-label').textContent = perm === 'granted' ? 'Notifiche attive ✓' : 'Notifiche bloccate';
+      document.getElementById('notif-settings-label').textContent = perm === 'granted' ? 'Attive ✓' : 'Attiva notifiche';
       if (perm === 'granted') {
         localStorage.setItem('notif-enabled', '1');
         startNotificationListeners();
@@ -923,6 +923,9 @@
 
     window.testNotification = async () => {
       const resultEl = document.getElementById('test-notif-result');
+      resultEl.style.color = 'var(--text-muted)';
+      resultEl.textContent = 'Test in corso…';
+
       if (!('Notification' in window)) {
         resultEl.textContent = '✗ Notification API non disponibile su questo browser.';
         resultEl.style.color = 'var(--pink)';
@@ -933,38 +936,52 @@
         resultEl.style.color = 'var(--pink)';
         return;
       }
+
+      // 1. Test notifica locale (SW)
+      let swOk = false;
       try {
-        if ('serviceWorker' in navigator) {
-          const reg = await Promise.race([
-            navigator.serviceWorker.ready,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 3000))
-          ]);
-          await reg.showNotification('Astra Agency — Test', {
-            body: 'Le notifiche funzionano correttamente!',
-            icon: '/admin/icon.png',
-            badge: '/admin/icon.png',
-            tag: 'test',
-          });
-          resultEl.textContent = '✓ Notifica inviata tramite service worker!';
+        const reg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 3000))
+        ]);
+        await reg.showNotification('Astra Agency — Test locale', {
+          body: 'Il service worker funziona!',
+          icon: '/admin/icon.png',
+          tag: 'test-local',
+        });
+        swOk = true;
+      } catch (e) {
+        resultEl.textContent = `✗ SW locale: ${e.message}`;
+        resultEl.style.color = 'var(--pink)';
+        return;
+      }
+
+      // 2. Test /api/notify (FCM via Cloudflare)
+      try {
+        const r = await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'contact', name: 'TEST' }),
+        });
+        const data = await r.json();
+        if (data.ok) {
+          resultEl.textContent = '✓ SW locale OK + FCM inviato! Controlla il telefono (app chiusa).';
           resultEl.style.color = 'var(--green, #22c55e)';
         } else {
-          new Notification('Astra Agency — Test', { body: 'Le notifiche funzionano!', icon: '/admin/icon.png' });
-          resultEl.textContent = '✓ Notifica inviata (fallback diretto).';
-          resultEl.style.color = 'var(--green, #22c55e)';
+          resultEl.textContent = `✓ SW locale OK — FCM errore: ${data.error || JSON.stringify(data)}`;
+          resultEl.style.color = 'var(--pink)';
         }
       } catch (e) {
-        resultEl.textContent = `✗ Errore: ${e.message}`;
+        resultEl.textContent = `✓ SW locale OK — /api/notify non raggiungibile (${e.message}). Sei su Cloudflare?`;
         resultEl.style.color = 'var(--pink)';
       }
     };
 
-    // Aggiorna solo la label (i listener partono dentro onAuthStateChanged)
+    // Aggiorna label al caricamento (i listener partono dentro onAuthStateChanged)
     if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
-      } else if (Notification.permission === 'denied') {
-        document.getElementById('notif-label').textContent = 'Notifiche bloccate';
-      }
+      const lbl = document.getElementById('notif-settings-label');
+      if (lbl && Notification.permission === 'granted') lbl.textContent = 'Attive ✓';
+      if (lbl && Notification.permission === 'denied')  lbl.textContent = 'Bloccate dal browser';
     }
   </script>
 </body>
