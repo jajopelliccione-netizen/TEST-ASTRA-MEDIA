@@ -809,31 +809,51 @@
     }
 
     // ── NOTIFICHE PUSH ─────────────────────────────────────────────
-    function showBrowserNotification(title, body) {
+    async function showBrowserNotification(title, body) {
       if (Notification.permission !== 'granted') return;
-      const n = new Notification(title, { body, icon: '/logo.png', tag: title });
-      n.onclick = () => { window.focus(); n.close(); };
+      try {
+        // Usa il service worker (necessario su iOS PWA e preferito ovunque)
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(title, {
+            body,
+            icon: '/admin/icon.png',
+            badge: '/admin/icon.png',
+            tag: title,
+            renotify: true,
+            data: { url: '/admin/dashboard.html' }
+          });
+        } else {
+          new Notification(title, { body, icon: '/admin/icon.png' });
+        }
+      } catch {
+        new Notification(title, { body, icon: '/admin/icon.png' });
+      }
     }
 
     function startNotificationListeners() {
-      const startTime = Date.now();
+      // Primo snapshot = caricamento iniziale dei doc esistenti → lo saltiamo
+      let contactsReady = false;
+      let partnersReady = false;
+
       onSnapshot(collection(db, 'contacts'), (snap) => {
+        if (!contactsReady) { contactsReady = true; return; }
         snap.docChanges().forEach(change => {
           if (change.type !== 'added') return;
           const d = change.doc.data();
-          const createdMs = (d.createdAt?.seconds || 0) * 1000;
-          if (createdMs > startTime - 5000 && d.status === 'new') {
-            showBrowserNotification('Nuovo messaggio!', `${d.name} ha inviato un messaggio`);
+          if (d.status === 'new') {
+            showBrowserNotification('Nuovo messaggio!', `${d.name || 'Qualcuno'} ha inviato un messaggio`);
           }
         });
       });
+
       onSnapshot(collection(db, 'partners'), (snap) => {
+        if (!partnersReady) { partnersReady = true; return; }
         snap.docChanges().forEach(change => {
           if (change.type !== 'added') return;
           const d = change.doc.data();
-          const createdMs = (d.createdAt?.seconds || 0) * 1000;
-          if (createdMs > startTime - 5000 && d.status === 'pending') {
-            showBrowserNotification('Nuova richiesta partner!', `${d.companyName} vuole collaborare`);
+          if (d.status === 'pending') {
+            showBrowserNotification('Nuova richiesta partner!', `${d.companyName || 'Un\'azienda'} vuole collaborare`);
           }
         });
       });
