@@ -240,7 +240,7 @@
       onAuthStateChanged, signOut, createUserWithEmailAndPassword, getAuth
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
-      doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion, orderBy, query
+      doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 
@@ -348,50 +348,55 @@
 
     // ── LOAD CONTACTS ─────────────────────────────────────────────
     async function loadContacts() {
-      const snap = await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')));
-      const contacts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const wrap = document.getElementById('contacts-table-wrap');
+      try {
+        const snap = await getDocs(collection(db, 'contacts'));
+        const contacts = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-      // badge count (new messages)
-      const newCount = contacts.filter(c => c.status === 'new').length;
-      const badge = document.getElementById('contacts-badge');
-      if (newCount > 0) { badge.textContent = newCount; badge.style.display = 'inline'; }
-      else { badge.style.display = 'none'; }
+        const newCount = contacts.filter(c => c.status === 'new').length;
+        const badge = document.getElementById('contacts-badge');
+        if (newCount > 0) { badge.textContent = newCount; badge.style.display = 'inline'; }
+        else { badge.style.display = 'none'; }
 
-      if (!contacts.length) {
-        wrap.innerHTML = '<div class="empty-state"><p>Nessun messaggio ancora.</p></div>';
-        return;
+        if (!contacts.length) {
+          wrap.innerHTML = '<div class="empty-state"><p>Nessun messaggio ancora.</p></div>';
+          return;
+        }
+        const serviceLabel = { social: 'Gestione Social', sito: 'Sito Web', tutto: 'Social + Sito' };
+        wrap.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="portal-table">
+              <thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Servizio</th><th>Messaggio</th><th>Stato</th><th>Azioni</th></tr></thead>
+              <tbody>
+                ${contacts.map(c => `
+                  <tr>
+                    <td style="font-weight:600;">${c.name || '—'}</td>
+                    <td><a href="mailto:${c.email}" style="color:var(--purple);font-size:.85rem;">${c.email}</a></td>
+                    <td style="font-size:.85rem;">${c.phone || '—'}</td>
+                    <td><span class="badge badge-purple" style="font-size:.72rem;">${serviceLabel[c.service] || c.service || '—'}</span></td>
+                    <td style="font-size:.82rem;max-width:220px;color:var(--text-muted);">${c.message}</td>
+                    <td>
+                      <span class="badge ${c.status === 'read' ? 'badge-green' : 'badge-yellow'}" style="font-size:.72rem;">
+                        ${c.status === 'read' ? 'Letto' : 'Nuovo'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style="display:flex;gap:6px;">
+                        ${c.status !== 'read' ? `<button class="btn btn-green btn-sm" onclick="markContactRead('${c.id}')">✓ Letto</button>` : ''}
+                        <a href="mailto:${c.email}" class="btn btn-outline btn-sm">Rispondi</a>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        wrap.innerHTML = `<div class="empty-state"><p style="color:var(--pink);">Errore: ${err.message}</p></div>`;
       }
-      const serviceLabel = { social: 'Gestione Social', sito: 'Sito Web', tutto: 'Social + Sito' };
-      wrap.innerHTML = `
-        <div style="overflow-x:auto;">
-          <table class="portal-table">
-            <thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Servizio</th><th>Messaggio</th><th>Stato</th><th>Azioni</th></tr></thead>
-            <tbody>
-              ${contacts.map(c => `
-                <tr>
-                  <td style="font-weight:600;">${c.name || '—'}</td>
-                  <td><a href="mailto:${c.email}" style="color:var(--purple);font-size:.85rem;">${c.email}</a></td>
-                  <td style="font-size:.85rem;">${c.phone || '—'}</td>
-                  <td><span class="badge badge-purple" style="font-size:.72rem;">${serviceLabel[c.service] || c.service || '—'}</span></td>
-                  <td style="font-size:.82rem;max-width:220px;color:var(--text-muted);">${c.message}</td>
-                  <td>
-                    <span class="badge ${c.status === 'read' ? 'badge-green' : 'badge-yellow'}" style="font-size:.72rem;">
-                      ${c.status === 'read' ? 'Letto' : 'Nuovo'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style="display:flex;gap:6px;">
-                      ${c.status !== 'read' ? `<button class="btn btn-green btn-sm" onclick="markContactRead('${c.id}')">✓ Letto</button>` : ''}
-                      <a href="mailto:${c.email}" class="btn btn-outline btn-sm">Rispondi</a>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
     }
 
     window.markContactRead = async (id) => {
