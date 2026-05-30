@@ -1,35 +1,33 @@
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// Gestisce push in background con evento nativo (compatibile iOS 16.4+)
+self.addEventListener('push', event => {
+  let title = 'Astra Agency';
+  let body  = 'Nuova notifica';
 
-firebase.initializeApp({
-  apiKey:            "AIzaSyCOQaxFQ5qzOu7cjfaRmGkk4XlqySh4BcA",
-  authDomain:        "astragency-88b1a.firebaseapp.com",
-  projectId:         "astragency-88b1a",
-  storageBucket:     "astragency-88b1a.firebasestorage.app",
-  messagingSenderId: "1038793326642",
-  appId:             "1:1038793326642:web:b6e1fb1719bed36a7abc2b"
+  if (event.data) {
+    try {
+      const d = event.data.json();
+      // FCM può mandare i dati in notification, webpush.notification o data
+      title = d.notification?.title || d.data?.title || title;
+      body  = d.notification?.body  || d.data?.body  || body;
+    } catch (e) { /* payload non-JSON, usa defaults */ }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:        '/admin/icon.png',
+      badge:       '/admin/icon.png',
+      tag:         'astra-notif',
+      renotify:    true,
+      data:        { url: '/admin/dashboard.html' },
+    })
+  );
 });
 
-const messaging = firebase.messaging();
-
-// Notifiche in background (app chiusa/minimizzata)
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'Astra Agency';
-  const body  = payload.notification?.body  || 'Nuova notifica';
-  self.registration.showNotification(title, {
-    body,
-    icon:     '/admin/icon.png',
-    badge:    '/admin/icon.png',
-    tag:      'astra-notif',
-    renotify: true,
-    data:     { url: '/admin/dashboard.html' }
-  });
-});
-
-self.addEventListener('notificationclick', (e) => {
-  e.notification.close();
-  const url = e.notification.data?.url || '/admin/dashboard.html';
-  e.waitUntil(
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/admin/dashboard.html';
+  event.waitUntil(
     clients.matchAll({ type: 'window' }).then(list => {
       for (const c of list) {
         if (c.url.includes('/admin/') && 'focus' in c) return c.focus();
