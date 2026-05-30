@@ -333,10 +333,14 @@
       const btn = document.getElementById('profile-save-btn');
       btn.textContent = 'Salvataggio…'; btn.disabled = true;
       const newName = document.getElementById('p-display-name').value.trim();
-      await setDoc(doc(db, 'admins', currentAdminUid), { displayName: newName }, { merge: true });
-      document.getElementById('admin-display-name').textContent = newName;
-      showToast('Nome aggiornato!');
-      closeProfileModal();
+      try {
+        await updateDoc(doc(db, 'admins', currentAdminUid), { displayName: newName });
+        document.getElementById('admin-display-name').textContent = newName;
+        showToast('Nome aggiornato!');
+        closeProfileModal();
+      } catch (err) {
+        showToast('Errore: ' + err.message, 'error');
+      }
       btn.textContent = 'Salva'; btn.disabled = false;
     });
 
