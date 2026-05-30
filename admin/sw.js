@@ -28,8 +28,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title || 'Astra Agency', {
       body: data.body || 'Hai una nuova notifica',
-      icon: '/logo.png',
-      badge: '/logo.png',
+      icon: '/admin/icon.png',
+      badge: '/admin/icon.png',
       tag: data.tag || 'astra-notif',
       renotify: true,
       data: { url: data.url || '/admin/dashboard.html' }

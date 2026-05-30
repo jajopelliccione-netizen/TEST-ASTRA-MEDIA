@@ -1,6 +1,6 @@
 {
-  "name": "Astra Admin",
-  "short_name": "Astra Admin",
+  "name": "Astra Agency",
+  "short_name": "Astra Agency",
   "description": "Pannello amministrativo Astra Agency",
   "start_url": "/admin/dashboard.html",
   "scope": "/admin/",
@@ -9,7 +9,7 @@
   "theme_color": "#7B5CF0",
   "orientation": "portrait",
   "icons": [
-    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/admin/icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/admin/icon.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
