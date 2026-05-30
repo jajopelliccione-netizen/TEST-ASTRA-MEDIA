@@ -70,9 +70,9 @@
         Vai al Sito
       </a>
       <div class="sidebar-section">App</div>
-      <a class="sidebar-link" id="notif-btn" onclick="requestNotifications()" style="cursor:pointer;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span id="notif-label">Attiva notifiche</span>
+      <a class="sidebar-link" data-section="settings" onclick="showSection('settings')" style="cursor:pointer;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
       </a>
       <a class="sidebar-link" id="install-btn" style="display:none;cursor:pointer;" onclick="installApp()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -135,6 +135,50 @@
         </div>
       </section>
 
+      <!-- SECTION: IMPOSTAZIONI -->
+      <section id="section-settings" style="display:none;">
+        <div style="margin-bottom:24px;">
+          <h1 class="section-heading">Impostazioni</h1>
+          <p class="section-sub" style="margin-bottom:0;">Gestisci notifiche e app.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <p style="font-weight:600;margin-bottom:4px;">Notifiche push</p>
+              <p style="font-size:.83rem;color:var(--text-muted);" id="notif-status-text">Ricevi un avviso quando arriva un messaggio o una richiesta partner.</p>
+            </div>
+            <button id="notif-settings-btn" onclick="toggleNotifications()" class="btn btn-primary" style="white-space:nowrap;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span id="notif-settings-label">Attiva notifiche</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="install-card" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <p style="font-weight:600;margin-bottom:4px;">Installa app</p>
+              <p style="font-size:.83rem;color:var(--text-muted);">Aggiungi Astra Agency alla schermata Home del tuo dispositivo.</p>
+            </div>
+            <button onclick="installApp()" class="btn btn-outline" style="white-space:nowrap;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Installa App
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="ios-install-card" style="display:none;">
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <img src="/admin/icon.png" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;" />
+            <div>
+              <p style="font-weight:600;margin-bottom:6px;">Installa su iPhone / iPad</p>
+              <p style="font-size:.83rem;color:var(--text-muted);line-height:1.55;">Tocca <strong style="color:var(--text);">Condividi</strong> <span style="font-size:1rem;">⎋</span> in Safari, poi <strong style="color:var(--text);">Aggiungi a schermata Home</strong>. Dopo aver installato l'app, le notifiche saranno disponibili.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -162,10 +206,10 @@
         <span class="mob-badge" id="mob-contacts-badge" style="display:none;"></span>
         Messaggi
       </button>
-      <a class="admin-mobile-tab" href="/" target="_blank">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-        Sito
-      </a>
+      <button class="admin-mobile-tab" onclick="showSection('settings')" data-section="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </button>
     </div>
   </nav>
 
@@ -302,6 +346,20 @@
     </div>
   </div>
 
+  <!-- MODAL: Attiva Notifiche -->
+  <div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(7,6,15,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+      <img src="/admin/icon.png" style="width:72px;height:72px;border-radius:18px;margin-bottom:20px;" />
+      <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:10px;">Attiva le notifiche</h2>
+      <p style="font-size:.88rem;color:var(--text-muted);line-height:1.55;margin-bottom:24px;">Ricevi avvisi in tempo reale quando arriva un nuovo messaggio o una richiesta di collaborazione.</p>
+      <button onclick="enableNotifFromModal()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Attiva notifiche
+      </button>
+      <button onclick="dismissNotifModal()" style="background:none;border:none;color:var(--text-muted);font-size:.85rem;cursor:pointer;padding:6px;">Non adesso</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <style>
@@ -337,7 +395,7 @@
     }
 
     window.showSection = (name) => {
-      ['clients','partners','contacts'].forEach(s => {
+      ['clients','partners','contacts','settings'].forEach(s => {
         document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
       });
       document.querySelectorAll('[data-section]').forEach(l => {
@@ -345,6 +403,7 @@
       });
       if (name === 'partners') loadPartners();
       if (name === 'contacts') loadContacts();
+      if (name === 'settings') updateSettingsUI();
     };
 
     // ── AUTH GATE ──────────────────────────────────────────────────
@@ -360,21 +419,16 @@
         document.getElementById('main-layout').style.display = 'flex';
         loadClients();
         startContactsBadge();
-        // Chiedi notifiche dopo login
+        // Mostra modal notifiche se non ancora attivate
         setTimeout(() => {
-          const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-          const iosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
-          if (!('Notification' in window)) {
-            // iOS Safari senza PWA installata: mostra banner invito
-            if (iosDevice && !isStandalonePWA) {
-              document.getElementById('ios-install-banner').style.display = 'block';
-            }
-            return;
-          }
-          if (Notification.permission === 'default') {
-            window.requestNotifications && window.requestNotifications();
-          }
-        }, 1500);
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          const dismissed = localStorage.getItem('notif-modal-dismissed');
+          if (!('Notification' in window)) return; // iOS senza PWA: niente
+          if (Notification.permission === 'granted') return; // già ok
+          if (dismissed) return; // già rifiutato
+          document.getElementById('notif-modal').style.display = 'flex';
+        }, 1200);
       } catch (err) {
         document.getElementById('loading-state').innerHTML =
           `<div style="text-align:center;padding:40px;">
@@ -666,6 +720,66 @@
       await loadClients();
     });
 
+    // ── MODAL NOTIFICHE ────────────────────────────────────────────
+    window.enableNotifFromModal = async () => {
+      document.getElementById('notif-modal').style.display = 'none';
+      await window.requestNotifications();
+    };
+
+    window.dismissNotifModal = () => {
+      document.getElementById('notif-modal').style.display = 'none';
+      localStorage.setItem('notif-modal-dismissed', '1');
+    };
+
+    window.toggleNotifications = async () => {
+      if (!('Notification' in window)) {
+        showToast('Notifiche non supportate su questo browser.', 'error');
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        localStorage.removeItem('notif-enabled');
+        localStorage.removeItem('notif-modal-dismissed');
+        showToast('Notifiche disattivate. Ricarica per riattivarle.');
+        updateSettingsUI();
+      } else {
+        await window.requestNotifications();
+        updateSettingsUI();
+      }
+    };
+
+    function updateSettingsUI() {
+      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const label   = document.getElementById('notif-settings-label');
+      const btn     = document.getElementById('notif-settings-btn');
+      const statusT = document.getElementById('notif-status-text');
+
+      if (!('Notification' in window)) {
+        label.textContent = 'Non disponibile';
+        btn.disabled = true;
+        btn.style.opacity = '.5';
+        statusT.textContent = 'Le notifiche richiedono che l\'app sia installata sulla Home Screen.';
+        document.getElementById('ios-install-card').style.display = isIos ? '' : 'none';
+      } else if (Notification.permission === 'granted') {
+        label.textContent = 'Attive ✓';
+        btn.className = 'btn btn-outline';
+        statusT.textContent = 'Notifiche attive — ricevi avvisi in tempo reale.';
+      } else if (Notification.permission === 'denied') {
+        label.textContent = 'Bloccate dal browser';
+        btn.disabled = true;
+        btn.style.opacity = '.5';
+        statusT.textContent = 'Hai bloccato le notifiche. Abilitale nelle impostazioni del browser.';
+      } else {
+        label.textContent = 'Attiva notifiche';
+        btn.className = 'btn btn-primary';
+        statusT.textContent = 'Ricevi un avviso quando arriva un messaggio o una richiesta partner.';
+      }
+
+      if (deferredInstallPrompt) {
+        document.getElementById('install-card').style.display = '';
+      }
+    }
+
     // ── PWA: SERVICE WORKER ────────────────────────────────────────
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/admin/sw.js').catch(() => {});
@@ -726,14 +840,13 @@
     }
 
     window.requestNotifications = async () => {
+      if (!('Notification' in window)) return;
       const perm = await Notification.requestPermission();
-      const label = document.getElementById('notif-label');
+      document.getElementById('notif-label').textContent = perm === 'granted' ? 'Notifiche attive ✓' : 'Notifiche bloccate';
       if (perm === 'granted') {
-        label.textContent = 'Notifiche attive ✓';
         localStorage.setItem('notif-enabled', '1');
         startNotificationListeners();
-      } else {
-        label.textContent = 'Notifiche bloccate';
+        showToast('Notifiche attivate!');
       }
     };
 
