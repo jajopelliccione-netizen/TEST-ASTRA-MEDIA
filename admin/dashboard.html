@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard – Astra Agency</title>
   <meta name="robots" content="noindex, nofollow" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Astra Admin" />
+  <link rel="apple-touch-icon" href="../logo.png" />
+  <link rel="manifest" href="/admin/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -28,6 +34,18 @@
     </div>
   </nav>
 
+  <!-- Banner installazione iOS -->
+  <div id="ios-install-banner" style="display:none;position:fixed;bottom:90px;left:12px;right:12px;z-index:300;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.4);">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <img src="../logo.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;" />
+      <div style="flex:1;">
+        <p style="font-weight:700;font-size:.9rem;margin-bottom:4px;">Installa Astra Admin</p>
+        <p style="font-size:.8rem;color:var(--text-muted);line-height:1.4;">Tocca <strong style="color:var(--text);">Condividi</strong> <span style="font-size:1rem;">⎋</span> poi <strong style="color:var(--text);">Aggiungi a schermata Home</strong></p>
+      </div>
+      <button onclick="document.getElementById('ios-install-banner').style.display='none';localStorage.setItem('ios-banner-dismissed','1');" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:0;line-height:1;">✕</button>
+    </div>
+  </div>
+
   <div class="admin-layout" id="main-layout" style="display:none;">
 
     <!-- SIDEBAR -->
@@ -50,6 +68,15 @@
       <a class="sidebar-link" href="/" target="_blank">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
         Vai al Sito
+      </a>
+      <div class="sidebar-section">App</div>
+      <a class="sidebar-link" id="notif-btn" onclick="requestNotifications()" style="cursor:pointer;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-label">Attiva notifiche</span>
+      </a>
+      <a class="sidebar-link" id="install-btn" style="display:none;cursor:pointer;" onclick="installApp()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Installa App
       </a>
     </aside>
 
@@ -623,6 +650,83 @@
       closeReportModal();
       await loadClients();
     });
+
+    // ── PWA: SERVICE WORKER ────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/admin/sw.js').catch(() => {});
+    }
+
+    // ── PWA: INSTALL (Android) ─────────────────────────────────────
+    let deferredInstallPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      document.getElementById('install-btn').style.display = 'flex';
+    });
+
+    window.installApp = async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById('install-btn').style.display = 'none';
+    };
+
+    // ── PWA: iOS install banner ────────────────────────────────────
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    if (isIos && !isStandalone && !localStorage.getItem('ios-banner-dismissed')) {
+      document.getElementById('ios-install-banner').style.display = 'block';
+    }
+
+    // ── NOTIFICHE PUSH ─────────────────────────────────────────────
+    function showBrowserNotification(title, body) {
+      if (Notification.permission !== 'granted') return;
+      const n = new Notification(title, { body, icon: '/logo.png', tag: title });
+      n.onclick = () => { window.focus(); n.close(); };
+    }
+
+    function startNotificationListeners() {
+      const startTime = Date.now();
+      onSnapshot(collection(db, 'contacts'), (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type !== 'added') return;
+          const d = change.doc.data();
+          const createdMs = (d.createdAt?.seconds || 0) * 1000;
+          if (createdMs > startTime - 5000 && d.status === 'new') {
+            showBrowserNotification('Nuovo messaggio!', `${d.name} ha inviato un messaggio`);
+          }
+        });
+      });
+      onSnapshot(collection(db, 'partners'), (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type !== 'added') return;
+          const d = change.doc.data();
+          const createdMs = (d.createdAt?.seconds || 0) * 1000;
+          if (createdMs > startTime - 5000 && d.status === 'pending') {
+            showBrowserNotification('Nuova richiesta partner!', `${d.companyName} vuole collaborare`);
+          }
+        });
+      });
+    }
+
+    window.requestNotifications = async () => {
+      const perm = await Notification.requestPermission();
+      const label = document.getElementById('notif-label');
+      if (perm === 'granted') {
+        label.textContent = 'Notifiche attive ✓';
+        localStorage.setItem('notif-enabled', '1');
+        startNotificationListeners();
+      } else {
+        label.textContent = 'Notifiche bloccate';
+      }
+    };
+
+    // Auto-riattiva se già autorizzate in precedenza
+    if (localStorage.getItem('notif-enabled') === '1' && Notification.permission === 'granted') {
+      document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
+      startNotificationListeners();
+    }
   </script>
 </body>
 </html>
