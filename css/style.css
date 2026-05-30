@@ -1862,31 +1862,32 @@ footer {
   pointer-events: none;
 }
 
-/* ── Stats bar ── */
+/* ── Stats bar: CSS Grid (non flex, non si rompe) ── */
 .partner-stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 0;
-  background: rgba(0,229,160,.05);
-  border: 1px solid rgba(0,229,160,.2);
+  background: rgba(0,229,160,.07);
+  border: 1px solid rgba(0,229,160,.28);
   border-radius: 20px;
-  padding: 28px 40px;
-  margin-bottom: 64px;
+  padding: 28px 32px;
+  margin-bottom: 56px;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+  text-align: center;
 }
 
 .p-stat {
-  flex: 1;
-  text-align: center;
-  padding: 0 24px;
+  padding: 0 16px;
+  border-right: 1px solid rgba(0,229,160,.18);
 }
+
+.p-stat:last-child { border-right: none; }
 
 .p-stat-num {
   display: block;
   font-family: var(--font-head);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   font-weight: 800;
   background: linear-gradient(135deg, var(--green), var(--cyan));
   -webkit-background-clip: text;
@@ -1903,55 +1904,50 @@ footer {
   margin: 0;
 }
 
-.p-stat-divider {
-  width: 1px;
-  height: 48px;
-  background: rgba(0,229,160,.2);
-  flex-shrink: 0;
-}
+.p-stat-divider { display: none; }
 
-/* ── Benefit cards grid ── */
+/* ── Benefit cards: 2x2 grid ── */
 .partner-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 48px;
 }
 
 .partner-card {
-  background: rgba(0,229,160,.04);
-  border: 1px solid rgba(0,229,160,.18);
+  background: rgba(13,17,35,.7);
+  border: 1px solid rgba(0,229,160,.32);
   border-radius: 24px;
-  padding: 32px 24px;
+  padding: 32px 28px;
   position: relative;
   overflow: hidden;
   transition: transform .35s cubic-bezier(.4,0,.2,1), border-color .35s, box-shadow .35s;
   cursor: default;
-  box-shadow: 0 4px 24px rgba(0,0,0,.2), 0 0 28px rgba(0,229,160,.05), inset 0 1px 0 rgba(255,255,255,.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 .partner-card::before {
   content: '';
   position: absolute;
-  top: -60px; left: -60px;
-  width: 160px; height: 160px;
-  background: radial-gradient(circle, rgba(0,229,160,.12) 0%, transparent 70%);
+  top: -80px; left: -80px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,229,160,.14) 0%, transparent 70%);
   pointer-events: none;
-  transition: opacity .35s;
   opacity: 0;
+  transition: opacity .35s;
 }
 
 .partner-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(0,229,160,.42);
-  box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 40px rgba(0,229,160,.18), inset 0 1px 0 rgba(255,255,255,.08);
+  border-color: rgba(0,229,160,.6);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45), 0 0 40px rgba(0,229,160,.2), inset 0 1px 0 rgba(255,255,255,.08);
 }
 
 .partner-card:hover::before { opacity: 1; }
 
 .partner-card h3 {
   font-family: var(--font-head);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 10px;
 }
@@ -1967,12 +1963,12 @@ footer {
 .partner-apply {
   position: relative;
   margin-top: 8px;
-  background: rgba(0,229,160,.04);
+  background: rgba(13,17,35,.8);
   border: 1px solid rgba(0,229,160,.5);
   border-radius: 32px;
   padding: 56px;
   box-shadow:
-    0 0 0 1px rgba(0,229,160,.15),
+    0 0 0 1px rgba(0,229,160,.12),
     0 0 60px rgba(0,229,160,.14),
     0 0 120px rgba(0,229,160,.06);
   animation: partnerGlow 3s ease-in-out infinite;
@@ -1980,10 +1976,10 @@ footer {
 
 @keyframes partnerGlow {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(0,229,160,.15), 0 0 50px rgba(0,229,160,.1), 0 0 100px rgba(0,229,160,.05);
+    box-shadow: 0 0 0 1px rgba(0,229,160,.12), 0 0 50px rgba(0,229,160,.1), 0 0 100px rgba(0,229,160,.05);
   }
   50% {
-    box-shadow: 0 0 0 2px rgba(0,229,160,.4), 0 0 80px rgba(0,229,160,.22), 0 0 160px rgba(0,229,160,.1);
+    box-shadow: 0 0 0 2px rgba(0,229,160,.38), 0 0 80px rgba(0,229,160,.22), 0 0 160px rgba(0,229,160,.1);
   }
 }
 
@@ -2086,7 +2082,6 @@ footer {
   .about-text { text-align: center; }
   .about-values { justify-content: center; }
   .packages-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto 56px; }
-  .partner-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .partner-apply { padding: 40px 32px; }
   .partner-apply-inner { grid-template-columns: 1fr; gap: 36px; }
 
@@ -2163,9 +2158,11 @@ footer {
   .testimonials-grid { grid-template-columns: 1fr; }
   /* Clip pseudo-element glows that extend beyond section bounds */
   #collaborations, #packages, #partner, #contact { overflow: hidden; }
-  .partner-stats { flex-wrap: wrap; gap: 16px; padding: 20px 24px; }
-  .p-stat-divider { display: none; }
-  .p-stat { flex: 1 1 calc(50% - 16px); padding: 8px 0; }
+  .scroll-hint { display: none; }
+  .partner-stats { grid-template-columns: repeat(2, 1fr); padding: 20px 16px; }
+  .p-stat { border-right: none; border-bottom: 1px solid rgba(0,229,160,.15); padding: 12px 8px; }
+  .p-stat:nth-child(odd) { border-right: 1px solid rgba(0,229,160,.15); }
+  .p-stat:nth-last-child(-n+2) { border-bottom: none; }
   .partner-cards-grid { grid-template-columns: 1fr; }
   .partner-apply { padding: 40px 20px; }
   .partner-apply-inner { grid-template-columns: 1fr; gap: 32px; }
