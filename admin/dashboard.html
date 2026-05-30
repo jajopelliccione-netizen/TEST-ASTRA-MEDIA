@@ -675,24 +675,30 @@
 
     window.deleteContact = async (id) => {
       if (!confirm('Eliminare questo messaggio?')) return;
-      await deleteDoc(doc(db, 'contacts', id));
-      showToast('Messaggio eliminato.');
-      loadContacts();
+      try {
+        await deleteDoc(doc(db, 'contacts', id));
+        showToast('Messaggio eliminato.');
+        loadContacts();
+      } catch (e) { showToast('Errore: ' + e.message, 'error'); }
     };
 
     window.deletePartner = async (id) => {
       if (!confirm('Eliminare questa richiesta partner?')) return;
-      await deleteDoc(doc(db, 'partners', id));
-      showToast('Richiesta partner eliminata.');
-      loadPartners();
+      try {
+        await deleteDoc(doc(db, 'partners', id));
+        showToast('Richiesta partner eliminata.');
+        loadPartners();
+      } catch (e) { showToast('Errore: ' + e.message, 'error'); }
     };
 
     window.deleteClient = async (uid) => {
       if (!confirm('Eliminare questo cliente? L\'operazione non può essere annullata.')) return;
-      await deleteDoc(doc(db, 'clients', uid));
-      allClients = allClients.filter(c => c.uid !== uid);
-      renderClientsTable();
-      showToast('Cliente eliminato.');
+      try {
+        await deleteDoc(doc(db, 'clients', uid));
+        allClients = allClients.filter(c => c.uid !== uid);
+        renderClientsTable();
+        showToast('Cliente eliminato.');
+      } catch (e) { showToast('Errore: ' + e.message, 'error'); }
     };
 
     // ── ADD/EDIT CLIENT ────────────────────────────────────────────
