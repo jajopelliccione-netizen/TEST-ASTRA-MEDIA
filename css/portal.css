@@ -329,11 +329,14 @@ a    { text-decoration: none; color: inherit; }
 @media (max-width: 768px) {
 
   /* Navbar */
-  .portal-nav { padding: 0 14px; height: 58px; }
+  .portal-nav { padding: 0 14px; height: 58px; gap: 8px; }
   .portal-nav-logo img { height: 40px; }
   .portal-nav-logo > span:first-of-type { display: none; }
   .portal-nav-badge { display: none; }
-  .btn-logout { padding: 6px 12px; font-size: .75rem; }
+  .btn-logout { padding: 6px 12px; font-size: .75rem; flex-shrink: 0; }
+  /* Truncate admin name in navbar */
+  #admin-name-btn { max-width: 150px; }
+  #admin-display-name { display: block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* Client portal wrap */
   .portal-wrap { padding: 74px 14px 40px; }
@@ -358,9 +361,48 @@ a    { text-decoration: none; color: inherit; }
   /* Grids */
   .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 14px; }
 
-  /* Tables */
-  .portal-table th { padding: 8px 10px; font-size: .7rem; }
-  .portal-table td { padding: 12px 10px; font-size: .84rem; }
+  /* ── TABLES → CARD LAYOUT ───────────────────── */
+  .portal-table thead { display: none; }
+  .portal-table,
+  .portal-table tbody { display: block; }
+  .portal-table tr {
+    display: block;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    padding: 14px 14px 8px;
+  }
+  .portal-table td {
+    display: flex;
+    align-items: flex-start;
+    padding: 7px 0;
+    border: none !important;
+    font-size: .88rem;
+    gap: 12px;
+    max-width: none !important;
+  }
+  .portal-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: .66rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    flex-shrink: 0;
+    width: 76px;
+    padding-top: 2px;
+  }
+  /* Actions row: full width below separator */
+  .portal-table td[data-label=""] {
+    flex-wrap: wrap;
+    padding: 12px 0 6px;
+    margin-top: 6px;
+    border-top: 1px solid rgba(123,92,240,.15) !important;
+    gap: 8px;
+  }
+  .portal-table td[data-label=""]::before { display: none; }
+  .portal-table td[data-label=""] > div { width: 100%; }
 
   /* Modal: bottom sheet */
   .modal-overlay { padding: 0; align-items: flex-end; }
