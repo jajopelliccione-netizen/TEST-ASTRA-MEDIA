@@ -1,4 +1,4 @@
-const CACHE = 'astra-admin-v2';
+const CACHE = 'astra-admin-v3';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -28,15 +28,21 @@ self.addEventListener('fetch', e => {
 
 // Notifica push ricevuta dal server (FCM)
 self.addEventListener('push', e => {
-  const data = e.data ? e.data.json() : {};
+  let payload = {};
+  try { payload = e.data ? e.data.json() : {}; } catch (_) {}
+  // FCM v1 wrappa i dati in payload.notification
+  const n     = payload.notification || payload;
+  const title = n.title || 'Astra Agency';
+  const body  = n.body  || 'Hai una nuova notifica';
+  const url   = payload.fcmOptions?.link || payload.url || '/admin/dashboard.html';
   e.waitUntil(
-    self.registration.showNotification(data.title || 'Astra Agency', {
-      body: data.body || 'Hai una nuova notifica',
+    self.registration.showNotification(title, {
+      body,
       icon: '/admin/icon.png',
       badge: '/admin/icon.png',
-      tag: data.tag || 'astra-notif',
+      tag: 'astra-notif',
       renotify: true,
-      data: { url: data.url || '/admin/dashboard.html' }
+      data: { url }
     })
   );
 });
