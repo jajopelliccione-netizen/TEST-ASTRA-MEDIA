@@ -1,3 +1,35 @@
+// Credenziali service account Firebase (il repo deve rimanere PRIVATO)
+const SA_PROJECT_ID   = 'astragency-88b1a';
+const SA_CLIENT_EMAIL = 'firebase-adminsdk-fbsvc@astragency-88b1a.iam.gserviceaccount.com';
+const SA_PRIVATE_KEY  = `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDsFKX4IbvxWvqH
+vZxqNRWvgrAwyOZ2OYxraEslHpJGlQvWSOc6bvngyxfm54W6tcQ15jsZQPC9qmH4
+c0dXmRwivwcK0Hdw/V09SpxJGPAFcofo3xjS6FzIO47Zzc9n6bPUVxp8cFl12g30
+nfG1SpiUnJSZd1Xips+FmbuCQF6ngxFo7pDqs++astXIiGQ/rkYCfCHPG+waGwDm
+9v1RUznrrjrDdelcL+bWirEoqICbr6R+ypXXGtXRacTPigENoY3YfwSNOzQWI9hm
+XvSonDvHxr/tUqPmnmv+Y2NO7yo095VEH6tkxBHtF27qpm93QqDUV/r3KUJqOYAV
+nSfZ0NZTAgMBAAECggEADUPpwYQPvfOZQThXyiX6dna29L7NKFZ6e+yL0GWj3YBx
+flRxXbivpMB0st5OhtvAzzCFIJmkDVw+DgpYN2Vcjd1DBYoKNBigfRmsp3TVw9CY
+L28dw3gYAo5KLBXi8hlRJ/zO+bAMbtFWWGjplIDBCxSzSt5IPqiV35FwVlTMnMfm
+drOXEQIFjz51vzODrKubSpQsWi/idvw+bruQcPEV7AuZvISnXbOFDC4vGqQyxdnW
+TbkY6EuJMDevVRQDmPKfLatEsVVvod/WzScHz4Y7+i/X2F9aeHHB2LdeTYfsz2ta
+SMydWBCz+tFZAbfrJgUxaUPQXVr3G310mkQXhLss6QKBgQD8sK+CD2HmgT3lhjwl
+1f8d9qGD0RDpsbzmW9nwUdDPXnHc8PsssUg1rYKdTRrsR+j9YxHS5XXvN66mHVd6
+MBpT8y4qHfzF5jIqpvZF4gPa/zYxwlyQWRVRUwzAcRLifFkp9QY0V+evfjp+SZ2C
+7FsrnmWn5QE9AKOaT9ZUsjPs2wKBgQDvLESitvTXjKWRJaxKopmS4e/k+t0MJjTr
+hCCMofibNId+8HMHTiQnx2Cfq6JWI9XvnIK8qPePD0tvj928x3nM5/YSh0nDo1iN
+mKErLKT+1ozeYGghrdh5NzGU727D/tIXdbBg7lbWWlUdL3t/t2gbDH+KkbvRqM7K
+pSjBgmy56QKBgQDb1AH7jdJHq6vjX7I34EF/Ga5NdLXX+G4zoTiqHyMfJDS+V07M
+BLajK/1zRz7iy3Rf66334POGVtSzYtdVTz+4RNimf0wGBksiW/nntcZQ4LGO/F12
+nmkzRKLVUAlzy2XuYGEzbD38qD3O29ARs/lkqvoY49r97O5nMoltSVJu/QKBgEAx
+i4J4xKKN92pLyECH/9wylCbLRkUahB2qauoUFxvhL3TcqKMPUBj1JHP2py2jlKop
+QdXNLBTTsBWTcZpXl9NtdthmQ2AlGYF3s9pYszhK8ahGC+zuMinmrIIi+YHVhSIS
+znJVxizmNe4NboJLAcAwzJKuptCRFF/DkHrPvMrxAoGBAKbJnDzIvT2syE+aNJ2k
+GrNB3hyA8BsHX2nhq1Bgj2BajKoOiA7c4MW6qtz8+AT/oaq0s/uS2RuHGCN3kqjH
+2rzVU0nHQvytyL8yoAFWD99K7MfEXE6euFuQERv1TMEEAeksgJOii5wDN0hpObZw
+cPilE1bNzaYVbNZnNJ/ckSZF
+-----END PRIVATE KEY-----`;
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -18,11 +50,16 @@ export async function onRequestPost({ request, env }) {
       ? `${companyName || "Un'azienda"} vuole collaborare`
       : `${name || 'Qualcuno'} ha inviato un messaggio`;
 
-    const accessToken = await getAccessToken(env);
-    const tokens = await getAdminTokens(env.FCM_PROJECT_ID, accessToken);
+    // Usa env vars Cloudflare se presenti, altrimenti valori hardcoded
+    const projectId   = env.FCM_PROJECT_ID   || SA_PROJECT_ID;
+    const clientEmail = env.FCM_CLIENT_EMAIL  || SA_CLIENT_EMAIL;
+    const privateKey  = env.FCM_PRIVATE_KEY   || SA_PRIVATE_KEY;
+
+    const accessToken = await getAccessToken(clientEmail, privateKey);
+    const tokens      = await getAdminTokens(projectId, accessToken);
 
     if (tokens.length > 0) {
-      await sendAll(tokens, title, notifBody, env.FCM_PROJECT_ID, accessToken);
+      await sendAll(tokens, title, notifBody, projectId, accessToken);
     }
 
     return json({ ok: true });
@@ -69,11 +106,11 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
 }
 
 // ── Auth: genera access token da service account ──────────────────────────
-async function getAccessToken(env) {
+async function getAccessToken(clientEmail, privateKey) {
   const now = Math.floor(Date.now() / 1000);
   const header  = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const payload = b64url(JSON.stringify({
-    iss:   env.FCM_CLIENT_EMAIL,
+    iss:   clientEmail,
     scope: 'https://www.googleapis.com/auth/cloud-platform',
     aud:   'https://oauth2.googleapis.com/token',
     iat:   now,
@@ -81,7 +118,7 @@ async function getAccessToken(env) {
   }));
 
   const unsigned  = `${header}.${payload}`;
-  const cryptoKey = await importPrivateKey(env.FCM_PRIVATE_KEY);
+  const cryptoKey = await importPrivateKey(privateKey);
   const sigBuf    = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, enc(unsigned));
   const jwt       = `${unsigned}.${b64url(sigBuf)}`;
 
