@@ -155,6 +155,16 @@
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <p style="font-weight:600;margin-bottom:4px;">Testa notifica</p>
+              <p style="font-size:.83rem;color:var(--text-muted);" id="test-notif-result">Verifica che le notifiche arrivino correttamente sul dispositivo.</p>
+            </div>
+            <button onclick="testNotification()" class="btn btn-outline" style="white-space:nowrap;">Invia test</button>
+          </div>
+        </div>
+
         <div class="card" id="install-card" style="display:none;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
             <div>
@@ -839,27 +849,35 @@
       let contactsReady = false;
       let partnersReady = false;
 
-      onSnapshot(collection(db, 'contacts'), (snap) => {
-        if (!contactsReady) { contactsReady = true; return; }
-        snap.docChanges().forEach(change => {
-          if (change.type !== 'added') return;
-          const d = change.doc.data();
-          if (d.status === 'new') {
-            showBrowserNotification('Nuovo messaggio!', `${d.name || 'Qualcuno'} ha inviato un messaggio`);
-          }
-        });
-      });
+      onSnapshot(
+        collection(db, 'contacts'),
+        (snap) => {
+          if (!contactsReady) { contactsReady = true; return; }
+          snap.docChanges().forEach(change => {
+            if (change.type !== 'added') return;
+            const d = change.doc.data();
+            if (d.status === 'new') {
+              showBrowserNotification('Nuovo messaggio!', `${d.name || 'Qualcuno'} ha inviato un messaggio`);
+            }
+          });
+        },
+        (err) => showToast('Errore listener messaggi: ' + err.message, 'error')
+      );
 
-      onSnapshot(collection(db, 'partners'), (snap) => {
-        if (!partnersReady) { partnersReady = true; return; }
-        snap.docChanges().forEach(change => {
-          if (change.type !== 'added') return;
-          const d = change.doc.data();
-          if (d.status === 'pending') {
-            showBrowserNotification('Nuova richiesta partner!', `${d.companyName || 'Un\'azienda'} vuole collaborare`);
-          }
-        });
-      });
+      onSnapshot(
+        collection(db, 'partners'),
+        (snap) => {
+          if (!partnersReady) { partnersReady = true; return; }
+          snap.docChanges().forEach(change => {
+            if (change.type !== 'added') return;
+            const d = change.doc.data();
+            if (d.status === 'pending') {
+              showBrowserNotification('Nuova richiesta partner!', `${d.companyName || 'Un\'azienda'} vuole collaborare`);
+            }
+          });
+        },
+        (err) => showToast('Errore listener partner: ' + err.message, 'error')
+      );
     }
 
     window.requestNotifications = async () => {
@@ -870,6 +888,45 @@
         localStorage.setItem('notif-enabled', '1');
         startNotificationListeners();
         showToast('Notifiche attivate!');
+      } else {
+        showToast('Permesso notifiche negato.', 'error');
+      }
+    };
+
+    window.testNotification = async () => {
+      const resultEl = document.getElementById('test-notif-result');
+      if (!('Notification' in window)) {
+        resultEl.textContent = '✗ Notification API non disponibile su questo browser.';
+        resultEl.style.color = 'var(--pink)';
+        return;
+      }
+      if (Notification.permission !== 'granted') {
+        resultEl.textContent = `✗ Permesso: "${Notification.permission}". Prima attiva le notifiche.`;
+        resultEl.style.color = 'var(--pink)';
+        return;
+      }
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 3000))
+          ]);
+          await reg.showNotification('Astra Agency — Test', {
+            body: 'Le notifiche funzionano correttamente!',
+            icon: '/admin/icon.png',
+            badge: '/admin/icon.png',
+            tag: 'test',
+          });
+          resultEl.textContent = '✓ Notifica inviata tramite service worker!';
+          resultEl.style.color = 'var(--green, #22c55e)';
+        } else {
+          new Notification('Astra Agency — Test', { body: 'Le notifiche funzionano!', icon: '/admin/icon.png' });
+          resultEl.textContent = '✓ Notifica inviata (fallback diretto).';
+          resultEl.style.color = 'var(--green, #22c55e)';
+        }
+      } catch (e) {
+        resultEl.textContent = `✗ Errore: ${e.message}`;
+        resultEl.style.color = 'var(--pink)';
       }
     };
 
