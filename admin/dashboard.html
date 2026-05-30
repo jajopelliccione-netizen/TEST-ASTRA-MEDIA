@@ -987,7 +987,7 @@
 
       // 2. Test /api/notify (FCM via Cloudflare)
       try {
-        const r = await fetch('/api/notify', {
+        const r = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'contact', name: 'TEST' }),
@@ -1001,7 +1001,7 @@
           resultEl.style.color = 'var(--pink)';
         }
       } catch (e) {
-        resultEl.textContent = `✓ SW locale OK — /api/notify non raggiungibile (${e.message}). Sei su Cloudflare?`;
+        resultEl.textContent = `✓ SW locale OK — Worker non raggiungibile (${e.message}).`;
         resultEl.style.color = 'var(--pink)';
       }
     };
@@ -1035,7 +1035,7 @@
       resultEl.style.color = 'var(--text-muted)';
 
       try {
-        const r    = await fetch('/api/notify', {
+        const r    = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'manual', title: titleVal, body: bodyVal }),
@@ -1051,7 +1051,7 @@
           resultEl.style.color = 'var(--pink)';
         }
       } catch (e) {
-        resultEl.textContent = `✗ /api/notify non raggiungibile — sei su Cloudflare?`;
+        resultEl.textContent = `✗ Worker non raggiungibile — controlla la connessione.`;
         resultEl.style.color = 'var(--pink)';
       }
     };

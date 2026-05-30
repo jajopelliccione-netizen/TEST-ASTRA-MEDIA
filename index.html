@@ -822,7 +822,7 @@
             status:    'new',
             createdAt: serverTimestamp(),
           });
-          fetch('/api/notify', {
+          fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'contact', name: contactName }),
@@ -858,7 +858,7 @@
             status:      'pending',
             createdAt:   serverTimestamp(),
           });
-          fetch('/api/notify', {
+          fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'partner', companyName: partnerCompany }),
