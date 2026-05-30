@@ -400,6 +400,9 @@ img, svg { display: block; }
 #navbar.scrolled.section-contact .nav-logo-img {
   filter: drop-shadow(0 0 8px rgba(123,92,240,1)) drop-shadow(0 0 22px rgba(255,45,120,.7)) drop-shadow(0 0 36px rgba(123,92,240,.3));
 }
+#navbar.scrolled.section-partner .nav-logo-img {
+  filter: drop-shadow(0 0 8px rgba(0,229,160,1)) drop-shadow(0 0 22px rgba(0,229,160,.7)) drop-shadow(0 0 36px rgba(0,245,255,.3));
+}
 
 /* ── NAV PILL (links + cta) ─── */
 .nav-pill {
@@ -1840,6 +1843,149 @@ footer {
 
 .pkg-cta strong { color: var(--text); }
 
+/* ═══════════════════════════════════ PARTNER ══════════════════ */
+#partner {
+  padding: 120px 0;
+  position: relative;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse 60% 70% at 100% 40%, rgba(0,229,160,.07) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 50% at 0%   60%, rgba(0,245,255,.05) 0%, transparent 65%);
+}
+
+#partner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 80%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,160,.5), rgba(0,245,255,.4), transparent);
+  pointer-events: none;
+}
+
+.partner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.partner-intro {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.partner-intro strong { color: var(--text); }
+
+.partner-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,229,160,.14);
+  background: rgba(0,229,160,.04);
+  transition: border-color .3s, box-shadow .3s, background .3s, transform .2s;
+}
+
+.benefit-item:hover {
+  border-color: rgba(0,229,160,.36);
+  background: rgba(0,229,160,.08);
+  box-shadow: 0 6px 28px rgba(0,229,160,.1);
+  transform: translateX(4px);
+}
+
+.benefit-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+
+.benefit-item h4 {
+  font-family: var(--font-head);
+  font-size: .95rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.benefit-item p {
+  color: var(--text-muted);
+  font-size: .85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.partner-form-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(0,229,160,.22);
+  border-radius: 28px;
+  padding: 40px;
+  box-shadow: 0 0 40px rgba(0,229,160,.07), 0 20px 60px rgba(0,0,0,.25);
+  position: sticky;
+  top: 100px;
+}
+
+.partner-form-header {
+  margin-bottom: 28px;
+}
+
+.partner-form-header h3 {
+  font-family: var(--font-head);
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin: 12px 0 8px;
+}
+
+.partner-form-header p {
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.badge-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: rgba(0,229,160,.12);
+  border: 1px solid rgba(0,229,160,.3);
+  color: var(--green);
+}
+
+.partner-success {
+  display: none;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(0,229,160,.1);
+  border: 1px solid rgba(0,229,160,.35);
+  color: var(--green);
+  font-weight: 600;
+  text-align: center;
+  animation: successPulse .5s ease;
+}
+
+.partner-success.show { display: block; }
+
 /* Nasconde overlay menu su desktop */
 @media (min-width: 769px) {
   .mobile-menu { display: none !important; }
@@ -1853,6 +1999,8 @@ footer {
   .about-text { text-align: center; }
   .about-values { justify-content: center; }
   .packages-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto 56px; }
+  .partner-grid { grid-template-columns: 1fr; gap: 48px; }
+  .partner-form-card { position: static; }
 
   /* Hero fits in one screen on tablet portrait */
   #hero { padding: 76px 24px 24px; }
@@ -1926,7 +2074,8 @@ footer {
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
   /* Clip pseudo-element glows that extend beyond section bounds */
-  #collaborations, #packages, #contact { overflow: hidden; }
+  #collaborations, #packages, #partner, #contact { overflow: hidden; }
+  .partner-form-card { padding: 28px 20px; }
 
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
   .contact-info,
