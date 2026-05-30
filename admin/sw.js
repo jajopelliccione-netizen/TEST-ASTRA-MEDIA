@@ -1,4 +1,4 @@
-const CACHE = 'astra-admin-v1';
+const CACHE = 'astra-admin-v2';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -6,13 +6,17 @@ self.addEventListener('install', e => {
     caches.open(CACHE).then(c => c.addAll([
       '/admin/dashboard.html',
       '/css/portal.css?v=3',
-      '/logo.png'
+      '/admin/icon.png'
     ]))
   );
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => clients.claim())
+  );
 });
 
 self.addEventListener('fetch', e => {

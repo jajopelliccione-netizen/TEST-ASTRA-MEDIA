@@ -360,10 +360,21 @@
         document.getElementById('main-layout').style.display = 'flex';
         loadClients();
         startContactsBadge();
-        // Chiedi notifiche automaticamente se non ancora deciso
-        if ('Notification' in window && Notification.permission === 'default') {
-          setTimeout(() => window.requestNotifications && window.requestNotifications(), 1500);
-        }
+        // Chiedi notifiche dopo login
+        setTimeout(() => {
+          const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          const iosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          if (!('Notification' in window)) {
+            // iOS Safari senza PWA installata: mostra banner invito
+            if (iosDevice && !isStandalonePWA) {
+              document.getElementById('ios-install-banner').style.display = 'block';
+            }
+            return;
+          }
+          if (Notification.permission === 'default') {
+            window.requestNotifications && window.requestNotifications();
+          }
+        }, 1500);
       } catch (err) {
         document.getElementById('loading-state').innerHTML =
           `<div style="text-align:center;padding:40px;">
