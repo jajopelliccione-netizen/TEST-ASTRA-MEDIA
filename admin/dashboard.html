@@ -385,6 +385,9 @@
       doc, getDoc, getDocs, setDoc, updateDoc, collection, arrayUnion, onSnapshot
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getMessaging, getToken, onMessage
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js';
 
     // Secondary app for creating users without logging out admin
     const secondaryApp  = fbInit({
@@ -857,6 +860,7 @@
             if (change.type !== 'added') return;
             const d = change.doc.data();
             if (d.status === 'new') {
+              showToast(`📩 Nuovo messaggio da ${d.name || 'Qualcuno'}!`);
               showBrowserNotification('Nuovo messaggio!', `${d.name || 'Qualcuno'} ha inviato un messaggio`);
             }
           });
@@ -872,7 +876,8 @@
             if (change.type !== 'added') return;
             const d = change.doc.data();
             if (d.status === 'pending') {
-              showBrowserNotification('Nuova richiesta partner!', `${d.companyName || 'Un\'azienda'} vuole collaborare`);
+              showToast(`🤝 Nuova richiesta da ${d.companyName || "un'azienda"}!`);
+              showBrowserNotification('Nuova richiesta partner!', `${d.companyName || "Un'azienda"} vuole collaborare`);
             }
           });
         },
@@ -887,11 +892,34 @@
       if (perm === 'granted') {
         localStorage.setItem('notif-enabled', '1');
         startNotificationListeners();
+        await registerFcmToken();
         showToast('Notifiche attivate!');
       } else {
         showToast('Permesso notifiche negato.', 'error');
       }
     };
+
+    async function registerFcmToken() {
+      try {
+        const VAPID_KEY = 'SOSTITUISCI_CON_VAPID_KEY';
+        if (VAPID_KEY === 'SOSTITUISCI_CON_VAPID_KEY') return; // non ancora configurato
+        const messaging = getMessaging();
+        const swReg = await navigator.serviceWorker.ready;
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+        if (token && currentAdminUid) {
+          await setDoc(doc(db, 'admin_tokens', currentAdminUid), { token, updatedAt: new Date() });
+        }
+        // Notifiche quando la dashboard è aperta in primo piano
+        onMessage(messaging, (payload) => {
+          const title = payload.notification?.title || 'Astra Agency';
+          const body  = payload.notification?.body  || 'Nuova notifica';
+          showToast(`${title} — ${body}`);
+          showBrowserNotification(title, body);
+        });
+      } catch (e) {
+        // FCM non ancora configurato, funziona solo con app aperta
+      }
+    }
 
     window.testNotification = async () => {
       const resultEl = document.getElementById('test-notif-result');
