@@ -43,12 +43,19 @@ export async function onRequestOptions() {
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
-    const { type, name, companyName } = body;
+    const { type, name, companyName, title: customTitle, body: customBody } = body;
 
-    const title = type === 'partner' ? 'Nuova richiesta partner!' : 'Nuovo messaggio!';
-    const notifBody = type === 'partner'
-      ? `${companyName || "Un'azienda"} vuole collaborare`
-      : `${name || 'Qualcuno'} ha inviato un messaggio`;
+    let title, notifBody;
+    if (type === 'manual') {
+      title     = customTitle  || 'Astra Agency';
+      notifBody = customBody   || 'Nuova notifica';
+    } else if (type === 'partner') {
+      title     = 'Nuova richiesta partner!';
+      notifBody = `${companyName || "Un'azienda"} vuole collaborare`;
+    } else {
+      title     = 'Nuovo messaggio!';
+      notifBody = `${name || 'Qualcuno'} ha inviato un messaggio`;
+    }
 
     // Usa env vars Cloudflare se presenti, altrimenti valori hardcoded
     const projectId   = env.FCM_PROJECT_ID   || SA_PROJECT_ID;
@@ -62,7 +69,7 @@ export async function onRequestPost({ request, env }) {
       await sendAll(tokens, title, notifBody, projectId, accessToken);
     }
 
-    return json({ ok: true });
+    return json({ ok: true, count: tokens.length });
   } catch (err) {
     return json({ error: err.message }, 500);
   }
