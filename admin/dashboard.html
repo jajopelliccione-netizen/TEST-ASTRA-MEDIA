@@ -304,8 +304,8 @@
         const snap = await getDoc(doc(db, 'admins', user.uid));
         if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
         currentAdminUid = user.uid;
-        const adminData = snap.data() || {};
-        document.getElementById('admin-display-name').textContent = adminData.displayName || user.email;
+        const savedName = localStorage.getItem('admin_display_name');
+        document.getElementById('admin-display-name').textContent = savedName || user.email;
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('main-layout').style.display = 'flex';
         loadClients();
@@ -328,20 +328,13 @@
     };
     window.closeProfileModal = () => document.getElementById('profile-modal').classList.remove('open');
 
-    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const btn = document.getElementById('profile-save-btn');
-      btn.textContent = 'Salvataggio…'; btn.disabled = true;
       const newName = document.getElementById('p-display-name').value.trim();
-      try {
-        await updateDoc(doc(db, 'admins', currentAdminUid), { displayName: newName });
-        document.getElementById('admin-display-name').textContent = newName;
-        showToast('Nome aggiornato!');
-        closeProfileModal();
-      } catch (err) {
-        showToast('Errore: ' + err.message, 'error');
-      }
-      btn.textContent = 'Salva'; btn.disabled = false;
+      localStorage.setItem('admin_display_name', newName);
+      document.getElementById('admin-display-name').textContent = newName;
+      showToast('Nome aggiornato!');
+      closeProfileModal();
     });
 
     // ── LOAD CLIENTS ───────────────────────────────────────────────
