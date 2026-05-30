@@ -330,7 +330,7 @@ a    { text-decoration: none; color: inherit; }
 
   /* Navbar */
   .portal-nav { padding: 0 14px; height: 58px; }
-  .portal-nav-logo img { height: 28px; }
+  .portal-nav-logo img { height: 40px; }
   .portal-nav-logo > span:first-of-type { display: none; }
   .portal-nav-badge { display: none; }
   .btn-logout { padding: 6px 12px; font-size: .75rem; }
