@@ -419,14 +419,17 @@
         document.getElementById('main-layout').style.display = 'flex';
         loadClients();
         startContactsBadge();
+        // Avvia listener notifiche ORA che l'auth è confermata
+        if ('Notification' in window && Notification.permission === 'granted') {
+          document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
+          startNotificationListeners();
+        }
         // Mostra modal notifiche se non ancora attivate
         setTimeout(() => {
-          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-          const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
           const dismissed = localStorage.getItem('notif-modal-dismissed');
-          if (!('Notification' in window)) return; // iOS senza PWA: niente
-          if (Notification.permission === 'granted') return; // già ok
-          if (dismissed) return; // già rifiutato
+          if (!('Notification' in window)) return;
+          if (Notification.permission === 'granted') return;
+          if (dismissed) return;
           document.getElementById('notif-modal').style.display = 'flex';
         }, 1200);
       } catch (err) {
@@ -870,12 +873,13 @@
       }
     };
 
-    // Aggiorna label in base allo stato attuale del permesso
-    if (Notification.permission === 'granted') {
-      document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
-      if (localStorage.getItem('notif-enabled') === '1') startNotificationListeners();
-    } else if (Notification.permission === 'denied') {
-      document.getElementById('notif-label').textContent = 'Notifiche bloccate';
+    // Aggiorna solo la label (i listener partono dentro onAuthStateChanged)
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        document.getElementById('notif-label').textContent = 'Notifiche attive ✓';
+      } else if (Notification.permission === 'denied') {
+        document.getElementById('notif-label').textContent = 'Notifiche bloccate';
+      }
     }
   </script>
 </body>
