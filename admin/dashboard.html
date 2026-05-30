@@ -157,6 +157,16 @@
 
         <div class="card" style="margin-bottom:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div style="flex:1;">
+              <p style="font-weight:600;margin-bottom:4px;">Registra questo dispositivo</p>
+              <p style="font-size:.83rem;color:var(--text-muted);" id="fcm-reg-result">Salva il token FCM di questo dispositivo per ricevere notifiche push anche con la dashboard chiusa.</p>
+            </div>
+            <button onclick="doRegisterFcm()" class="btn btn-primary" style="white-space:nowrap;">Registra</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
             <div>
               <p style="font-weight:600;margin-bottom:4px;">Testa notifica</p>
               <p style="font-size:.83rem;color:var(--text-muted);" id="test-notif-result">Verifica che le notifiche arrivino correttamente sul dispositivo.</p>
@@ -915,17 +925,18 @@
       }
     };
 
-    async function registerFcmToken() {
+    async function registerFcmToken(statusEl) {
+      const VAPID_KEY = 'BOetAh8b7SquJ3DIkPfQ2CrfrR7UqWwObkq1qgJXqvFyVCTi6AJ-R9-ChAJaJF3-Rn6HRI731KBe18ywBN75ge4';
       try {
-        const VAPID_KEY = 'BOetAh8b7SquJ3DIkPfQ2CrfrR7UqWwObkq1qgJXqvFyVCTi6AJ-R9-ChAJaJF3-Rn6HRI731KBe18ywBN75ge4';
-        if (VAPID_KEY === 'SOSTITUISCI_CON_VAPID_KEY') return; // non ancora configurato
         const messaging = getMessaging();
-        const swReg = await navigator.serviceWorker.ready;
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-        if (token && currentAdminUid) {
+        // Registra il Firebase Messaging SW (necessario per FCM in background)
+        const fcmSwReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+        const token    = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: fcmSwReg });
+        if (!token) throw new Error('getToken ha restituito null — controlla la VAPID key in Firebase Console');
+        if (currentAdminUid) {
           await setDoc(doc(db, 'admin_tokens', currentAdminUid), { token, updatedAt: new Date() });
         }
-        // Notifiche quando la dashboard è aperta in primo piano
+        if (statusEl) { statusEl.textContent = '✓ Dispositivo registrato! Ora ricevi notifiche push.'; statusEl.style.color = 'var(--green,#22c55e)'; }
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title || 'Astra Agency';
           const body  = payload.notification?.body  || 'Nuova notifica';
@@ -933,7 +944,9 @@
           showBrowserNotification(title, body);
         });
       } catch (e) {
-        // FCM non ancora configurato, funziona solo con app aperta
+        console.error('registerFcmToken:', e);
+        if (statusEl) { statusEl.textContent = '✗ Errore: ' + e.message; statusEl.style.color = 'var(--pink)'; }
+        else showToast('FCM error: ' + e.message, 'error');
       }
     }
 
@@ -991,6 +1004,21 @@
         resultEl.textContent = `✓ SW locale OK — /api/notify non raggiungibile (${e.message}). Sei su Cloudflare?`;
         resultEl.style.color = 'var(--pink)';
       }
+    };
+
+    window.doRegisterFcm = async () => {
+      const statusEl = document.getElementById('fcm-reg-result');
+      if (Notification.permission !== 'granted') {
+        await window.requestNotifications();
+      }
+      if (Notification.permission !== 'granted') {
+        statusEl.textContent = '✗ Permesso notifiche negato dal browser.';
+        statusEl.style.color = 'var(--pink)';
+        return;
+      }
+      statusEl.textContent = 'Registrazione in corso…';
+      statusEl.style.color = 'var(--text-muted)';
+      await registerFcmToken(statusEl);
     };
 
     window.sendManualPush = async () => {
