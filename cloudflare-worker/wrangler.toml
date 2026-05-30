@@ -1,0 +1,10 @@
+name = "astra-notify"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+# Rende /api/* disponibile direttamente su astragency.it
+# (funziona solo se il dominio è gestito da Cloudflare DNS)
+routes = [
+  { pattern = "astragency.it/api/*", zone_name = "astragency.it" }
+]
