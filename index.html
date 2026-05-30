@@ -812,8 +812,9 @@
         cBtn.style.opacity = '.7';
         cBtn.style.pointerEvents = 'none';
         try {
+          const contactName = document.getElementById('name').value.trim();
           await addDoc(collection(db, 'contacts'), {
-            name:      document.getElementById('name').value.trim(),
+            name:      contactName,
             email:     document.getElementById('email').value.trim(),
             phone:     document.getElementById('contact-phone').value.trim(),
             service:   document.getElementById('service').value,
@@ -821,6 +822,11 @@
             status:    'new',
             createdAt: serverTimestamp(),
           });
+          fetch('/api/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'contact', name: contactName }),
+          }).catch(() => {});
           cSucc.classList.add('show');
           cForm.reset();
           setTimeout(() => cSucc.classList.remove('show'), 6000);
@@ -843,14 +849,20 @@
         pBtn.style.opacity = '.7';
         pBtn.style.pointerEvents = 'none';
         try {
+          const partnerCompany = document.getElementById('p-company').value.trim();
           await addDoc(collection(db, 'partners'), {
-            companyName: document.getElementById('p-company').value.trim(),
+            companyName: partnerCompany,
             email:       document.getElementById('p-email').value.trim(),
             phone:       document.getElementById('p-phone').value.trim(),
             message:     document.getElementById('p-message').value.trim(),
             status:      'pending',
             createdAt:   serverTimestamp(),
           });
+          fetch('/api/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'partner', companyName: partnerCompany }),
+          }).catch(() => {});
           pSucc.classList.add('show');
           pForm.reset();
           setTimeout(() => pSucc.classList.remove('show'), 6000);
