@@ -126,7 +126,13 @@ async function handleDebug(env) {
             token: tokens[0],
             notification: { title: 'Debug Astra', body: 'Test diagnostico!' },
             webpush: {
-              notification: { icon: 'https://astragency.it/admin/icon.png' },
+              notification: {
+                title: 'Debug Astra',
+                body: 'Test diagnostico!',
+                icon: 'https://astragency.it/admin/icon.png',
+                badge: 'https://astragency.it/admin/icon.png',
+                requireInteraction: false,
+              },
               fcmOptions: { link: 'https://astragency.it/admin/dashboard.html' },
             },
           },
@@ -164,7 +170,13 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
             token,
             notification: { title, body },
             webpush: {
-              notification: { icon: 'https://astragency.it/admin/icon.png' },
+              notification: {
+                title,
+                body,
+                icon: 'https://astragency.it/admin/icon.png',
+                badge: 'https://astragency.it/admin/icon.png',
+                requireInteraction: false,
+              },
               fcmOptions: { link: 'https://astragency.it/admin/dashboard.html' },
             },
           },
