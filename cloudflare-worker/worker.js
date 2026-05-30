@@ -1,34 +1,5 @@
 // Cloudflare Worker — gestisce /api/notify e /api/debug
-const SA_PROJECT_ID   = 'astragency-88b1a';
-const SA_CLIENT_EMAIL = 'firebase-adminsdk-fbsvc@astragency-88b1a.iam.gserviceaccount.com';
-const SA_PRIVATE_KEY  = `-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDsFKX4IbvxWvqH
-vZxqNRWvgrAwyOZ2OYxraEslHpJGlQvWSOc6bvngyxfm54W6tcQ15jsZQPC9qmH4
-c0dXmRwivwcK0Hdw/V09SpxJGPAFcofo3xjS6FzIO47Zzc9n6bPUVxp8cFl12g30
-nfG1SpiUnJSZd1Xips+FmbuCQF6ngxFo7pDqs++astXIiGQ/rkYCfCHPG+waGwDm
-9v1RUznrrjrDdelcL+bWirEoqICbr6R+ypXXGtXRacTPigENoY3YfwSNOzQWI9hm
-XvSonDvHxr/tUqPmnmv+Y2NO7yo095VEH6tkxBHtF27qpm93QqDUV/r3KUJqOYAV
-nSfZ0NZTAgMBAAECggEADUPpwYQPvfOZQThXyiX6dna29L7NKFZ6e+yL0GWj3YBx
-flRxXbivpMB0st5OhtvAzzCFIJmkDVw+DgpYN2Vcjd1DBYoKNBigfRmsp3TVw9CY
-L28dw3gYAo5KLBXi8hlRJ/zO+bAMbtFWWGjplIDBCxSzSt5IPqiV35FwVlTMnMfm
-drOXEQIFjz51vzODrKubSpQsWi/idvw+bruQcPEV7AuZvISnXbOFDC4vGqQyxdnW
-TbkY6EuJMDevVRQDmPKfLatEsVVvod/WzScHz4Y7+i/X2F9aeHHB2LdeTYfsz2ta
-SMydWBCz+tFZAbfrJgUxaUPQXVr3G310mkQXhLss6QKBgQD8sK+CD2HmgT3lhjwl
-1f8d9qGD0RDpsbzmW9nwUdDPXnHc8PsssUg1rYKdTRrsR+j9YxHS5XXvN66mHVd6
-MBpT8y4qHfzF5jIqpvZF4gPa/zYxwlyQWRVRUwzAcRLifFkp9QY0V+evfjp+SZ2C
-7FsrnmWn5QE9AKOaT9ZUsjPs2wKBgQDvLESitvTXjKWRJaxKopmS4e/k+t0MJjTr
-hCCMofibNId+8HMHTiQnx2Cfq6JWI9XvnIK8qPePD0tvj928x3nM5/YSh0nDo1iN
-mKErLKT+1ozeYGghrdh5NzGU727D/tIXdbBg7lbWWlUdL3t/t2gbDH+KkbvRqM7K
-pSjBgmy56QKBgQDb1AH7jdJHq6vjX7I34EF/Ga5NdLXX+G4zoTiqHyMfJDS+V07M
-BLajK/1zRz7iy3Rf66334POGVtSzYtdVTz+4RNimf0wGBksiW/nntcZQ4LGO/F12
-nmkzRKLVUAlzy2XuYGEzbD38qD3O29ARs/lkqvoY49r97O5nMoltSVJu/QKBgEAx
-i4J4xKKN92pLyECH/9wylCbLRkUahB2qauoUFxvhL3TcqKMPUBj1JHP2py2jlKop
-QdXNLBTTsBWTcZpXl9NtdthmQ2AlGYF3s9pYszhK8ahGC+zuMinmrIIi+YHVhSIS
-znJVxizmNe4NboJLAcAwzJKuptCRFF/DkHrPvMrxAoGBAKbJnDzIvT2syE+aNJ2k
-GrNB3hyA8BsHX2nhq1Bgj2BajKoOiA7c4MW6qtz8+AT/oaq0s/uS2RuHGCN3kqjH
-2rzVU0nHQvytyL8yoAFWD99K7MfEXE6euFuQERv1TMEEAeksgJOii5wDN0hpObZw
-cPilE1bNzaYVbNZnNJ/ckSZF
------END PRIVATE KEY-----`;
+// Credenziali lette da env vars (impostate come secrets nel dashboard Cloudflare)
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -75,9 +46,9 @@ async function handleNotify(request, env) {
       notifBody = `${name || 'Qualcuno'} ha inviato un messaggio`;
     }
 
-    const projectId   = env.FCM_PROJECT_ID   || SA_PROJECT_ID;
-    const clientEmail = env.FCM_CLIENT_EMAIL  || SA_CLIENT_EMAIL;
-    const privateKey  = env.FCM_PRIVATE_KEY   || SA_PRIVATE_KEY;
+    const projectId   = env.FCM_PROJECT_ID;
+    const clientEmail = env.FCM_CLIENT_EMAIL;
+    const privateKey  = env.FCM_PRIVATE_KEY;
 
     const accessToken = await getAccessToken(clientEmail, privateKey);
     const tokens      = await getAdminTokens(projectId, accessToken);
