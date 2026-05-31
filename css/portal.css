@@ -120,6 +120,22 @@ a    { text-decoration: none; color: inherit; }
 .icn-btn:hover { background: rgba(123,92,240,.1); color: var(--purple); border-color: rgba(123,92,240,.4); }
 .icn-btn.icn-green:hover { background: rgba(0,229,160,.1); color: var(--green); border-color: rgba(0,229,160,.4); }
 .icn-btn.icn-danger:hover { background: rgba(255,45,120,.1); color: var(--pink); border-color: rgba(255,45,120,.4); }
+
+/* Action buttons — icona + testo, usati nella tabella clienti */
+.act-btns { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.act-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 7px;
+  border: 1px solid var(--border); background: transparent;
+  cursor: pointer; font-size: .75rem; font-weight: 600;
+  color: var(--text-muted); font-family: inherit;
+  transition: all .15s; white-space: nowrap; line-height: 1;
+}
+.act-btn:hover        { background: rgba(123,92,240,.1); color: var(--purple); border-color: rgba(123,92,240,.4); }
+.act-btn.act-green    { color: var(--green); border-color: rgba(0,229,160,.3); }
+.act-btn.act-green:hover { background: rgba(0,229,160,.1); border-color: rgba(0,229,160,.5); }
+.act-btn.act-danger   { color: var(--pink); border-color: rgba(255,45,120,.3); }
+.act-btn.act-danger:hover { background: rgba(255,45,120,.1); border-color: rgba(255,45,120,.5); }
 .btn-green {
   background: rgba(0,229,160,.12); border: 1px solid rgba(0,229,160,.35);
   color: var(--green);
@@ -403,15 +419,20 @@ a    { text-decoration: none; color: inherit; }
     padding-top: 2px;
   }
   /* Actions row: full width below separator */
-  .portal-table td[data-label=""] {
+  .portal-table td[data-label=""],
+  .portal-table td[data-label="Azioni"] {
     flex-wrap: wrap;
     padding: 12px 0 6px;
     margin-top: 6px;
     border-top: 1px solid rgba(123,92,240,.15) !important;
     gap: 8px;
   }
-  .portal-table td[data-label=""]::before { display: none; }
-  .portal-table td[data-label=""] > div { width: 100%; }
+  .portal-table td[data-label=""]::before,
+  .portal-table td[data-label="Azioni"]::before { display: none; }
+  .portal-table td[data-label=""] > div,
+  .portal-table td[data-label="Azioni"] > div { width: 100%; }
+  .act-btns { gap: 6px; }
+  .act-btn { padding: 7px 12px; font-size: .8rem; flex: 1 0 auto; justify-content: center; }
 
   /* Modal: bottom sheet */
   .modal-overlay { padding: 0; align-items: flex-end; }
