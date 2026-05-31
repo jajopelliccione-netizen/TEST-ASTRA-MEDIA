@@ -151,7 +151,7 @@
             <p style="font-size:.85rem;font-weight:600;margin-bottom:12px;">Aggiungi collaboratore</p>
             <div style="display:flex;flex-direction:column;gap:10px;">
               <input class="form-input" id="collab-name" placeholder="Nome e cognome" maxlength="60" autocomplete="off" />
-              <input class="form-input" id="collab-email" type="email" placeholder="Email" autocomplete="off" />
+              <input class="form-input" id="collab-username" placeholder="Username (es. mario)" maxlength="30" autocomplete="off" style="text-transform:lowercase;" />
               <input class="form-input" id="collab-password" type="password" placeholder="Password (min. 8 caratteri)" minlength="8" autocomplete="new-password" />
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <button onclick="addCollaborator()" class="btn btn-primary" style="white-space:nowrap;">+ Aggiungi</button>
@@ -735,36 +735,44 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
           <div>
             <div style="font-weight:600;font-size:.9rem;">${c.name || '—'}</div>
-            <div style="font-size:.78rem;color:var(--text-muted);">${c.email || c.uid}</div>
+            <div style="font-size:.78rem;color:var(--text-muted);">@${c.username || '—'}</div>
           </div>
-          <button class="btn btn-sm" style="color:var(--pink);border:1px solid rgba(255,45,120,.3);background:transparent;flex-shrink:0;" onclick="removeCollaborator('${c.uid}')">Rimuovi</button>
+          <button class="btn btn-sm" style="color:var(--pink);border:1px solid rgba(255,45,120,.3);background:transparent;flex-shrink:0;" onclick="removeCollaborator('${c.uid}','${c.username || ''}')">Rimuovi</button>
         </div>
       `).join('');
     }
 
     window.addCollaborator = async () => {
       const name     = document.getElementById('collab-name').value.trim();
-      const email    = document.getElementById('collab-email').value.trim();
+      const username = document.getElementById('collab-username').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
       const password = document.getElementById('collab-password').value;
       const resultEl = document.getElementById('collab-result');
 
-      if (!name || !email || password.length < 8) {
+      if (!name || !username || password.length < 8) {
         resultEl.textContent = '✗ Compila tutti i campi (password min. 8 caratteri).';
         resultEl.style.color = 'var(--pink)'; return;
       }
       resultEl.textContent = 'Creazione in corso…';
       resultEl.style.color = 'var(--text-muted)';
       try {
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        // Verifica che l'username non esista già
+        const aliasSnap = await getDoc(doc(db, 'auth_aliases', username));
+        if (aliasSnap.exists()) {
+          resultEl.textContent = '✗ Username già in uso. Scegline un altro.';
+          resultEl.style.color = 'var(--pink)'; return;
+        }
+        const internalEmail = `${username}@astra-admin.internal`;
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, internalEmail, password);
+        await setDoc(doc(db, 'auth_aliases', username), { email: internalEmail });
         await setDoc(doc(db, 'admins', cred.user.uid), {
-          name, email, role: 'collaborator',
+          name, username, role: 'collaborator',
           createdAt: new Date(), createdBy: currentAdminUid,
         });
         await secondaryAuth.signOut();
-        document.getElementById('collab-name').value = '';
-        document.getElementById('collab-email').value = '';
+        document.getElementById('collab-name').value     = '';
+        document.getElementById('collab-username').value = '';
         document.getElementById('collab-password').value = '';
-        resultEl.textContent = '✓ Collaboratore aggiunto con successo!';
+        resultEl.textContent = `✓ Collaboratore @${username} aggiunto!`;
         resultEl.style.color = 'var(--green,#22c55e)';
         loadCollaborators();
       } catch (e) {
@@ -773,10 +781,11 @@
       }
     };
 
-    window.removeCollaborator = async (uid) => {
+    window.removeCollaborator = async (uid, username) => {
       if (!confirm('Rimuovere questo collaboratore? Perderà immediatamente l\'accesso alla dashboard.')) return;
       try {
         await deleteDoc(doc(db, 'admins', uid));
+        if (username) { try { await deleteDoc(doc(db, 'auth_aliases', username)); } catch (_) {} }
         try { await deleteDoc(doc(db, 'admin_tokens', uid)); } catch (_) {}
         showToast('Collaboratore rimosso.');
         loadCollaborators();
