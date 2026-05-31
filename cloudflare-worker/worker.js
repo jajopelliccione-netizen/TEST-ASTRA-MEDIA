@@ -212,26 +212,58 @@ async function handleSocialData(request, env) {
     const RK = env.RAPID_API_KEY;
 
     if (platform === 'instagram') {
+      const igHost = 'instagram-scraper-stable-api.p.rapidapi.com';
+      const igHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'x-rapidapi-host': igHost,
+        'x-rapidapi-key': RK,
+      };
       const [profileR, postsR] = await Promise.all([
-        fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/info?username=${encodeURIComponent(username)}`,
-          { headers: { 'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com', 'x-rapidapi-key': RK } }),
-        fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/posts?username_or_id_or_url=${encodeURIComponent(username)}`,
-          { headers: { 'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+        fetch(`https://${igHost}/ig_get_fb_profile_v3.php`, {
+          method: 'POST', headers: igHeaders,
+          body: `username_or_url=${encodeURIComponent(username)}`,
+        }),
+        fetch(`https://${igHost}/get_ig_user_posts.php`, {
+          method: 'POST', headers: igHeaders,
+          body: `username_or_url=${encodeURIComponent('https://www.instagram.com/' + username + '/')}&amount=35&pagination_token=`,
+        }),
       ]);
       const profileData = await profileR.json();
       const postsData   = await postsR.json();
-      if (profileData.status === 'fail' || profileData.error) return json({ ok: false, error: 'Profilo Instagram non trovato o API key non valida' });
+      if (!profileR.ok || profileData.status === 'fail') return json({ ok: false, error: 'Profilo Instagram non trovato o API key non valida' });
 
-      let posts = postsData.data?.items || [];
+      // Normalizza profilo
+      const raw = profileData.data || profileData.user || profileData;
+      const profile = {
+        username:        raw.username || username,
+        full_name:       raw.full_name || raw.name || '',
+        profile_pic_url: raw.profile_pic_url || raw.profile_pic_url_hd || raw.hd_profile_pic_url || '',
+        followers_count: raw.followers_count || raw.edge_followed_by?.count || 0,
+        following_count: raw.following_count || raw.edge_follow?.count || 0,
+        media_count:     raw.media_count || raw.edge_owner_to_timeline_media?.count || 0,
+      };
+
+      // Normalizza post
+      const rawPosts = postsData.data || postsData.items || postsData || [];
+      let posts = (Array.isArray(rawPosts) ? rawPosts : []).map(p => ({
+        id:             String(p.id || p.pk || ''),
+        taken_at:       p.taken_at || p.timestamp || 0,
+        like_count:     p.like_count || p.likes_count || 0,
+        comments_count: p.comments_count || p.comment_count || 0,
+        media_type:     p.media_type || 1,
+        thumbnail_url:  p.image_url || p.thumbnail_url || p.display_url || p.image_versions2?.candidates?.[0]?.url || '',
+        permalink:      p.permalink || (p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '') || '',
+      }));
+
       if (!allPosts) {
         if (mode === 'auto' && managedFrom) {
           const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
           posts = posts.filter(p => (p.taken_at || 0) >= fromTs);
         } else if (mode === 'manual' && selectedIds.length > 0) {
-          posts = posts.filter(p => selectedIds.includes(String(p.id || p.pk)));
+          posts = posts.filter(p => selectedIds.includes(p.id));
         }
       }
-      return json({ ok: true, platform: 'instagram', profile: profileData.data, posts });
+      return json({ ok: true, platform: 'instagram', profile, posts });
     }
 
     if (platform === 'tiktok') {
