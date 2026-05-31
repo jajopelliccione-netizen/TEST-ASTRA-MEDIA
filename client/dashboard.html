@@ -316,15 +316,16 @@
             </div>
           </div>
 
-          ${topPages.length ? `
+          ${topPages.length > 1 ? `
           <div>
             <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;">Pagine più visitate</div>
             <div style="display:flex;flex-direction:column;gap:10px;">
               ${topPages.map(([p, v]) => {
                 const pct = Math.round((v / topPages[0][1]) * 100);
+                const label = p === 'root' ? '/' : p.replace(/_/g, '/');
                 return `<div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                    <span style="font-size:.82rem;font-family:monospace;color:var(--text);">${p.replace(/_/g, '/') || '/'}</span>
+                    <span style="font-size:.82rem;font-family:monospace;color:var(--text);">${label}</span>
                     <span style="font-size:.82rem;font-weight:700;color:var(--text);">${v}</span>
                   </div>
                   <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">

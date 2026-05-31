@@ -1266,7 +1266,10 @@
       } catch (_) {}
       const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''}.
 
-Incolla questo snippet HTML prima del tag </body> in ogni pagina del sito (o nel layout/template base se ne ha uno):
+PRIMA controlla quante pagine HTML ha il sito:
+
+A) Se il sito ha UNA SOLA pagina (es. solo index.html o single-page app):
+   Aggiungi questo snippet prima di </body> nell'unica pagina:
 
 <script>
 (function(){
@@ -1274,23 +1277,33 @@ Incolla questo snippet HTML prima del tag </body> in ogni pagina del sito (o nel
     fetch('https://astra-notify.jacopopelliccione.workers.dev/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clientId: '${uid}',
-        page: location.pathname,
-        ref: document.referrer || ''
-      })
+      body: JSON.stringify({ clientId: '${uid}' })
+    });
+  } catch(e) {}
+})();
+<\/script>
+
+B) Se il sito ha PIÙ PAGINE (più file HTML o routing dinamico):
+   Aggiungi questo snippet prima di </body> in ogni pagina o nel layout/template base:
+
+<script>
+(function(){
+  try {
+    fetch('https://astra-notify.jacopopelliccione.workers.dev/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: '${uid}', page: location.pathname })
     });
   } catch(e) {}
 })();
 <\/script>
 
 Lo script:
-- È anonimo: non raccoglie dati personali, nessun cookie, nessun IP salvato
-- È compatibile con qualsiasi stack (HTML statico, WordPress, Next.js, ecc.)
-- Registra automaticamente la pagina visitata e la sorgente di traffico
-- Le statistiche appariranno subito nella dashboard del cliente
+- È anonimo: nessun dato personale, nessun cookie, nessun IP salvato
+- Compatibile con HTML statico, WordPress, Next.js, Astro, ecc.
+- Le statistiche appariranno nella dashboard del cliente
 
-Dopo averlo aggiunto, verifica che il sito carichi senza errori nella console del browser.`;
+Dopo averlo aggiunto assicurati che il sito sia deployato/pubblicato e verifica che non ci siano errori nella console del browser.`;
 
       document.getElementById('claude-prompt-text').value = prompt;
       document.getElementById('claude-copy-btn').textContent = 'Copia';
