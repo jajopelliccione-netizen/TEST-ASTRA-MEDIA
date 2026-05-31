@@ -576,7 +576,7 @@
                     ${c.analyticsActive !== undefined
                       ? `<div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:500;color:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};">
                            <span style="width:6px;height:6px;border-radius:50%;background:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};display:inline-block;"></span>
-                           ${c.analyticsActive ? 'Statistiche attive' : c.analyticsConfigured ? 'Configurate, nessun dato ancora' : 'Non configurate'}
+                           ${c.analyticsActive ? 'Statistiche attive' : c.analyticsConfigured ? 'Configurate, nessun dato ancora' : '<span>Non configurate</span> <span onclick="markAnalyticsConfigured(\'${c.uid}\')" style="cursor:pointer;text-decoration:underline;opacity:.7;">segna come configurato</span>'}
                          </div>`
                       : ''}
                   </div>
@@ -1218,8 +1218,14 @@
       }
     };
 
-    window.showClaudePrompt = (uid, name) => {
+    window.showClaudePrompt = async (uid, name) => {
       window._claudePromptUid = uid;
+      // segna come configurato appena si apre il modal
+      try {
+        await updateDoc(doc(db, 'clients', uid), { analyticsConfigured: true });
+        allClients = allClients.map(c => c.uid === uid ? { ...c, analyticsConfigured: true } : c);
+        renderClientsTable();
+      } catch (_) {}
       const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''}.
 
 Incolla questo snippet HTML prima del tag </body> in ogni pagina del sito (o nel layout/template base se ne ha uno):
@@ -1268,6 +1274,14 @@ Dopo averlo aggiunto, verifica che il sito carichi senza errori nella console de
           renderClientsTable();
         } catch (_) {}
       }
+    };
+
+    window.markAnalyticsConfigured = async (uid) => {
+      try {
+        await updateDoc(doc(db, 'clients', uid), { analyticsConfigured: true });
+        allClients = allClients.map(c => c.uid === uid ? { ...c, analyticsConfigured: true } : c);
+        renderClientsTable();
+      } catch (e) { showToast('Errore: ' + e.message, 'error'); }
     };
 
     window.toggleNotifAccordion = () => {
