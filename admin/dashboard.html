@@ -1395,12 +1395,16 @@ STEP 2 — BADGE ASTRA AGENCY NEL FOOTER
 
 Aggiungi questo badge in fondo alla pagina, come ultimo elemento dentro <body> (o dentro il footer esistente se già presente):
 
-<div style="text-align:center;padding:14px 20px;border-top:1px solid rgba(128,128,128,.15);margin-top:48px;">
+<div style="text-align:center;padding:24px 20px;margin-top:48px;">
   <a href="https://astragency.it" target="_blank" rel="noopener noreferrer"
-     style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:sans-serif;font-size:.8rem;color:#888;"
-     onmouseover="this.style.opacity='.65'" onmouseout="this.style.opacity='1'">
-    <span>Sito realizzato da</span>
-    <span style="background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;font-size:.85rem;letter-spacing:-.01em;">✦ Astra Agency</span>
+     style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:sans-serif;
+            background:#f8f6ff;border:1.5px solid rgba(124,58,237,.22);border-radius:50px;
+            padding:7px 16px 7px 8px;box-shadow:0 2px 10px rgba(124,58,237,.1);transition:all .2s;"
+     onmouseover="this.style.background='#ede9ff';this.style.borderColor='rgba(124,58,237,.5)';this.style.boxShadow='0 4px 18px rgba(124,58,237,.18)';this.style.transform='translateY(-1px)'"
+     onmouseout="this.style.background='#f8f6ff';this.style.borderColor='rgba(124,58,237,.22)';this.style.boxShadow='0 2px 10px rgba(124,58,237,.1)';this.style.transform='translateY(0)'">
+    <span style="width:24px;height:24px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:.72rem;color:#fff;flex-shrink:0;font-family:sans-serif;">A</span>
+    <span style="font-size:.76rem;color:#888;">Sito realizzato da</span>
+    <span style="font-weight:700;color:#7c3aed;font-size:.82rem;letter-spacing:-.01em;">Astra Agency</span>
   </a>
 </div>
 
