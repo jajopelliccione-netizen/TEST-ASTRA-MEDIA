@@ -259,12 +259,12 @@
       const content = document.getElementById('analytics-content');
       try {
         const dailyRef = collection(db, 'analytics', uid, 'daily');
-        const q = query(dailyRef, orderBy('__name__', 'desc'), limit(30));
+        const q = query(dailyRef, limit(30));
         const snap = await getDocs(q);
         if (snap.empty) return;
         card.style.display = '';
 
-        const days = snap.docs.map(d => ({ date: d.id, ...d.data() })).reverse();
+        const days = snap.docs.map(d => ({ date: d.id, ...d.data() })).sort((a, b) => a.date.localeCompare(b.date));
         const totalMonth = days.reduce((s, d) => s + (d.views || 0), 0);
         const last7 = days.slice(-7);
         const maxViews = Math.max(...last7.map(d => d.views || 0), 1);
