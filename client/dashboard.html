@@ -259,69 +259,81 @@
       const content = document.getElementById('analytics-content');
       try {
         const dailyRef = collection(db, 'analytics', uid, 'daily');
-        const q = query(dailyRef, limit(30));
-        const snap = await getDocs(q);
+        const snap = await getDocs(query(dailyRef, limit(30)));
         if (snap.empty) {
           if (!configured) return;
           card.style.display = '';
           content.innerHTML = `
-            <div style="text-align:center;padding:24px 0;color:var(--text-muted);">
-              <div style="font-size:2rem;margin-bottom:10px;">📡</div>
-              <div style="font-weight:600;margin-bottom:6px;">Tracking attivo</div>
-              <div style="font-size:.85rem;">Le statistiche appariranno appena il sito riceve le prime visite.</div>
+            <div style="text-align:center;padding:32px 0;color:var(--text-muted);">
+              <div style="width:48px;height:48px;border-radius:14px;background:rgba(123,92,240,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div style="font-weight:700;font-size:.95rem;margin-bottom:6px;color:var(--text);">Tracking attivo</div>
+              <div style="font-size:.83rem;">Le statistiche appariranno non appena il sito riceve le prime visite.</div>
             </div>`;
           return;
         }
         card.style.display = '';
 
         const days = snap.docs.map(d => ({ date: d.id, ...d.data() })).sort((a, b) => a.date.localeCompare(b.date));
-        const totalMonth = days.reduce((s, d) => s + (d.views || 0), 0);
+        const today = new Date().toISOString().split('T')[0];
+        const todayData = days.find(d => d.date === today);
+        const totalViews = days.reduce((s, d) => s + (d.views || 0), 0);
         const last7 = days.slice(-7);
         const maxViews = Math.max(...last7.map(d => d.views || 0), 1);
-
-        // Top pages
         const pageMap = {};
-        days.forEach(d => {
-          Object.entries(d.pages || {}).forEach(([p, v]) => {
-            pageMap[p] = (pageMap[p] || 0) + v;
-          });
-        });
+        days.forEach(d => Object.entries(d.pages || {}).forEach(([p, v]) => { pageMap[p] = (pageMap[p] || 0) + v; }));
         const topPages = Object.entries(pageMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
         content.innerHTML = `
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
-            <div class="stat-card" style="flex:1;min-width:120px;">
-              <span class="label">Visite questo mese</span>
-              <span class="value" style="color:var(--purple);font-size:1.6rem;">${totalMonth.toLocaleString('it')}</span>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+            <div style="background:linear-gradient(135deg,rgba(123,92,240,.18),rgba(123,92,240,.06));border:1px solid rgba(123,92,240,.25);border-radius:12px;padding:14px;">
+              <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Visite totali</div>
+              <div style="font-size:1.9rem;font-weight:800;color:var(--purple);line-height:1;">${totalViews.toLocaleString('it')}</div>
             </div>
-            <div class="stat-card" style="flex:1;min-width:120px;">
-              <span class="label">Giorni tracciati</span>
-              <span class="value" style="font-size:1.6rem;">${days.length}</span>
+            <div style="background:linear-gradient(135deg,rgba(0,229,160,.12),rgba(0,229,160,.04));border:1px solid rgba(0,229,160,.22);border-radius:12px;padding:14px;">
+              <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Oggi</div>
+              <div style="font-size:1.9rem;font-weight:800;color:var(--green);line-height:1;">${(todayData?.views || 0).toLocaleString('it')}</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(56,189,248,.1),rgba(56,189,248,.03));border:1px solid rgba(56,189,248,.2);border-radius:12px;padding:14px;">
+              <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Giorni</div>
+              <div style="font-size:1.9rem;font-weight:800;color:#38bdf8;line-height:1;">${days.length}</div>
             </div>
           </div>
-          <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Ultimi 7 giorni</p>
-          <div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:20px;">
-            ${last7.map(d => {
-              const h = Math.round(((d.views || 0) / maxViews) * 100);
-              const label = d.date.slice(5); // MM-DD
-              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-                <div style="font-size:.65rem;color:var(--text-muted);">${d.views || 0}</div>
-                <div style="width:100%;background:var(--purple);border-radius:4px 4px 0 0;height:${h}%;min-height:${d.views ? 4 : 0}px;opacity:.85;"></div>
-                <div style="font-size:.62rem;color:var(--text-muted);white-space:nowrap;">${label}</div>
-              </div>`;
-            }).join('')}
+
+          <div style="margin-bottom:24px;">
+            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px;">Ultimi 7 giorni</div>
+            <div style="display:flex;align-items:flex-end;gap:8px;height:110px;">
+              ${last7.map(d => {
+                const h = Math.round(((d.views || 0) / maxViews) * 100);
+                const isToday = d.date === today;
+                return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;">
+                  <div style="font-size:.68rem;font-weight:600;color:${isToday ? 'var(--purple)' : 'var(--text-muted)'};">${d.views || 0}</div>
+                  <div style="width:100%;border-radius:6px 6px 0 0;height:${h}%;min-height:${d.views ? 4 : 2}px;background:${isToday ? 'var(--purple)' : 'rgba(123,92,240,.35)'};" title="${d.date}: ${d.views || 0} visite"></div>
+                  <div style="font-size:.62rem;color:${isToday ? 'var(--purple)' : 'var(--text-muted)'};font-weight:${isToday ? 700 : 400};white-space:nowrap;">${d.date.slice(5)}</div>
+                </div>`;
+              }).join('')}
+            </div>
           </div>
+
           ${topPages.length ? `
-            <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Pagine più visitate</p>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              ${topPages.map(([p, v]) => `
-                <div style="display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;border-bottom:1px solid var(--border);">
-                  <span style="color:var(--text-muted);font-family:monospace;">${p.replace(/_/g,'/')}</span>
-                  <span style="font-weight:600;">${v}</span>
-                </div>
-              `).join('')}
+          <div>
+            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;">Pagine più visitate</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${topPages.map(([p, v]) => {
+                const pct = Math.round((v / topPages[0][1]) * 100);
+                return `<div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                    <span style="font-size:.82rem;font-family:monospace;color:var(--text);">${p.replace(/_/g, '/') || '/'}</span>
+                    <span style="font-size:.82rem;font-weight:700;color:var(--text);">${v}</span>
+                  </div>
+                  <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--purple),rgba(123,92,240,.5));border-radius:2px;"></div>
+                  </div>
+                </div>`;
+              }).join('')}
             </div>
-          ` : ''}
+          </div>` : ''}
         `;
       } catch(e) { console.error('Analytics error:', e.message); }
     }

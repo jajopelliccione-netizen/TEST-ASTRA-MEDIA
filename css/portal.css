@@ -111,6 +111,15 @@ a    { text-decoration: none; color: inherit; }
 }
 .btn-outline:hover { border-color: var(--purple); background: rgba(123,92,240,.08); }
 .btn-sm { padding: 7px 16px; font-size: .82rem; border-radius: 8px; }
+.icn-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  border: 1px solid var(--border); background: transparent;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-muted); transition: all .15s; flex-shrink: 0;
+}
+.icn-btn:hover { background: rgba(123,92,240,.1); color: var(--purple); border-color: rgba(123,92,240,.4); }
+.icn-btn.icn-green:hover { background: rgba(0,229,160,.1); color: var(--green); border-color: rgba(0,229,160,.4); }
+.icn-btn.icn-danger:hover { background: rgba(255,45,120,.1); color: var(--pink); border-color: rgba(255,45,120,.4); }
 .btn-green {
   background: rgba(0,229,160,.12); border: 1px solid rgba(0,229,160,.35);
   color: var(--green);
