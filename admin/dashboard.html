@@ -940,6 +940,14 @@
         await deleteDoc(doc(db, 'admins', uid));
         if (username) { try { await deleteDoc(doc(db, 'auth_aliases', username)); } catch (_) {} }
         try { await deleteDoc(doc(db, 'admin_tokens', uid)); } catch (_) {}
+        // Elimina anche l'account Firebase Auth così può essere ricreato senza problemi
+        try {
+          await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/delete-collab-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid }),
+          });
+        } catch (_) {}
         showToast('Collaboratore rimosso.');
         loadCollaborators();
       } catch (e) { showToast('Errore: ' + e.message, 'error'); }

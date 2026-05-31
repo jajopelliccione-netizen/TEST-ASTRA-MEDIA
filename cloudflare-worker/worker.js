@@ -32,6 +32,10 @@ export default {
       return handleRecoverCollab(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/delete-collab-auth')) {
+      return handleDeleteCollabAuth(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
       return handleDebug(env);
     }
@@ -167,6 +171,31 @@ async function handleRecoverCollab(request, env) {
     });
 
     return json({ ok: true, uid });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── POST /api/delete-collab-auth ──────────────────────────────────────────
+async function handleDeleteCollabAuth(request, env) {
+  try {
+    const { uid } = await request.json();
+    if (!uid) return json({ ok: false, error: 'uid richiesto' });
+    const projectId   = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const resp = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:delete`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: uid }),
+      }
+    );
+    if (!resp.ok) {
+      const data = await resp.json();
+      return json({ ok: false, error: data.error?.message || 'Errore Firebase' });
+    }
+    return json({ ok: true });
   } catch (err) {
     return json({ ok: false, error: err.message });
   }
