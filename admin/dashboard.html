@@ -574,9 +574,9 @@
                     <div style="font-weight:600;">${c.displayName || '—'}</div>
                     <div style="font-size:.78rem;color:var(--text-muted);">${c.email || ''}</div>
                     ${c.analyticsActive !== undefined
-                      ? `<div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:500;color:${c.analyticsActive ? '#22c55e' : 'var(--text-muted)'};">
-                           <span style="width:6px;height:6px;border-radius:50%;background:${c.analyticsActive ? '#22c55e' : 'var(--text-muted)'};display:inline-block;"></span>
-                           ${c.analyticsActive ? 'Statistiche attive' : 'Statistiche non configurate'}
+                      ? `<div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:500;color:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};">
+                           <span style="width:6px;height:6px;border-radius:50%;background:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};display:inline-block;"></span>
+                           ${c.analyticsActive ? 'Statistiche attive' : c.analyticsConfigured ? 'Configurate, nessun dato ancora' : 'Non configurate'}
                          </div>`
                       : ''}
                   </div>
@@ -1219,6 +1219,7 @@
     };
 
     window.showClaudePrompt = (uid, name) => {
+      window._claudePromptUid = uid;
       const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''}.
 
 Incolla questo snippet HTML prima del tag </body> in ogni pagina del sito (o nel layout/template base se ne ha uno):
@@ -1252,13 +1253,21 @@ Dopo averlo aggiunto, verifica che il sito carichi senza errori nella console de
       document.getElementById('claude-modal').classList.add('open');
     };
 
-    window.copyClaudePrompt = () => {
+    window.copyClaudePrompt = async () => {
       const text = document.getElementById('claude-prompt-text').value;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('claude-copy-btn');
-        btn.textContent = 'Copiato ✓';
-        setTimeout(() => { btn.textContent = 'Copia'; }, 2000);
-      });
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('claude-copy-btn');
+      btn.textContent = 'Copiato ✓';
+      setTimeout(() => { btn.textContent = 'Copia'; }, 2000);
+      if (window._claudePromptUid) {
+        try {
+          await updateDoc(doc(db, 'clients', window._claudePromptUid), { analyticsConfigured: true });
+          allClients = allClients.map(c =>
+            c.uid === window._claudePromptUid ? { ...c, analyticsConfigured: true } : c
+          );
+          renderClientsTable();
+        } catch (_) {}
+      }
     };
 
     window.toggleNotifAccordion = () => {
