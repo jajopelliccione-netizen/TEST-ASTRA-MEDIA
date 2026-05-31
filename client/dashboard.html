@@ -251,17 +251,27 @@
       });
 
       // Analytics sito
-      await loadAnalytics(targetUid);
+      await loadAnalytics(targetUid, !!data.analyticsConfigured);
     });
 
-    async function loadAnalytics(uid) {
+    async function loadAnalytics(uid, configured) {
       const card = document.getElementById('analytics-card');
       const content = document.getElementById('analytics-content');
       try {
         const dailyRef = collection(db, 'analytics', uid, 'daily');
         const q = query(dailyRef, limit(30));
         const snap = await getDocs(q);
-        if (snap.empty) return;
+        if (snap.empty) {
+          if (!configured) return;
+          card.style.display = '';
+          content.innerHTML = `
+            <div style="text-align:center;padding:24px 0;color:var(--text-muted);">
+              <div style="font-size:2rem;margin-bottom:10px;">📡</div>
+              <div style="font-weight:600;margin-bottom:6px;">Tracking attivo</div>
+              <div style="font-size:.85rem;">Le statistiche appariranno appena il sito riceve le prime visite.</div>
+            </div>`;
+          return;
+        }
         card.style.display = '';
 
         const days = snap.docs.map(d => ({ date: d.id, ...d.data() })).sort((a, b) => a.date.localeCompare(b.date));
