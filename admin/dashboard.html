@@ -1347,7 +1347,11 @@
         allClients = allClients.map(c => c.uid === uid ? { ...c, analyticsConfigured: true } : c);
         renderClientsTable();
       } catch (_) {}
-      const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''}.
+      const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''} e il badge Astra Agency nel footer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — TRACKING ANALYTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PRIMA controlla quante pagine HTML ha il sito:
 
@@ -1381,12 +1385,30 @@ B) Se il sito ha PIÙ PAGINE (più file HTML o routing dinamico):
 })();
 <\/script>
 
-Lo script:
+Lo script di tracking:
 - È anonimo: nessun dato personale, nessun cookie, nessun IP salvato
 - Compatibile con HTML statico, WordPress, Next.js, Astro, ecc.
-- Le statistiche appariranno nella dashboard del cliente
 
-Dopo averlo aggiunto assicurati che il sito sia deployato/pubblicato e verifica che non ci siano errori nella console del browser.`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — BADGE ASTRA AGENCY NEL FOOTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aggiungi questo badge in fondo alla pagina, come ultimo elemento dentro <body> (o dentro il footer esistente se già presente):
+
+<div style="text-align:center;padding:14px 20px;border-top:1px solid rgba(128,128,128,.15);margin-top:48px;">
+  <a href="https://astragency.it" target="_blank" rel="noopener noreferrer"
+     style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:sans-serif;font-size:.8rem;color:#888;"
+     onmouseover="this.style.opacity='.65'" onmouseout="this.style.opacity='1'">
+    <span>Sito realizzato da</span>
+    <span style="background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;font-size:.85rem;letter-spacing:-.01em;">✦ Astra Agency</span>
+  </a>
+</div>
+
+Se il sito ha già un footer esistente, inserisci il badge all'interno come ultima riga del footer, adattando il colore del testo e del bordo superiore allo stile del sito.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e verifica che non ci siano errori nella console del browser.`;
 
       document.getElementById('claude-prompt-text').value = prompt;
       document.getElementById('claude-copy-btn').textContent = 'Copia';
