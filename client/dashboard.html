@@ -313,7 +313,7 @@
             </div>
           ` : ''}
         `;
-      } catch(e) { /* analytics non configurate per questo cliente */ }
+      } catch(e) { console.error('Analytics error:', e.message); }
     }
 
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
