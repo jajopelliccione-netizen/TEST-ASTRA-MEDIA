@@ -41,12 +41,12 @@ async function handleTrack(request, env) {
     }
 
     const today      = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const safePage   = (page || '/').replace(/[^a-zA-Z0-9/_-]/g, '_').slice(0, 80);
+    const safePage   = (page || '/').replace(/[^a-zA-Z0-9_-]/g, '_').replace(/^_+/, '') .slice(0, 80) || 'root';
     const projectId  = env.FCM_PROJECT_ID;
     const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
 
     const docName = `projects/${projectId}/databases/(default)/documents/analytics/${clientId}/daily/${today}`;
-    await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+    const fsResp = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -62,7 +62,7 @@ async function handleTrack(request, env) {
       }),
     });
 
-    return json({ ok: true });
+    return json({ ok: fsResp.ok });
   } catch (err) {
     return json({ ok: false });
   }
