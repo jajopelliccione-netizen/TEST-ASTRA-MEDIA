@@ -351,7 +351,7 @@ a    { text-decoration: none; color: inherit; }
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
   /* Navbar */
   .portal-nav { padding: 0 14px; height: 58px; gap: 8px; }

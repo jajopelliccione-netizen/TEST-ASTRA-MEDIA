@@ -28,6 +28,10 @@ export default {
       return handleResetCollabPassword(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/recover-collab')) {
+      return handleRecoverCollab(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
       return handleDebug(env);
     }
@@ -92,6 +96,77 @@ async function handleResetCollabPassword(request, env) {
     const data = await resp.json();
     if (!resp.ok) return json({ ok: false, error: data.error?.message || 'Errore Firebase' });
     return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── POST /api/recover-collab ───────────────────────────────────────────────
+async function handleRecoverCollab(request, env) {
+  try {
+    const { username, name, newPassword, ownerUid } = await request.json();
+    if (!username || !newPassword || newPassword.length < 8) {
+      return json({ ok: false, error: 'username e newPassword richiesti' });
+    }
+    const projectId   = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const internalEmail = `${username}@astra-admin.internal`;
+
+    // Cerca l'utente in Firebase Auth per email
+    const lookupResp = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:lookup`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: [internalEmail] }),
+      }
+    );
+    const lookupData = await lookupResp.json();
+    let uid;
+
+    if (lookupData.users && lookupData.users.length > 0) {
+      uid = lookupData.users[0].localId;
+      // Reimposta la password
+      await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:update`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: uid, password: newPassword }),
+      });
+    } else {
+      // Crea l'utente
+      const createResp = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: internalEmail, password: newPassword, displayName: name || username }),
+        }
+      );
+      const createData = await createResp.json();
+      if (!createData.localId) return json({ ok: false, error: createData.error?.message || 'Creazione fallita' });
+      uid = createData.localId;
+    }
+
+    // Assicura che auth_aliases e admins esistano su Firestore
+    const fsBase = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+    await fetch(`${fsBase}/auth_aliases/${username}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { email: { stringValue: internalEmail } } }),
+    });
+    const adminFields = {
+      name:      { stringValue: name || username },
+      username:  { stringValue: username },
+      role:      { stringValue: 'collaborator' },
+    };
+    if (ownerUid) adminFields.createdBy = { stringValue: ownerUid };
+    await fetch(`${fsBase}/admins/${uid}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: adminFields }),
+    });
+
+    return json({ ok: true, uid });
   } catch (err) {
     return json({ ok: false, error: err.message });
   }

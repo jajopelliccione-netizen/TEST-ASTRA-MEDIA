@@ -869,9 +869,36 @@
         resultEl.style.color = 'var(--green,#22c55e)';
         loadCollaborators();
       } catch (e) {
-        resultEl.textContent = '✗ ' + e.message;
+        if (e.code === 'auth/email-already-in-use') {
+          resultEl.innerHTML = '✗ Account già esistente. <span onclick="recoverCollab(\'' + username + '\',\'' + name.replace(/'/g,'') + '\')" style="text-decoration:underline;cursor:pointer;color:var(--purple);">Clicca qui per recuperarlo e impostare una nuova password.</span>';
+        } else {
+          resultEl.textContent = '✗ ' + e.message;
+        }
         resultEl.style.color = 'var(--pink)';
       }
+    };
+
+    window.recoverCollab = async (username, name) => {
+      const newPassword = prompt(`Imposta una nuova password per @${username} (min. 8 caratteri):`);
+      if (!newPassword || newPassword.length < 8) { showToast('Password troppo corta.', 'error'); return; }
+      try {
+        const resp = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/recover-collab', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, name, newPassword, ownerUid: currentAdminUid }),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(`Account @${username} recuperato. Il collaboratore può accedere ora.`);
+          document.getElementById('collab-name').value     = '';
+          document.getElementById('collab-username').value = '';
+          document.getElementById('collab-password').value = '';
+          document.getElementById('collab-result').textContent = '';
+          loadCollaborators();
+        } else {
+          showToast('Errore: ' + (data.error || 'sconosciuto'), 'error');
+        }
+      } catch (e) { showToast('Errore di rete.', 'error'); }
     };
 
     window.resetCollabPassword = (uid) => {
