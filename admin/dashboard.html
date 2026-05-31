@@ -449,6 +449,105 @@
     </div>
   </div>
 
+  <!-- MODAL: Social Media Config -->
+  <div class="modal-overlay" id="social-modal">
+    <div class="modal-box" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0;">
+        <h2 class="modal-title" style="margin:0;font-size:.95rem;">
+          Social Media — <span id="social-modal-name" style="color:var(--purple);"></span>
+        </h2>
+        <button onclick="document.getElementById('social-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.4rem;line-height:1;">×</button>
+      </div>
+      <div style="padding:20px 24px 24px;">
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:20px;">Inserisci lo username del profilo. I dati vengono caricati automaticamente tramite RapidAPI.</p>
+
+        <!-- Instagram -->
+        <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="#fff" stroke="none"/></svg>
+              </div>
+              <span style="font-weight:700;">Instagram</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleSocial('ig')">
+              <span style="font-size:.8rem;color:var(--text-muted);" id="ig-toggle-label">Off</span>
+              <div style="position:relative;width:42px;height:24px;">
+                <input type="checkbox" id="ig-enabled" style="opacity:0;position:absolute;width:0;height:0;">
+                <div id="ig-track" style="position:absolute;inset:0;border-radius:12px;background:var(--border);transition:.2s;"></div>
+                <div id="ig-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none;"></div>
+              </div>
+            </div>
+          </div>
+          <div id="ig-fields" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+            <div class="form-group">
+              <label class="form-label">Username (senza @)</label>
+              <input class="form-input" id="ig-username" placeholder="es. nomeaccount" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gestione dal</label>
+              <input class="form-input" type="date" id="ig-managed-from" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="margin-bottom:8px;">Post da mostrare al cliente</label>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="ig-mode" value="auto" id="ig-mode-auto" style="accent-color:var(--purple);" onchange="showPostSelect('ig')"> Automatico — tutti i post dopo la data</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="ig-mode" value="manual" id="ig-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('ig')"> Manuale — seleziono io quali post</label>
+              </div>
+            </div>
+            <div id="ig-post-select" style="display:none;">
+              <button type="button" onclick="loadPostsGrid('ig')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:10px;">Carica post da Instagram</button>
+              <div id="ig-posts-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:240px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TikTok -->
+        <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:34px;height:34px;border-radius:9px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+              </div>
+              <span style="font-weight:700;">TikTok</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleSocial('tt')">
+              <span style="font-size:.8rem;color:var(--text-muted);" id="tt-toggle-label">Off</span>
+              <div style="position:relative;width:42px;height:24px;">
+                <input type="checkbox" id="tt-enabled" style="opacity:0;position:absolute;width:0;height:0;">
+                <div id="tt-track" style="position:absolute;inset:0;border-radius:12px;background:var(--border);transition:.2s;"></div>
+                <div id="tt-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none;"></div>
+              </div>
+            </div>
+          </div>
+          <div id="tt-fields" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+            <div class="form-group">
+              <label class="form-label">Username TikTok (senza @)</label>
+              <input class="form-input" id="tt-username" placeholder="es. nomeaccount" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gestione dal</label>
+              <input class="form-input" type="date" id="tt-managed-from" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="margin-bottom:8px;">Video da mostrare al cliente</label>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="tt-mode" value="auto" id="tt-mode-auto" style="accent-color:var(--purple);" onchange="showPostSelect('tt')"> Automatico — tutti i video dopo la data</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="tt-mode" value="manual" id="tt-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('tt')"> Manuale — seleziono io quali video</label>
+              </div>
+            </div>
+            <div id="tt-post-select" style="display:none;">
+              <button type="button" onclick="loadPostsGrid('tt')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:10px;">Carica video da TikTok</button>
+              <div id="tt-posts-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:240px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="saveSocialConfig()" class="btn btn-primary" style="width:100%;justify-content:center;" id="social-save-btn">Salva configurazione</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Attiva Notifiche -->
   <div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(7,6,15,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);">
@@ -639,6 +738,9 @@
                     </button>
                     <button class="act-btn" onclick="openManualAnalytics('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')">
                       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dati
+                    </button>
+                    <button class="act-btn" onclick="openSocialModal('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')" title="Configura social">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5z"/><circle cx="12" cy="12" r="3"/></svg>Social
                     </button>
                     <button class="act-btn act-danger" onclick="deleteClient('${c.uid}')">
                       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Elimina
@@ -1434,6 +1536,128 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
           renderClientsTable();
         } catch (_) {}
       }
+    };
+
+    // ── SOCIAL MEDIA CONFIG ────────────────────────────────────────────────
+    let _socialUid = null;
+
+    function fmtNum(n) {
+      n = Number(n) || 0;
+      if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'M';
+      if (n >= 1000) return (n/1000).toFixed(1).replace('.0','') + 'K';
+      return n.toLocaleString('it');
+    }
+
+    window.openSocialModal = async (uid, name) => {
+      _socialUid = uid;
+      document.getElementById('social-modal-name').textContent = name;
+      ['ig','tt'].forEach(p => {
+        document.getElementById(`${p}-enabled`).checked = false;
+        document.getElementById(`${p}-fields`).style.display = 'none';
+        document.getElementById(`${p}-post-select`).style.display = 'none';
+        document.getElementById(`${p}-posts-grid`).innerHTML = '';
+        setSocialToggle(p, false);
+        const autoEl = document.getElementById(`${p}-mode-auto`);
+        if (autoEl) autoEl.checked = true;
+      });
+      try {
+        const snap = await getDoc(doc(db, 'clients', uid));
+        const social = snap.data()?.social || {};
+        for (const [platform, p] of [['instagram','ig'],['tiktok','tt']]) {
+          const cfg = social[platform] || {};
+          if (cfg.enabled) { document.getElementById(`${p}-enabled`).checked = true; setSocialToggle(p, true); document.getElementById(`${p}-fields`).style.display = ''; }
+          document.getElementById(`${p}-username`).value = cfg.username || '';
+          document.getElementById(`${p}-managed-from`).value = cfg.managedFrom || '';
+          const modeEl = document.getElementById(`${p}-mode-${cfg.mode || 'auto'}`);
+          if (modeEl) { modeEl.checked = true; }
+          if (cfg.mode === 'manual') document.getElementById(`${p}-post-select`).style.display = '';
+          window[`_${p}Selected`] = new Set(cfg.selectedPosts || []);
+        }
+      } catch(_) {}
+      document.getElementById('social-modal').classList.add('open');
+    };
+
+    window.toggleSocial = (p) => {
+      const cb = document.getElementById(`${p}-enabled`);
+      cb.checked = !cb.checked;
+      setSocialToggle(p, cb.checked);
+      document.getElementById(`${p}-fields`).style.display = cb.checked ? '' : 'none';
+    };
+
+    function setSocialToggle(p, on) {
+      document.getElementById(`${p}-track`).style.background = on ? 'var(--purple)' : 'var(--border)';
+      document.getElementById(`${p}-thumb`).style.left = on ? '21px' : '3px';
+      document.getElementById(`${p}-toggle-label`).textContent = on ? 'On' : 'Off';
+      document.getElementById(`${p}-toggle-label`).style.color = on ? 'var(--purple)' : 'var(--text-muted)';
+    }
+
+    window.showPostSelect = (p) => {
+      const isManual = document.getElementById(`${p}-mode-manual`).checked;
+      document.getElementById(`${p}-post-select`).style.display = isManual ? '' : 'none';
+    };
+
+    window.loadPostsGrid = async (p) => {
+      const platform = p === 'ig' ? 'instagram' : 'tiktok';
+      const grid = document.getElementById(`${p}-posts-grid`);
+      grid.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);grid-column:1/-1;padding:8px 0;">Caricamento...</p>';
+      const username = document.getElementById(`${p}-username`).value.trim().replace('@','');
+      if (!username) { grid.innerHTML = '<p style="font-size:.82rem;color:var(--pink);grid-column:1/-1;">Inserisci prima lo username.</p>'; return; }
+      try {
+        await updateDoc(doc(db, 'clients', _socialUid), {
+          [`social.${platform}.enabled`]: true,
+          [`social.${platform}.username`]: username,
+        });
+        const resp = await fetch(`https://astra-notify.jacopopelliccione.workers.dev/api/social?clientId=${_socialUid}&platform=${platform}&allPosts=1`);
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error);
+        const items = platform === 'instagram' ? (data.posts || []) : (data.videos || []);
+        const selected = window[`_${p}Selected`] || new Set();
+        if (!items.length) { grid.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);grid-column:1/-1;">Nessun contenuto trovato.</p>'; return; }
+        grid.innerHTML = items.map(item => {
+          const id = platform === 'instagram' ? String(item.id || item.pk) : String(item.video_id || item.id);
+          const thumb = platform === 'instagram'
+            ? (item.image_versions2?.candidates?.[0]?.url || item.thumbnail_url || '')
+            : (item.video?.cover || item.cover_url || '');
+          const count = platform === 'instagram' ? (item.like_count || 0) : (item.stats?.play_count || item.play_count || 0);
+          const lbl = platform === 'instagram' ? '❤' : '▶';
+          const checked = selected.has(id) ? 'checked' : '';
+          return `<label style="cursor:pointer;position:relative;display:block;">
+            <input type="checkbox" class="${p}-chk" value="${id}" ${checked} style="position:absolute;top:4px;left:4px;z-index:2;accent-color:var(--purple);width:14px;height:14px;" />
+            <div style="aspect-ratio:1;border-radius:7px;overflow:hidden;background:var(--bg);">
+              ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />` : '<div style="width:100%;height:100%;background:var(--surface);"></div>'}
+            </div>
+            <div style="font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:3px;">${lbl} ${fmtNum(count)}</div>
+          </label>`;
+        }).join('');
+      } catch(e) {
+        grid.innerHTML = `<p style="font-size:.82rem;color:var(--pink);grid-column:1/-1;">Errore: ${e.message}</p>`;
+      }
+    };
+
+    window.saveSocialConfig = async () => {
+      const btn = document.getElementById('social-save-btn');
+      btn.textContent = 'Salvo...'; btn.disabled = true;
+      try {
+        const ig = {
+          enabled:      document.getElementById('ig-enabled').checked,
+          username:     document.getElementById('ig-username').value.trim().replace('@',''),
+          managedFrom:  document.getElementById('ig-managed-from').value,
+          mode:         document.querySelector('input[name="ig-mode"]:checked')?.value || 'auto',
+          selectedPosts:[...document.querySelectorAll('.ig-chk:checked')].map(c => c.value),
+        };
+        const tt = {
+          enabled:      document.getElementById('tt-enabled').checked,
+          username:     document.getElementById('tt-username').value.trim().replace('@',''),
+          managedFrom:  document.getElementById('tt-managed-from').value,
+          mode:         document.querySelector('input[name="tt-mode"]:checked')?.value || 'auto',
+          selectedPosts:[...document.querySelectorAll('.tt-chk:checked')].map(c => c.value),
+        };
+        await updateDoc(doc(db, 'clients', _socialUid), { social: { instagram: ig, tiktok: tt } });
+        allClients = allClients.map(c => c.uid === _socialUid ? { ...c, social: { instagram: ig, tiktok: tt } } : c);
+        showToast('Social configurato.');
+        document.getElementById('social-modal').classList.remove('open');
+      } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+      btn.textContent = 'Salva configurazione'; btn.disabled = false;
     };
 
     window.openManualAnalytics = (uid, name) => {

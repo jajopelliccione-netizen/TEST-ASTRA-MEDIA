@@ -89,6 +89,25 @@
       </div>
     </div>
 
+    <!-- SOCIAL MEDIA -->
+    <div class="card" id="social-card" style="display:none;margin-bottom:20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        Social Media
+      </div>
+      <div id="social-content"><div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;">Caricamento...</div></div>
+    </div>
+
+    <!-- MODAL: Post/Video detail -->
+    <div class="modal-overlay" id="social-detail-modal">
+      <div class="modal-box" style="max-width:400px;">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <button onclick="document.getElementById('social-detail-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.4rem;line-height:1;">×</button>
+        </div>
+        <div id="social-detail-content"></div>
+      </div>
+    </div>
+
     <!-- REFERRAL -->
     <div class="card">
       <div class="card-title">
@@ -252,7 +271,176 @@
 
       // Analytics sito
       await loadAnalytics(targetUid, !!data.analyticsConfigured);
+
+      // Social media
+      if (data.social?.instagram?.enabled || data.social?.tiktok?.enabled) {
+        loadSocial(targetUid, data.social);
+      }
     });
+
+    function fmtSocialNum(n) {
+      n = Number(n) || 0;
+      if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'M';
+      if (n >= 1000) return (n/1000).toFixed(1).replace('.0','') + 'K';
+      return n.toLocaleString('it');
+    }
+
+    async function loadSocial(uid, social) {
+      const card    = document.getElementById('social-card');
+      const content = document.getElementById('social-content');
+      card.style.display = '';
+
+      const platforms = [];
+      if (social?.instagram?.enabled) platforms.push('instagram');
+      if (social?.tiktok?.enabled)    platforms.push('tiktok');
+      if (!platforms.length) { card.style.display = 'none'; return; }
+
+      let activePlatform = platforms[0];
+      const cached = {};
+
+      const renderProfile = (platform, profile, stats) => {
+        if (platform === 'instagram') {
+          const pic = profile?.profile_pic_url || profile?.hd_profile_pic_url_info?.url || '';
+          return `<div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:18px;">
+            ${pic ? `<img src="${pic}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(245,133,41,.4);" />` : `<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f58529,#dd2a7b);flex-shrink:0;"></div>`}
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;">@${profile?.username || ''}</div>
+              ${profile?.full_name ? `<div style="font-size:.8rem;color:var(--text-muted);">${profile.full_name}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:14px;flex-shrink:0;">
+              <div style="text-align:center;"><div style="font-size:1.15rem;font-weight:800;color:var(--purple);">${fmtSocialNum(profile?.follower_count||profile?.followers_count||0)}</div><div style="font-size:.68rem;color:var(--text-muted);">Follower</div></div>
+              <div style="text-align:center;"><div style="font-size:1.15rem;font-weight:800;">${fmtSocialNum(profile?.media_count||0)}</div><div style="font-size:.68rem;color:var(--text-muted);">Post</div></div>
+            </div>
+          </div>`;
+        } else {
+          const pic = profile?.avatarMedium || profile?.avatarLarger || '';
+          return `<div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:18px;">
+            ${pic ? `<img src="${pic}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;" />` : `<div style="width:52px;height:52px;border-radius:50%;background:#000;flex-shrink:0;"></div>`}
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;">@${profile?.uniqueId || ''}</div>
+              ${profile?.nickname ? `<div style="font-size:.8rem;color:var(--text-muted);">${profile.nickname}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:10px;flex-shrink:0;">
+              <div style="text-align:center;"><div style="font-size:1.1rem;font-weight:800;color:var(--purple);">${fmtSocialNum(stats?.followerCount||0)}</div><div style="font-size:.68rem;color:var(--text-muted);">Follower</div></div>
+              <div style="text-align:center;"><div style="font-size:1.1rem;font-weight:800;">${fmtSocialNum(stats?.heartCount||0)}</div><div style="font-size:.68rem;color:var(--text-muted);">Like tot.</div></div>
+              <div style="text-align:center;"><div style="font-size:1.1rem;font-weight:800;">${fmtSocialNum(stats?.videoCount||0)}</div><div style="font-size:.68rem;color:var(--text-muted);">Video</div></div>
+            </div>
+          </div>`;
+        }
+      };
+
+      const renderGrid = (platform, items, ttUsername) => {
+        if (!items.length) return `<p style="font-size:.85rem;color:var(--text-muted);text-align:center;padding:20px 0;">Nessun contenuto disponibile nel periodo selezionato.</p>`;
+        if (platform === 'instagram') {
+          return `<div style="font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Post in gestione</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+            ${items.map(post => {
+              const id    = String(post.id || post.pk);
+              const thumb = post.image_versions2?.candidates?.[0]?.url || post.thumbnail_url || '';
+              const likes = post.like_count || 0;
+              const cmts  = post.comments_count || 0;
+              const isVid = post.media_type === 2;
+              const d = JSON.stringify({id,thumb,likes,comments:cmts,isVid,link:post.permalink||''}).replace(/"/g,'&quot;');
+              return `<div onclick='showSocialDetail("ig",${d})' style="cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:1;position:relative;background:var(--bg);">
+                ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
+                ${isVid ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);border-radius:4px;padding:1px 5px;font-size:.62rem;color:#fff;">▶</div>' : ''}
+                <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:5px 6px 4px;display:flex;gap:7px;">
+                  <span style="font-size:.65rem;color:#fff;">❤ ${fmtSocialNum(likes)}</span>
+                  <span style="font-size:.65rem;color:#fff;">💬 ${fmtSocialNum(cmts)}</span>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        } else {
+          return `<div style="font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Video in gestione</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+            ${items.map(video => {
+              const id    = String(video.video_id || video.id);
+              const thumb = video.video?.cover || video.cover_url || video.origin_cover || '';
+              const plays = video.stats?.play_count  || video.play_count  || 0;
+              const likes = video.stats?.digg_count  || video.digg_count  || 0;
+              const cmts  = video.stats?.comment_count || video.comment_count || 0;
+              const shrs  = video.stats?.share_count || video.share_count || 0;
+              const link  = `https://www.tiktok.com/@${ttUsername}/video/${id}`;
+              const d = JSON.stringify({id,thumb,plays,likes,comments:cmts,shares:shrs,link}).replace(/"/g,'&quot;');
+              return `<div onclick='showSocialDetail("tt",${d})' style="cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:9/16;position:relative;background:var(--bg);">
+                ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
+                <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:6px 6px 5px;">
+                  <div style="font-size:.67rem;color:#fff;">▶ ${fmtSocialNum(plays)}</div>
+                  <div style="font-size:.63rem;color:rgba(255,255,255,.8);">❤ ${fmtSocialNum(likes)}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }
+      };
+
+      window.showSocialDetail = (type, item) => {
+        const det = document.getElementById('social-detail-content');
+        if (type === 'ig') {
+          det.innerHTML = `
+            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;aspect-ratio:1;"><img src="${item.thumb}" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:#e1306c;">❤ ${fmtSocialNum(item.likes)}</div><div style="font-size:.73rem;color:var(--text-muted);">Like</div></div>
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;">💬 ${fmtSocialNum(item.comments)}</div><div style="font-size:.73rem;color:var(--text-muted);">Commenti</div></div>
+            </div>
+            ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;justify-content:center;text-decoration:none;">Apri su Instagram ↗</a>` : ''}`;
+        } else {
+          det.innerHTML = `
+            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;max-height:260px;aspect-ratio:9/16;"><img src="${item.thumb}" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:var(--purple);">▶ ${fmtSocialNum(item.plays)}</div><div style="font-size:.73rem;color:var(--text-muted);">Views</div></div>
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:#fe2c55;">❤ ${fmtSocialNum(item.likes)}</div><div style="font-size:.73rem;color:var(--text-muted);">Like</div></div>
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;">💬 ${fmtSocialNum(item.comments)}</div><div style="font-size:.73rem;color:var(--text-muted);">Commenti</div></div>
+              <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;">↗ ${fmtSocialNum(item.shares)}</div><div style="font-size:.73rem;color:var(--text-muted);">Condivisioni</div></div>
+            </div>
+            ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;justify-content:center;text-decoration:none;">Apri su TikTok ↗</a>` : ''}`;
+        }
+        document.getElementById('social-detail-modal').classList.add('open');
+      };
+
+      const renderPlatform = async (platform) => {
+        try {
+          const resp = await fetch(`https://astra-notify.jacopopelliccione.workers.dev/api/social?clientId=${uid}&platform=${platform}`);
+          const data = await resp.json();
+          if (!data.ok) return `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;">${data.error}</div>`;
+          const profileHtml = renderProfile(platform, data.profile, data.stats);
+          const ttUser = social?.tiktok?.username || '';
+          const gridHtml = renderGrid(platform, platform === 'instagram' ? (data.posts||[]) : (data.videos||[]), ttUser);
+          return profileHtml + gridHtml;
+        } catch(e) {
+          return `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;">Errore: ${e.message}</div>`;
+        }
+      };
+
+      window.switchSocialTab = async (platform) => {
+        activePlatform = platform;
+        platforms.forEach(p => {
+          const tab = document.getElementById(`stab-${p}`);
+          if (!tab) return;
+          const on = p === platform;
+          tab.style.background   = on ? 'var(--purple)' : 'transparent';
+          tab.style.color        = on ? '#fff' : 'var(--text-muted)';
+          tab.style.borderColor  = on ? 'var(--purple)' : 'var(--border)';
+        });
+        const pc = document.getElementById('social-platform-content');
+        if (pc) pc.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);">Caricamento...</div>';
+        if (!cached[platform]) cached[platform] = await renderPlatform(platform);
+        if (pc) pc.innerHTML = cached[platform];
+      };
+
+      const tabsHtml = platforms.length > 1 ? `
+        <div style="display:flex;gap:8px;margin-bottom:18px;">
+          ${platforms.map(p => `<button id="stab-${p}" onclick="switchSocialTab('${p}')"
+            style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:50px;border:1px solid ${p===activePlatform?'var(--purple)':'var(--border)'};background:${p===activePlatform?'var(--purple)':'transparent'};color:${p===activePlatform?'#fff':'var(--text-muted)'};cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;">
+            ${p==='instagram' ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>' : '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 000 12.68 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>'}
+            ${p==='instagram' ? 'Instagram' : 'TikTok'}
+          </button>`).join('')}
+        </div>` : '';
+
+      cached[activePlatform] = await renderPlatform(activePlatform);
+      content.innerHTML = tabsHtml + `<div id="social-platform-content">${cached[activePlatform]}</div>`;
+    }
 
     async function loadAnalytics(uid, configured) {
       const card = document.getElementById('analytics-card');

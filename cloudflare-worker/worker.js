@@ -32,6 +32,10 @@ export default {
       return handleRecoverCollab(request, env);
     }
 
+    if (request.method === 'GET' && path.endsWith('/social')) {
+      return handleSocialData(request, env);
+    }
+
     if (request.method === 'POST' && path.endsWith('/delete-collab-auth')) {
       return handleDeleteCollabAuth(request, env);
     }
@@ -171,6 +175,89 @@ async function handleRecoverCollab(request, env) {
     });
 
     return json({ ok: true, uid });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── GET /api/social ────────────────────────────────────────────────────────
+async function handleSocialData(request, env) {
+  try {
+    const url      = new URL(request.url);
+    const clientId = url.searchParams.get('clientId');
+    const platform = url.searchParams.get('platform'); // 'instagram' | 'tiktok'
+    const allPosts = url.searchParams.get('allPosts') === '1';
+
+    if (!clientId || !platform) return json({ ok: false, error: 'clientId e platform richiesti' });
+    if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker' });
+
+    const projectId = env.FCM_PROJECT_ID;
+    const svcToken  = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase    = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+    const clientResp = await fetch(`${fsBase}/clients/${clientId}`, { headers: { Authorization: `Bearer ${svcToken}` } });
+    if (!clientResp.ok) return json({ ok: false, error: 'Client non trovato' });
+    const f  = (await clientResp.json()).fields || {};
+    const pf = f.social?.mapValue?.fields?.[platform]?.mapValue?.fields || {};
+
+    if (!pf.enabled?.booleanValue) return json({ ok: false, error: `${platform} non attivato` });
+
+    const username    = pf.username?.stringValue;
+    const mode        = pf.mode?.stringValue || 'auto';
+    const managedFrom = pf.managedFrom?.stringValue || '';
+    const selectedIds = (pf.selectedPosts?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean);
+
+    if (!username) return json({ ok: false, error: 'Username non configurato' });
+
+    const RK = env.RAPID_API_KEY;
+
+    if (platform === 'instagram') {
+      const [profileR, postsR] = await Promise.all([
+        fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/info?username=${encodeURIComponent(username)}`,
+          { headers: { 'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+        fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/posts?username_or_id_or_url=${encodeURIComponent(username)}`,
+          { headers: { 'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+      ]);
+      const profileData = await profileR.json();
+      const postsData   = await postsR.json();
+      if (profileData.status === 'fail' || profileData.error) return json({ ok: false, error: 'Profilo Instagram non trovato o API key non valida' });
+
+      let posts = postsData.data?.items || [];
+      if (!allPosts) {
+        if (mode === 'auto' && managedFrom) {
+          const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
+          posts = posts.filter(p => (p.taken_at || 0) >= fromTs);
+        } else if (mode === 'manual' && selectedIds.length > 0) {
+          posts = posts.filter(p => selectedIds.includes(String(p.id || p.pk)));
+        }
+      }
+      return json({ ok: true, platform: 'instagram', profile: profileData.data, posts });
+    }
+
+    if (platform === 'tiktok') {
+      const [profileR, videosR] = await Promise.all([
+        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/info?uniqueId=${encodeURIComponent(username)}`,
+          { headers: { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/posts?uniqueId=${encodeURIComponent(username)}&count=35&cursor=0`,
+          { headers: { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+      ]);
+      const profileData = await profileR.json();
+      const videosData  = await videosR.json();
+      if (profileData.code !== 0) return json({ ok: false, error: 'Profilo TikTok non trovato o API key non valida' });
+
+      let videos = videosData.data?.videos || [];
+      if (!allPosts) {
+        if (mode === 'auto' && managedFrom) {
+          const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
+          videos = videos.filter(v => (v.createTime || 0) >= fromTs);
+        } else if (mode === 'manual' && selectedIds.length > 0) {
+          videos = videos.filter(v => selectedIds.includes(String(v.video_id || v.id)));
+        }
+      }
+      return json({ ok: true, platform: 'tiktok', profile: profileData.data?.user, stats: profileData.data?.stats, videos });
+    }
+
+    return json({ ok: false, error: 'Platform non supportata' });
   } catch (err) {
     return json({ ok: false, error: err.message });
   }
