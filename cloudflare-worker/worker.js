@@ -106,9 +106,13 @@ async function handleNotify(request, env) {
 // ── GET /api/debug ─────────────────────────────────────────────────────────
 async function handleDebug(env) {
   const result = { steps: {} };
-  const projectId   = env.FCM_PROJECT_ID   || SA_PROJECT_ID;
-  const clientEmail = env.FCM_CLIENT_EMAIL  || SA_CLIENT_EMAIL;
-  const privateKey  = env.FCM_PRIVATE_KEY   || SA_PRIVATE_KEY;
+  const projectId   = env.FCM_PROJECT_ID;
+  const clientEmail = env.FCM_CLIENT_EMAIL;
+  const privateKey  = env.FCM_PRIVATE_KEY;
+  if (!projectId || !clientEmail || !privateKey) {
+    result.steps.credentials = '✗ Env vars mancanti (FCM_PROJECT_ID / FCM_CLIENT_EMAIL / FCM_PRIVATE_KEY)';
+    return jsonDebug(result);
+  }
   result.steps.credentials = { projectId, clientEmail, keyLength: privateKey.length };
 
   let accessToken;
