@@ -440,7 +440,7 @@
       onAuthStateChanged, signOut, createUserWithEmailAndPassword, getAuth
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
-      doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, arrayUnion, onSnapshot
+      doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, arrayUnion, onSnapshot, query, limit
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import {
@@ -540,6 +540,19 @@
       const snap = await getDocs(collection(db, 'clients'));
       allClients = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
       renderClientsTable();
+      // check analytics status in background, re-render when done
+      const statuses = await Promise.all(
+        allClients.map(async c => {
+          try {
+            const q = query(collection(db, 'analytics', c.uid, 'daily'), limit(1));
+            const s = await getDocs(q);
+            return { uid: c.uid, active: !s.empty };
+          } catch { return { uid: c.uid, active: false }; }
+        })
+      );
+      const map = Object.fromEntries(statuses.map(s => [s.uid, s.active]));
+      allClients = allClients.map(c => ({ ...c, analyticsActive: map[c.uid] }));
+      renderClientsTable();
     }
 
     function renderClientsTable() {
@@ -560,6 +573,12 @@
                   <div>
                     <div style="font-weight:600;">${c.displayName || '—'}</div>
                     <div style="font-size:.78rem;color:var(--text-muted);">${c.email || ''}</div>
+                    ${c.analyticsActive !== undefined
+                      ? `<div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:500;color:${c.analyticsActive ? '#22c55e' : 'var(--text-muted)'};">
+                           <span style="width:6px;height:6px;border-radius:50%;background:${c.analyticsActive ? '#22c55e' : 'var(--text-muted)'};display:inline-block;"></span>
+                           ${c.analyticsActive ? 'Statistiche attive' : 'Statistiche non configurate'}
+                         </div>`
+                      : ''}
                   </div>
                 </td>
                 <td data-label="Pacchetto"><span class="badge badge-purple">${c.package || '—'}</span></td>
