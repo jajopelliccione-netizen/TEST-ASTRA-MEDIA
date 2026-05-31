@@ -181,6 +181,10 @@ a    { text-decoration: none; color: inherit; }
   border-color: var(--purple); box-shadow: 0 0 0 3px rgba(123,92,240,.15);
 }
 .form-textarea { resize: vertical; min-height: 100px; }
+.pwd-wrap { position: relative; display: block; }
+.pwd-wrap .form-input { padding-right: 44px; }
+.pwd-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; line-height: 1; transition: color .15s; }
+.pwd-eye:hover { color: var(--text); }
 .form-select { appearance: none; cursor: pointer; }
 
 /* ── GRID ──────────────────────────────────────────────────────── */
