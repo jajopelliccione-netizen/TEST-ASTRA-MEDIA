@@ -810,12 +810,27 @@
         return;
       }
       el.innerHTML = list.map(c => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div>
-            <div style="font-weight:600;font-size:.9rem;">${c.name || '—'}</div>
-            <div style="font-size:.78rem;color:var(--text-muted);">@${c.username || '—'}</div>
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div>
+              <div style="font-weight:600;font-size:.9rem;">${c.name || '—'}</div>
+              <div style="font-size:.78rem;color:var(--text-muted);">@${c.username || '—'}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <button class="act-btn" onclick="resetCollabPassword('${c.uid}','${c.name || c.username || ''}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Password
+              </button>
+              <button class="act-btn act-danger" onclick="removeCollaborator('${c.uid}','${c.username || ''}')">Rimuovi</button>
+            </div>
           </div>
-          <button class="btn btn-sm" style="color:var(--pink);border:1px solid rgba(255,45,120,.3);background:transparent;flex-shrink:0;" onclick="removeCollaborator('${c.uid}','${c.username || ''}')">Rimuovi</button>
+          <div id="reset-form-${c.uid}" style="display:none;margin-top:10px;display:none;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="password" id="new-pass-${c.uid}" placeholder="Nuova password (min. 8 caratteri)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:inherit;font-size:.83rem;" />
+              <button class="act-btn act-green" onclick="confirmResetPassword('${c.uid}')">Salva</button>
+              <button class="act-btn" onclick="document.getElementById('reset-form-${c.uid}').style.display='none'">✕</button>
+            </div>
+          </div>
         </div>
       `).join('');
     }
@@ -857,6 +872,30 @@
         resultEl.textContent = '✗ ' + e.message;
         resultEl.style.color = 'var(--pink)';
       }
+    };
+
+    window.resetCollabPassword = (uid) => {
+      const form = document.getElementById(`reset-form-${uid}`);
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    };
+
+    window.confirmResetPassword = async (uid) => {
+      const newPassword = document.getElementById(`new-pass-${uid}`).value;
+      if (newPassword.length < 8) { showToast('Password minimo 8 caratteri.', 'error'); return; }
+      try {
+        const resp = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/reset-collab-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, newPassword }),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast('Password aggiornata.');
+          document.getElementById(`reset-form-${uid}`).style.display = 'none';
+        } else {
+          showToast('Errore: ' + (data.error || 'sconosciuto'), 'error');
+        }
+      } catch (e) { showToast('Errore di rete.', 'error'); }
     };
 
     window.removeCollaborator = async (uid, username) => {

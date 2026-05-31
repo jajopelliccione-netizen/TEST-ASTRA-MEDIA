@@ -24,6 +24,10 @@ export default {
       return handleTrack(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/reset-collab-password')) {
+      return handleResetCollabPassword(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
       return handleDebug(env);
     }
@@ -65,6 +69,31 @@ async function handleTrack(request, env) {
     return json({ ok: fsResp.ok });
   } catch (err) {
     return json({ ok: false });
+  }
+}
+
+// ── POST /api/reset-collab-password ───────────────────────────────────────
+async function handleResetCollabPassword(request, env) {
+  try {
+    const { uid, newPassword } = await request.json();
+    if (!uid || !newPassword || newPassword.length < 8) {
+      return json({ ok: false, error: 'uid e newPassword (min 8 caratteri) richiesti' });
+    }
+    const projectId  = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const resp = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:update`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: uid, password: newPassword }),
+      }
+    );
+    const data = await resp.json();
+    if (!resp.ok) return json({ ok: false, error: data.error?.message || 'Errore Firebase' });
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
   }
 }
 
