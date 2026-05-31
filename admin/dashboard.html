@@ -144,34 +144,15 @@
 
         <div class="card" style="margin-bottom:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-            <div>
+            <div style="flex:1;">
               <p style="font-weight:600;margin-bottom:4px;">Notifiche push</p>
               <p style="font-size:.83rem;color:var(--text-muted);" id="notif-status-text">Ricevi un avviso quando arriva un messaggio o una richiesta partner.</p>
+              <p style="font-size:.8rem;margin-top:4px;" id="fcm-reg-result"></p>
             </div>
-            <button id="notif-settings-btn" onclick="toggleNotifications()" class="btn btn-primary" style="white-space:nowrap;">
+            <button id="notif-settings-btn" onclick="doRegisterFcm()" class="btn btn-primary" style="white-space:nowrap;">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               <span id="notif-settings-label">Attiva notifiche</span>
             </button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-            <div style="flex:1;">
-              <p style="font-weight:600;margin-bottom:4px;">Registra questo dispositivo</p>
-              <p style="font-size:.83rem;color:var(--text-muted);" id="fcm-reg-result">Salva il token FCM di questo dispositivo per ricevere notifiche push anche con la dashboard chiusa.</p>
-            </div>
-            <button onclick="doRegisterFcm()" class="btn btn-primary" style="white-space:nowrap;">Registra</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-            <div>
-              <p style="font-weight:600;margin-bottom:4px;">Testa notifica</p>
-              <p style="font-size:.83rem;color:var(--text-muted);" id="test-notif-result">Verifica che le notifiche arrivino correttamente sul dispositivo.</p>
-            </div>
-            <button onclick="testNotification()" class="btn btn-outline" style="white-space:nowrap;">Invia test</button>
           </div>
         </div>
 
