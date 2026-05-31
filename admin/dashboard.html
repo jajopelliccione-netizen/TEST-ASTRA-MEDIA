@@ -396,6 +396,24 @@
     </div>
   </div>
 
+  <!-- MODAL: Prompt Claude Code Analytics -->
+  <div class="modal-overlay" id="claude-modal">
+    <div class="modal-box" style="max-width:560px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 class="modal-title" style="margin:0;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px;vertical-align:middle;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Prompt Claude Code — Analytics
+        </h2>
+        <button onclick="document.getElementById('claude-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.4rem;line-height:1;">×</button>
+      </div>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:14px;">Copia questo prompt e incollalo su Claude Code mentre sei nel progetto del sito del cliente. Claude aggiungerà automaticamente il tracking.</p>
+      <div style="position:relative;">
+        <textarea id="claude-prompt-text" readonly rows="12" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:monospace;font-size:.78rem;color:var(--text);resize:none;line-height:1.6;box-sizing:border-box;"></textarea>
+        <button onclick="copyClaudePrompt()" style="position:absolute;top:10px;right:10px;background:var(--purple);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:.78rem;cursor:pointer;" id="claude-copy-btn">Copia</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Attiva Notifiche -->
   <div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(7,6,15,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);">
@@ -558,6 +576,9 @@
                     </button>
                     <button class="btn btn-outline btn-sm" onclick="editClient('${c.uid}')">Modifica</button>
                     <button class="btn btn-green btn-sm" onclick="openReport('${c.uid}')">+ Report</button>
+                    <button class="btn btn-outline btn-sm" onclick="showClaudePrompt('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')" title="Prompt Claude Code per analytics" style="font-size:.78rem;">
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;vertical-align:middle;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Analytics
+                    </button>
                     <button class="btn btn-sm" style="color:var(--pink);border:1px solid rgba(255,45,120,.3);background:transparent;padding:4px 8px;" onclick="deleteClient('${c.uid}')" title="Elimina cliente">✕</button>
                   </div>
                 </td>
@@ -1176,6 +1197,49 @@
         resultEl.textContent = `✗ Worker non raggiungibile — controlla la connessione.`;
         resultEl.style.color = 'var(--pink)';
       }
+    };
+
+    window.showClaudePrompt = (uid, name) => {
+      const prompt = `Aggiungi il sistema di tracking analytics Astra al sito${name ? ' di ' + name : ''}.
+
+Incolla questo snippet HTML prima del tag </body> in ogni pagina del sito (o nel layout/template base se ne ha uno):
+
+<script>
+(function(){
+  try {
+    fetch('https://astra-notify.jacopopelliccione.workers.dev/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientId: '${uid}',
+        page: location.pathname,
+        ref: document.referrer || ''
+      })
+    });
+  } catch(e) {}
+})();
+<\/script>
+
+Lo script:
+- È anonimo: non raccoglie dati personali, nessun cookie, nessun IP salvato
+- È compatibile con qualsiasi stack (HTML statico, WordPress, Next.js, ecc.)
+- Registra automaticamente la pagina visitata e la sorgente di traffico
+- Le statistiche appariranno subito nella dashboard del cliente
+
+Dopo averlo aggiunto, verifica che il sito carichi senza errori nella console del browser.`;
+
+      document.getElementById('claude-prompt-text').value = prompt;
+      document.getElementById('claude-copy-btn').textContent = 'Copia';
+      document.getElementById('claude-modal').classList.add('open');
+    };
+
+    window.copyClaudePrompt = () => {
+      const text = document.getElementById('claude-prompt-text').value;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('claude-copy-btn');
+        btn.textContent = 'Copiato ✓';
+        setTimeout(() => { btn.textContent = 'Copia'; }, 2000);
+      });
     };
 
     window.toggleNotifAccordion = () => {

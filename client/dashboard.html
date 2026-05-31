@@ -74,6 +74,21 @@
       </div>
     </div>
 
+    <!-- ANALYTICS SITO -->
+    <div class="card" style="margin-bottom:20px;" id="analytics-card" style="display:none;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Statistiche Sito Web
+      </div>
+      <div id="analytics-content">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <p>Nessuna statistica disponibile.</p>
+          <p style="margin-top:6px;font-size:.82rem;">Le visite al tuo sito appariranno qui automaticamente.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- REFERRAL -->
     <div class="card">
       <div class="card-title">
@@ -115,7 +130,7 @@
   <script type="module">
     import { auth, db } from '../js/firebase-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { doc, getDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const loading   = document.getElementById('loading-state');
     const main      = document.getElementById('main-content');
@@ -234,7 +249,72 @@
         btn.classList.add('copied');
         setTimeout(() => { btn.textContent = 'Copia'; btn.classList.remove('copied'); }, 2000);
       });
+
+      // Analytics sito
+      await loadAnalytics(targetUid);
     });
+
+    async function loadAnalytics(uid) {
+      const card = document.getElementById('analytics-card');
+      const content = document.getElementById('analytics-content');
+      try {
+        const dailyRef = collection(db, 'analytics', uid, 'daily');
+        const q = query(dailyRef, orderBy('__name__', 'desc'), limit(30));
+        const snap = await getDocs(q);
+        if (snap.empty) return;
+        card.style.display = '';
+
+        const days = snap.docs.map(d => ({ date: d.id, ...d.data() })).reverse();
+        const totalMonth = days.reduce((s, d) => s + (d.views || 0), 0);
+        const last7 = days.slice(-7);
+        const maxViews = Math.max(...last7.map(d => d.views || 0), 1);
+
+        // Top pages
+        const pageMap = {};
+        days.forEach(d => {
+          Object.entries(d.pages || {}).forEach(([p, v]) => {
+            pageMap[p] = (pageMap[p] || 0) + v;
+          });
+        });
+        const topPages = Object.entries(pageMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        content.innerHTML = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+            <div class="stat-card" style="flex:1;min-width:120px;">
+              <span class="label">Visite questo mese</span>
+              <span class="value" style="color:var(--purple);font-size:1.6rem;">${totalMonth.toLocaleString('it')}</span>
+            </div>
+            <div class="stat-card" style="flex:1;min-width:120px;">
+              <span class="label">Giorni tracciati</span>
+              <span class="value" style="font-size:1.6rem;">${days.length}</span>
+            </div>
+          </div>
+          <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Ultimi 7 giorni</p>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:20px;">
+            ${last7.map(d => {
+              const h = Math.round(((d.views || 0) / maxViews) * 100);
+              const label = d.date.slice(5); // MM-DD
+              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="font-size:.65rem;color:var(--text-muted);">${d.views || 0}</div>
+                <div style="width:100%;background:var(--purple);border-radius:4px 4px 0 0;height:${h}%;min-height:${d.views ? 4 : 0}px;opacity:.85;"></div>
+                <div style="font-size:.62rem;color:var(--text-muted);white-space:nowrap;">${label}</div>
+              </div>`;
+            }).join('')}
+          </div>
+          ${topPages.length ? `
+            <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Pagine più visitate</p>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${topPages.map(([p, v]) => `
+                <div style="display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;border-bottom:1px solid var(--border);">
+                  <span style="color:var(--text-muted);font-family:monospace;">${p.replace(/_/g,'/')}</span>
+                  <span style="font-weight:600;">${v}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+      } catch(e) { /* analytics non configurate per questo cliente */ }
+    }
 
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
   </script>

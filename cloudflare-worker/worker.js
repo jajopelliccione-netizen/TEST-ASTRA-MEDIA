@@ -1,4 +1,4 @@
-// Cloudflare Worker — gestisce /api/notify e /api/debug
+// Cloudflare Worker — gestisce /api/notify, /api/track e /api/debug
 // Credenziali lette da env vars (impostate come secrets nel dashboard Cloudflare)
 
 const CORS = {
@@ -20,6 +20,10 @@ export default {
       return handleNotify(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/track')) {
+      return handleTrack(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
       return handleDebug(env);
     }
@@ -27,6 +31,42 @@ export default {
     return new Response('Not found', { status: 404 });
   },
 };
+
+// ── POST /api/track ────────────────────────────────────────────────────────
+async function handleTrack(request, env) {
+  try {
+    const { clientId, page } = await request.json();
+    if (!clientId || typeof clientId !== 'string' || clientId.length > 128) {
+      return json({ ok: false });
+    }
+
+    const today      = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const safePage   = (page || '/').replace(/[^a-zA-Z0-9/_-]/g, '_').slice(0, 80);
+    const projectId  = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+
+    const docName = `projects/${projectId}/databases/(default)/documents/analytics/${clientId}/daily/${today}`;
+    await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        writes: [{
+          transform: {
+            document: docName,
+            fieldTransforms: [
+              { fieldPath: 'views',               increment: { integerValue: '1' } },
+              { fieldPath: `pages.${safePage}`,   increment: { integerValue: '1' } },
+            ],
+          },
+        }],
+      }),
+    });
+
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false });
+  }
+}
 
 // ── POST /api/notify ───────────────────────────────────────────────────────
 async function handleNotify(request, env) {
