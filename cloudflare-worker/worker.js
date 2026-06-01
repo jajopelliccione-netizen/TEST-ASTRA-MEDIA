@@ -237,7 +237,7 @@ async function handleProxyImage(request) {
   let parsed;
   try { parsed = new URL(imgUrl); } catch { return new Response('invalid url', { status: 400, headers: CORS }); }
 
-  const allowed = ['.cdninstagram.com', '.fbcdn.net', '.tiktokcdn.com', '.tiktokv.com', '.tiktokcdn-us.com', '.musical.ly'];
+  const allowed = ['.cdninstagram.com', '.fbcdn.net', '.tiktokcdn.com', '.tiktokv.com', '.tiktokcdn-us.com', '.tiktokcdn-eu.com', '.tiktokcdn-ap.com', '.musical.ly'];
   if (!allowed.some(h => parsed.hostname.endsWith(h))) {
     return new Response('domain not allowed', { status: 403, headers: CORS });
   }
@@ -499,17 +499,24 @@ async function handleTikTokToken(request, env) {
     const fsBase    = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
     const now       = Math.floor(Date.now() / 1000);
 
-    await fetch(`${fsBase}/tiktok_tokens/${clientId}`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: {
-        access_token:       { stringValue: td.access_token },
-        refresh_token:      { stringValue: td.refresh_token || '' },
-        expires_at:         { integerValue: String(now + (td.expires_in || 86400)) },
-        refresh_expires_at: { integerValue: String(now + (td.refresh_expires_in || 31536000)) },
-        open_id:            { stringValue: td.open_id || '' },
-      }}),
-    });
+    await Promise.all([
+      fetch(`${fsBase}/tiktok_tokens/${clientId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: {
+          access_token:       { stringValue: td.access_token },
+          refresh_token:      { stringValue: td.refresh_token || '' },
+          expires_at:         { integerValue: String(now + (td.expires_in || 86400)) },
+          refresh_expires_at: { integerValue: String(now + (td.refresh_expires_in || 31536000)) },
+          open_id:            { stringValue: td.open_id || '' },
+        }}),
+      }),
+      // Svuota la cache dati così la prossima chiamata /api/social ri-scarica tutto
+      fetch(`${fsBase}/social_cache/${clientId}_tiktok`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${svcToken}` },
+      }),
+    ]);
     return json({ ok: true });
   } catch (err) {
     return json({ ok: false, error: err.message });
