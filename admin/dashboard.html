@@ -618,6 +618,7 @@
     .cc-meta { display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;align-items:center; }
     .cc-quick { display:flex;align-items:center;gap:6px;flex-shrink:0; }
     .cc-body { display:none;border-top:1px solid var(--border);padding:12px 16px 14px;background:rgba(7,6,15,.35); }
+    .cc.open .cc-body { display:block; }
     .cc-details { display:flex;flex-wrap:wrap;gap:8px 20px;margin-bottom:10px; }
     .cc-detail-item { display:flex;flex-direction:column;gap:2px; }
     .cc-detail-label { font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600; }
@@ -730,19 +731,13 @@
       const snap = await getDocs(collection(db, 'clients'));
       allClients = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
       renderClientsTable();
-      // check analytics status in background, re-render when done
-      const statuses = await Promise.all(
-        allClients.map(async c => {
-          try {
-            const q = query(collection(db, 'analytics', c.uid, 'daily'), limit(1));
-            const s = await getDocs(q);
-            return { uid: c.uid, active: !s.empty };
-          } catch { return { uid: c.uid, active: false }; }
-        })
-      );
-      const map = Object.fromEntries(statuses.map(s => [s.uid, s.active]));
-      allClients = allClients.map(c => ({ ...c, analyticsActive: map[c.uid] }));
-      renderClientsTable();
+      // check analytics status in background — re-render only after all resolve
+      Promise.all(allClients.map(async c => {
+        try {
+          const s = await getDocs(query(collection(db, 'analytics', c.uid, 'daily'), limit(1)));
+          c.analyticsActive = !s.empty;
+        } catch { c.analyticsActive = false; }
+      })).then(() => renderClientsTable());
     }
 
     function renderClientsTable() {
@@ -752,7 +747,7 @@
         return;
       }
       // Remember which cards are open
-      const openIds = new Set(allClients.map(c => c.uid).filter(uid => document.getElementById(`cc-body-${uid}`)?.style.display !== 'none' && document.getElementById(`cc-body-${uid}`) !== null));
+      const openIds = new Set(allClients.map(c => c.uid).filter(uid => document.getElementById(`cc-${uid}`)?.classList.contains('open')));
 
       wrap.innerHTML = allClients.map(c => {
         const name = (c.displayName || '—').replace(/'/g, '&#39;');
@@ -784,7 +779,7 @@
               <svg id="cc-chev-${c.uid}" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-muted)" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
           </div>
-          <div class="cc-body" id="cc-body-${c.uid}" style="${isOpen?'display:block':'display:none'}">
+          <div class="cc-body" id="cc-body-${c.uid}">
             <div class="cc-details">
               <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
               <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
@@ -817,13 +812,11 @@
     }
 
     window.toggleCC = (uid) => {
-      const body = document.getElementById(`cc-body-${uid}`);
-      const chev = document.getElementById(`cc-chev-${uid}`);
       const card = document.getElementById(`cc-${uid}`);
-      const open = body.style.display === 'block';
-      body.style.display = open ? 'none' : 'block';
-      chev.style.transform = open ? '' : 'rotate(180deg)';
-      card.classList.toggle('open', !open);
+      if (!card) return;
+      const isNowOpen = card.classList.toggle('open');
+      const chev = document.getElementById(`cc-chev-${uid}`);
+      if (chev) chev.style.transform = isNowOpen ? 'rotate(180deg)' : '';
     };
 
     // ── LOAD CONTACTS ─────────────────────────────────────────────
