@@ -495,8 +495,10 @@
               </div>
             </div>
             <div id="ig-post-select" style="display:none;">
-              <button type="button" onclick="loadPostsGrid('ig')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:10px;">Carica post da Instagram</button>
-              <div id="ig-posts-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:240px;overflow-y:auto;"></div>
+              <button type="button" onclick="loadPostsGrid('ig')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:8px;">Carica post da Instagram</button>
+              <p id="ig-posts-hint" style="display:none;font-size:.74rem;color:var(--text-muted);margin-bottom:6px;line-height:1.4;">Clicca su un post per vedere i dettagli e sceglierlo come punto di partenza.</p>
+              <div id="ig-posts-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;max-height:180px;overflow-y:auto;border-radius:8px;overflow:hidden;"></div>
+              <div id="ig-post-detail" style="display:none;margin-top:10px;"></div>
             </div>
           </div>
         </div>
@@ -536,8 +538,10 @@
               </div>
             </div>
             <div id="tt-post-select" style="display:none;">
-              <button type="button" onclick="loadPostsGrid('tt')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:10px;">Carica video da TikTok</button>
-              <div id="tt-posts-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:240px;overflow-y:auto;"></div>
+              <button type="button" onclick="loadPostsGrid('tt')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:8px;">Carica video da TikTok</button>
+              <p id="tt-posts-hint" style="display:none;font-size:.74rem;color:var(--text-muted);margin-bottom:6px;line-height:1.4;">Clicca su un video per vedere i dettagli e sceglierlo come punto di partenza.</p>
+              <div id="tt-posts-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;max-height:180px;overflow-y:auto;border-radius:8px;overflow:hidden;"></div>
+              <div id="tt-post-detail" style="display:none;margin-top:10px;"></div>
             </div>
           </div>
         </div>
@@ -1597,10 +1601,14 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
 
     window.loadPostsGrid = async (p) => {
       const platform = p === 'ig' ? 'instagram' : 'tiktok';
-      const grid = document.getElementById(`${p}-posts-grid`);
-      grid.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);grid-column:1/-1;padding:8px 0;">Caricamento...</p>';
+      const grid   = document.getElementById(`${p}-posts-grid`);
+      const detail = document.getElementById(`${p}-post-detail`);
+      const hint   = document.getElementById(`${p}-posts-hint`);
+      grid.innerHTML = '<div style="grid-column:1/-1;padding:10px 0;font-size:.8rem;color:var(--text-muted);">Caricamento…</div>';
+      detail.style.display = 'none';
+      hint.style.display = 'none';
       const username = document.getElementById(`${p}-username`).value.trim().replace('@','');
-      if (!username) { grid.innerHTML = '<p style="font-size:.82rem;color:var(--pink);grid-column:1/-1;">Inserisci prima lo username.</p>'; return; }
+      if (!username) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:.82rem;color:var(--pink);">Inserisci prima lo username.</div>'; return; }
       try {
         await updateDoc(doc(db, 'clients', _socialUid), {
           [`social.${platform}.enabled`]: true,
@@ -1610,49 +1618,142 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
         const data = await resp.json();
         if (!data.ok) throw new Error(data.error);
         const items = platform === 'instagram' ? (data.posts || []) : (data.videos || []);
-        if (!items.length) { grid.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);grid-column:1/-1;">Nessun contenuto trovato.</p>'; return; }
+        if (!items.length) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:.82rem;color:var(--text-muted);">Nessun contenuto trovato.</div>'; return; }
+        window[`_${p}Items`] = items;
         const currentStart = window[`_${p}StartFrom`] || null;
-        const hint = `<p style="font-size:.75rem;color:var(--text-muted);grid-column:1/-1;margin-bottom:4px;">Clicca sul primo post che vuoi mostrare al cliente — tutti i post da quel momento in poi appariranno automaticamente.</p>`;
-        grid.innerHTML = hint + items.map(item => {
+        hint.style.display = '';
+        grid.innerHTML = items.map((item, i) => {
           const ts = platform === 'instagram' ? (item.taken_at || 0) : (item.createTime || 0);
           const thumb = platform === 'instagram'
-            ? (item.thumbnail_url || item.image_versions2?.candidates?.[0]?.url || '')
+            ? (item.thumbnail_url || '')
             : (item.video?.cover || item.cover_url || '');
-          const count = platform === 'instagram' ? (item.like_count || 0) : (item.stats?.play_count || item.play_count || 0);
-          const lbl = platform === 'instagram' ? '❤' : '▶';
           const isSelected = currentStart && currentStart === ts;
-          return `<div data-ts="${ts}" onclick="selectStartPost('${p}', ${ts})" style="cursor:pointer;position:relative;display:block;">
-            <div class="${p}-post-border" style="aspect-ratio:1;border-radius:7px;overflow:hidden;background:var(--bg);border:2.5px solid ${isSelected ? 'var(--purple)' : 'transparent'};transition:border-color .15s;position:relative;">
-              ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />` : '<div style="width:100%;height:100%;background:var(--surface);"></div>'}
-              ${isSelected ? `<div class="${p}-start-badge" style="position:absolute;inset:0;background:rgba(124,58,237,.3);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;pointer-events:none;"><span style="font-size:.58rem;font-weight:700;color:#fff;background:var(--purple);border-radius:4px;padding:2px 6px;">Da qui</span></div>` : `<div class="${p}-start-badge" style="display:none;"></div>`}
+          return `<div data-ts="${ts}" data-idx="${i}" onclick="showPostDetail('${p}',${i})"
+            style="cursor:pointer;position:relative;">
+            <div style="aspect-ratio:1;overflow:hidden;background:var(--bg);
+              border:2px solid ${isSelected ? 'var(--purple)' : 'transparent'};
+              transition:border-color .15s;position:relative;">
+              ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'" />` : '<div style="width:100%;height:100%;background:var(--surface);"></div>'}
+              ${isSelected ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(124,58,237,.8));padding:4px 0 2px;text-align:center;pointer-events:none;">
+                <span style="font-size:.48rem;font-weight:700;color:#fff;letter-spacing:.02em;">DA QUI</span>
+              </div>` : ''}
             </div>
-            <div style="font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:3px;">${lbl} ${fmtNum(count)}</div>
           </div>`;
         }).join('');
       } catch(e) {
-        grid.innerHTML = `<p style="font-size:.82rem;color:var(--pink);grid-column:1/-1;">Errore: ${e.message}</p>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;font-size:.82rem;color:var(--pink);">Errore: ${e.message}</div>`;
       }
+    };
+
+    window.showPostDetail = (p, idx) => {
+      const platform = p === 'ig' ? 'instagram' : 'tiktok';
+      const items = window[`_${p}Items`] || [];
+      const item  = items[idx];
+      if (!item) return;
+      const ts = platform === 'instagram' ? (item.taken_at || 0) : (item.createTime || 0);
+      const thumb = platform === 'instagram'
+        ? (item.thumbnail_url || '')
+        : (item.video?.cover || item.cover_url || '');
+      const link = platform === 'instagram'
+        ? (item.permalink || '')
+        : (item.share_url || '');
+      const isStart = (window[`_${p}StartFrom`] || 0) === ts;
+      const date = ts ? new Date(ts * 1000).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' }) : '';
+
+      let stats = '';
+      if (platform === 'instagram') {
+        stats = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+            <span style="display:flex;align-items:center;gap:4px;font-size:.82rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="#e0245e"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <strong>${fmtNum(item.like_count || 0)}</strong>
+            </span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:.82rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <strong>${fmtNum(item.comments_count || 0)}</strong>
+            </span>
+          </div>`;
+      } else {
+        stats = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+            <span style="display:flex;align-items:center;gap:4px;font-size:.82rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <strong>${fmtNum(item.stats?.play_count || item.play_count || 0)}</strong>
+            </span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:.82rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="#e0245e"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <strong>${fmtNum(item.stats?.digg_count || item.digg_count || 0)}</strong>
+            </span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:.82rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <strong>${fmtNum(item.stats?.comment_count || item.comment_count || 0)}</strong>
+            </span>
+          </div>`;
+      }
+
+      const detail = document.getElementById(`${p}-post-detail`);
+      detail.style.display = '';
+      detail.innerHTML = `
+        <div style="display:flex;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;align-items:flex-start;">
+          <div style="width:72px;flex-shrink:0;">
+            <div style="aspect-ratio:${platform==='instagram'?'1':'9/16'};border-radius:7px;overflow:hidden;background:var(--surface);">
+              ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" />` : ''}
+            </div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:.73rem;color:var(--text-muted);margin-bottom:8px;">${date}</p>
+            ${stats}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              ${isStart
+                ? `<div style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--purple);font-weight:600;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Post di partenza selezionato
+                   </div>`
+                : `<button id="${p}-detail-select-btn" onclick="selectStartPost('${p}',${ts})" class="btn btn-primary" style="font-size:.76rem;padding:5px 12px;">Inizia da questo post</button>`
+              }
+              ${link ? `<a href="${link}" target="_blank" rel="noopener" style="font-size:.76rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;text-decoration:none;" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-muted)'">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Apri
+              </a>` : ''}
+            </div>
+          </div>
+        </div>`;
+
+      // Highlight active item in grid, dim others
+      document.getElementById(`${p}-posts-grid`).querySelectorAll('[data-idx]').forEach(el => {
+        el.style.opacity = parseInt(el.dataset.idx) === idx ? '1' : '.5';
+        el.style.transform = parseInt(el.dataset.idx) === idx ? 'scale(1.05)' : 'scale(1)';
+        el.style.transition = 'opacity .15s, transform .15s';
+      });
     };
 
     window.selectStartPost = (p, ts) => {
       window[`_${p}StartFrom`] = ts;
-      const grid = document.getElementById(`${p}-posts-grid`);
-      grid.querySelectorAll('[data-ts]').forEach(item => {
-        const isThis = parseInt(item.dataset.ts) === ts;
-        const border = item.querySelector(`.${p}-post-border`);
-        const badge  = item.querySelector(`.${p}-start-badge`);
-        if (border) border.style.borderColor = isThis ? 'var(--purple)' : 'transparent';
-        if (badge) {
-          if (isThis) {
-            badge.style.display = 'flex';
-            badge.style.cssText = 'position:absolute;inset:0;background:rgba(124,58,237,.3);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;pointer-events:none;';
-            badge.innerHTML = '<span style="font-size:.58rem;font-weight:700;color:#fff;background:var(--purple);border-radius:4px;padding:2px 6px;">Da qui</span>';
-          } else {
-            badge.style.display = 'none';
-            badge.innerHTML = '';
-          }
+      // Update grid borders
+      document.getElementById(`${p}-posts-grid`).querySelectorAll('[data-ts]').forEach(el => {
+        const isThis = parseInt(el.dataset.ts) === ts;
+        const inner = el.querySelector('div');
+        if (!inner) return;
+        inner.style.borderColor = isThis ? 'var(--purple)' : 'transparent';
+        // Remove old gradient, add for selected
+        const old = inner.querySelector('.da-qui');
+        if (old) old.remove();
+        if (isThis) {
+          const badge = document.createElement('div');
+          badge.className = 'da-qui';
+          badge.style.cssText = 'position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(124,58,237,.8));padding:4px 0 2px;text-align:center;pointer-events:none;';
+          badge.innerHTML = '<span style="font-size:.48rem;font-weight:700;color:#fff;letter-spacing:.02em;">DA QUI</span>';
+          inner.appendChild(badge);
         }
       });
+      // Update detail panel
+      const btn = document.getElementById(`${p}-detail-select-btn`);
+      if (btn) {
+        btn.outerHTML = `<div style="display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--purple);font-weight:600;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Post di partenza selezionato
+        </div>`;
+      }
     };
 
     window.saveSocialConfig = async () => {
