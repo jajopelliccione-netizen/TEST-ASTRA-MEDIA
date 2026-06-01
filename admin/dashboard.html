@@ -784,7 +784,7 @@
               <svg id="cc-chev-${c.uid}" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-muted)" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
           </div>
-          <div class="cc-body" id="cc-body-${c.uid}" style="${isOpen?'':'display:none'}">
+          <div class="cc-body" id="cc-body-${c.uid}" style="${isOpen?'display:block':'display:none'}">
             <div class="cc-details">
               <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
               <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
@@ -820,8 +820,8 @@
       const body = document.getElementById(`cc-body-${uid}`);
       const chev = document.getElementById(`cc-chev-${uid}`);
       const card = document.getElementById(`cc-${uid}`);
-      const open = body.style.display !== 'none';
-      body.style.display = open ? 'none' : '';
+      const open = body.style.display === 'block';
+      body.style.display = open ? 'none' : 'block';
       chev.style.transform = open ? '' : 'rotate(180deg)';
       card.classList.toggle('open', !open);
     };
