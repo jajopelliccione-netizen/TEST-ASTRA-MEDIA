@@ -243,16 +243,16 @@ async function handleSocialData(request, env) {
         media_count:     raw.media_count || raw.edge_owner_to_timeline_media?.count || 0,
       };
 
-      // Normalizza post
-      const rawPosts = postsData.data || postsData.items || postsData || [];
-      let posts = (Array.isArray(rawPosts) ? rawPosts : []).map(p => ({
+      // Normalizza post — risposta reale: { posts: [{ node: {...} }, ...] }
+      const rawPosts = (postsData.posts || []).map(item => item.node || item).filter(Boolean);
+      let posts = rawPosts.map(p => ({
         id:             String(p.id || p.pk || ''),
         taken_at:       p.taken_at || p.timestamp || 0,
         like_count:     p.like_count || p.likes_count || 0,
         comments_count: p.comments_count || p.comment_count || 0,
         media_type:     p.media_type || 1,
-        thumbnail_url:  p.image_url || p.thumbnail_url || p.display_url || p.image_versions2?.candidates?.[0]?.url || '',
-        permalink:      p.permalink || (p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '') || '',
+        thumbnail_url:  p.image_versions2?.candidates?.[0]?.url || p.image_url || p.thumbnail_url || p.display_url || '',
+        permalink:      p.permalink || (p.code ? `https://www.instagram.com/p/${p.code}/` : '') || (p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '') || '',
       }));
 
       if (!allPosts) {
