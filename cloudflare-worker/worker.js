@@ -44,6 +44,10 @@ export default {
       return handleDebug(env);
     }
 
+    if (request.method === 'GET' && path.endsWith('/proxy-image')) {
+      return handleProxyImage(request);
+    }
+
     return new Response('Not found', { status: 404 });
   },
 };
@@ -217,6 +221,41 @@ function applyFilter(items, mode, managedFrom, startFrom, tsKey) {
   return items;
 }
 
+// ── GET /api/proxy-image ───────────────────────────────────────────────────
+async function handleProxyImage(request) {
+  const imgUrl = new URL(request.url).searchParams.get('url');
+  if (!imgUrl) return new Response('url required', { status: 400, headers: CORS });
+
+  let parsed;
+  try { parsed = new URL(imgUrl); } catch { return new Response('invalid url', { status: 400, headers: CORS }); }
+
+  const allowed = ['.cdninstagram.com', '.fbcdn.net', '.tiktokcdn.com', '.tiktokv.com', '.tiktokcdn-us.com', '.musical.ly'];
+  if (!allowed.some(h => parsed.hostname.endsWith(h))) {
+    return new Response('domain not allowed', { status: 403, headers: CORS });
+  }
+
+  // Use Cloudflare edge cache
+  const cacheKey = new Request(request.url);
+  const cached = await caches.default.match(cacheKey);
+  if (cached) return cached;
+
+  const upstream = await fetch(imgUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36' },
+  });
+  if (!upstream.ok) return new Response('upstream error', { status: upstream.status, headers: CORS });
+
+  const body = await upstream.arrayBuffer();
+  const response = new Response(body, {
+    headers: {
+      ...CORS,
+      'Content-Type': upstream.headers.get('content-type') || 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400',
+    },
+  });
+  caches.default.put(cacheKey, response.clone()).catch(() => {});
+  return response;
+}
+
 // ── GET /api/social ────────────────────────────────────────────────────────
 async function handleSocialData(request, env) {
   try {
@@ -226,6 +265,16 @@ async function handleSocialData(request, env) {
     const wantAll  = url.searchParams.get('allPosts') === '1';
 
     if (!clientId || !platform) return json({ ok: false, error: 'clientId e platform richiesti' });
+
+    // Proxy CDN images through our Worker to bypass Instagram/TikTok CORP headers
+    const origin = new URL(request.url).origin;
+    const px = u => u ? `${origin}/api/proxy-image?url=${encodeURIComponent(u)}` : '';
+    const pxProfile = p => p ? { ...p, profile_pic_url: px(p.profile_pic_url) } : p;
+    const pxPosts   = arr => arr.map(p => ({ ...p, thumbnail_url: px(p.thumbnail_url) }));
+    const pxVideos  = arr => arr.map(v => {
+      const cover = v.video?.cover || v.cover_url || v.origin_cover || '';
+      return cover ? { ...v, cover_url: px(cover), video: v.video ? { ...v.video, cover: px(v.video.cover) } : v.video } : v;
+    });
 
     const projectId = env.FCM_PROJECT_ID;
     const svcToken  = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
@@ -253,7 +302,7 @@ async function handleSocialData(request, env) {
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
         const posts = wantAll ? cached.posts : applyFilter(cached.posts, mode, managedFrom, startFrom, 'taken_at');
-        return json({ ok: true, platform: 'instagram', profile: cached.profile, posts });
+        return json({ ok: true, platform: 'instagram', profile: pxProfile(cached.profile), posts: pxPosts(posts) });
       }
 
       const igResp = await fetch(
@@ -300,9 +349,9 @@ async function handleSocialData(request, env) {
         permalink:      p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '',
       }));
 
-      saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts });
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts }); // originals in cache
       const posts = wantAll ? allIgPosts : applyFilter(allIgPosts, mode, managedFrom, startFrom, 'taken_at');
-      return json({ ok: true, platform: 'instagram', profile, posts });
+      return json({ ok: true, platform: 'instagram', profile: pxProfile(profile), posts: pxPosts(posts) });
     }
 
     // ── TikTok ───────────────────────────────────────────────────────
@@ -310,7 +359,7 @@ async function handleSocialData(request, env) {
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
         const videos = wantAll ? cached.videos : applyFilter(cached.videos, mode, managedFrom, startFrom, 'createTime');
-        return json({ ok: true, platform: 'tiktok', profile: cached.profile, stats: cached.stats, videos });
+        return json({ ok: true, platform: 'tiktok', profile: pxProfile(cached.profile), stats: cached.stats, videos: pxVideos(videos) });
       }
 
       if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker (necessaria per TikTok)' });
@@ -328,10 +377,10 @@ async function handleSocialData(request, env) {
       const allVideos = videosData.data?.videos || [];
 
       // Save to cache (unfiltered)
-      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos });
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos }); // originals in cache
 
       const videos = wantAll ? allVideos : applyFilter(allVideos, mode, managedFrom, startFrom, 'createTime');
-      return json({ ok: true, platform: 'tiktok', profile: ttProfile, stats: ttStats, videos });
+      return json({ ok: true, platform: 'tiktok', profile: pxProfile(ttProfile), stats: ttStats, videos: pxVideos(videos) });
     }
 
     return json({ ok: false, error: 'Platform non supportata' });
