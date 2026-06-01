@@ -59,6 +59,47 @@
       </div>
     </div>
 
+    <!-- CONFIGURAZIONE SITO (visibile solo se configModeEnabled) -->
+    <div class="card" id="siteconfig-card" style="display:none;margin-bottom:20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Configura il tuo Sito
+      </div>
+      <div id="siteconfig-status-content">
+        <div class="empty-state"><p>Caricamento…</p></div>
+      </div>
+    </div>
+
+    <!-- MODAL: Questionario sito -->
+    <div class="modal-overlay" id="siteconfig-survey-modal">
+      <div class="modal-box" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:0;">
+        <div style="position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;">
+            <div>
+              <h2 style="margin:0;font-size:.92rem;font-weight:700;">Questionario sito web</h2>
+              <p style="margin:3px 0 0;font-size:.75rem;color:var(--text-muted);">Rispondi per aiutarci a creare il sito perfetto per te</p>
+            </div>
+            <button onclick="document.getElementById('siteconfig-survey-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.4rem;line-height:1;flex-shrink:0;">×</button>
+          </div>
+          <!-- Progress bar -->
+          <div style="padding:0 22px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:.72rem;color:var(--text-muted);" id="survey-step-label">Step 1 di 9</span>
+              <span style="font-size:.72rem;color:var(--purple);font-weight:600;" id="survey-pct-label">0%</span>
+            </div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+              <div id="survey-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),#a78bfa);border-radius:2px;transition:width .3s;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:22px;" id="survey-step-content"></div>
+        <div style="padding:0 22px 22px;display:flex;gap:10px;justify-content:flex-end;">
+          <button id="survey-back-btn" onclick="surveyStep(-1)" class="btn btn-outline" style="display:none;">← Indietro</button>
+          <button id="survey-next-btn" onclick="surveyStep(1)" class="btn btn-primary">Avanti →</button>
+        </div>
+      </div>
+    </div>
+
     <!-- REPORT SOCIAL -->
     <div class="card" style="margin-bottom:20px;">
       <div class="card-title">
@@ -144,12 +185,47 @@
     .report-table th { text-align:left;padding:8px 12px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border); }
     .report-table td { padding:12px;border-bottom:1px solid rgba(123,92,240,.08);font-size:.88rem; }
     .report-table tr:last-child td { border-bottom:none; }
+
+    /* Survey */
+    .survey-q { font-size:.9rem;font-weight:700;margin-bottom:4px;line-height:1.4; }
+    .survey-hint { font-size:.77rem;color:var(--text-muted);margin-bottom:16px;line-height:1.4; }
+    .survey-input { width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:.88rem;box-sizing:border-box;transition:border-color .15s; }
+    .survey-input:focus { outline:none;border-color:var(--purple); }
+    .survey-textarea { width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:.88rem;box-sizing:border-box;resize:vertical;min-height:80px;transition:border-color .15s;line-height:1.5; }
+    .survey-textarea:focus { outline:none;border-color:var(--purple); }
+    .style-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+    .style-card { border:2px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:.15s; }
+    .style-card:hover { border-color:rgba(123,92,240,.4); }
+    .style-card.selected { border-color:var(--purple);background:rgba(123,92,240,.08); }
+    .style-preview { height:56px;border-radius:8px;margin-bottom:9px;overflow:hidden;position:relative; }
+    .style-name { font-size:.8rem;font-weight:700;margin-bottom:2px; }
+    .style-desc { font-size:.7rem;color:var(--text-muted);line-height:1.35; }
+    .font-card { border:2px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:4px; }
+    .font-card:hover { border-color:rgba(123,92,240,.4); }
+    .font-card.selected { border-color:var(--purple);background:rgba(123,92,240,.08); }
+    .font-sample { font-size:1.3rem;font-weight:700;line-height:1.1; }
+    .section-checks { display:flex;flex-wrap:wrap;gap:8px; }
+    .section-check { display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:.8rem;transition:.15s; }
+    .section-check:hover { border-color:rgba(123,92,240,.4); }
+    .section-check.checked { border-color:var(--purple);background:rgba(123,92,240,.1);color:var(--purple);font-weight:600; }
+    .color-row { display:flex;align-items:center;gap:10px;margin-bottom:10px; }
+    .color-label { font-size:.8rem;min-width:130px;color:var(--text-muted); }
+    .color-input-wrap { display:flex;align-items:center;gap:8px;flex:1; }
+    .color-swatch { width:34px;height:34px;border-radius:8px;border:1px solid var(--border);cursor:pointer;overflow:hidden;flex-shrink:0; }
+    .color-swatch input[type=color] { width:200%;height:200%;margin:-25%;cursor:pointer;border:none;padding:0;opacity:0; }
+    .color-hex { background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:monospace;font-size:.82rem;width:80px;box-sizing:border-box; }
+    .tone-opts { display:flex;flex-direction:column;gap:8px; }
+    .tone-opt { border:2px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;transition:.15s; }
+    .tone-opt:hover { border-color:rgba(123,92,240,.4); }
+    .tone-opt.selected { border-color:var(--purple);background:rgba(123,92,240,.08); }
+    .tone-name { font-size:.84rem;font-weight:700; }
+    .tone-hint { font-size:.73rem;color:var(--text-muted);margin-top:1px; }
   </style>
 
   <script type="module">
     import { auth, db } from '../js/firebase-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const loading   = document.getElementById('loading-state');
     const main      = document.getElementById('main-content');
@@ -268,6 +344,11 @@
         btn.classList.add('copied');
         setTimeout(() => { btn.textContent = 'Copia'; btn.classList.remove('copied'); }, 2000);
       });
+
+      // Questionario configurazione sito
+      if (data.configModeEnabled) {
+        initSiteConfigCard(targetUid, data.siteConfig || null);
+      }
 
       // Analytics sito
       await loadAnalytics(targetUid, !!data.analyticsConfigured);
@@ -443,6 +524,348 @@
 
       cached[activePlatform] = await renderPlatform(activePlatform);
       content.innerHTML = tabsHtml + `<div id="social-platform-content">${cached[activePlatform]}</div>`;
+    }
+
+    // ── QUESTIONARIO SITO ─────────────────────────────────────────────────────
+
+    let _surveyUid = null;
+    let _surveyStep = 0;
+    let _surveyData = {};
+
+    const SURVEY_TOTAL = 9;
+
+    function initSiteConfigCard(uid, existing) {
+      _surveyUid = uid;
+      _surveyData = existing ? { ...existing } : {};
+      const card = document.getElementById('siteconfig-card');
+      const content = document.getElementById('siteconfig-status-content');
+      card.style.display = '';
+
+      if (existing?.status === 'completed') {
+        content.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:38px;height:38px;border-radius:12px;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:.9rem;">Questionario completato ✓</div>
+                <div style="font-size:.77rem;color:var(--text-muted);">Abbiamo ricevuto tutte le informazioni per il tuo sito</div>
+              </div>
+            </div>
+            <button onclick="openSurveyModal()" class="btn btn-outline" style="font-size:.8rem;padding:7px 16px;">Modifica risposte</button>
+          </div>`;
+      } else if (existing?.status === 'in_progress') {
+        const pct = Math.round((_surveyData._lastStep || 0) / SURVEY_TOTAL * 100);
+        content.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-weight:700;font-size:.9rem;">Compilazione in corso…</div>
+              <div style="font-size:.77rem;color:var(--text-muted);margin-bottom:8px;">Hai completato il ${pct}% del questionario</div>
+              <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;max-width:200px;">
+                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--purple),#a78bfa);border-radius:2px;"></div>
+              </div>
+            </div>
+            <button onclick="openSurveyModal()" class="btn btn-primary" style="font-size:.8rem;padding:7px 16px;">Continua →</button>
+          </div>`;
+      } else {
+        content.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+            <div>
+              <div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">Compila il brief del tuo sito</div>
+              <div style="font-size:.8rem;color:var(--text-muted);line-height:1.5;">Rispondi a poche domande su stile, colori e contenuti. Ci vorranno circa 5 minuti.</div>
+            </div>
+            <button onclick="openSurveyModal()" class="btn btn-primary" style="font-size:.85rem;padding:9px 20px;">Inizia →</button>
+          </div>`;
+      }
+    }
+
+    window.openSurveyModal = () => {
+      _surveyStep = _surveyData._lastStep || 0;
+      renderSurveyStep();
+      document.getElementById('siteconfig-survey-modal').classList.add('open');
+    };
+
+    function updateSurveyProgress() {
+      const pct = Math.round((_surveyStep / SURVEY_TOTAL) * 100);
+      document.getElementById('survey-progress-bar').style.width = pct + '%';
+      document.getElementById('survey-step-label').textContent = `Step ${_surveyStep + 1} di ${SURVEY_TOTAL}`;
+      document.getElementById('survey-pct-label').textContent = pct + '%';
+      document.getElementById('survey-back-btn').style.display = _surveyStep > 0 ? '' : 'none';
+      document.getElementById('survey-next-btn').textContent = _surveyStep === SURVEY_TOTAL - 1 ? 'Invia ✓' : 'Avanti →';
+    }
+
+    function renderSurveyStep() {
+      updateSurveyProgress();
+      const el = document.getElementById('survey-step-content');
+      const d = _surveyData;
+
+      const steps = [
+        // 0 — Identità brand
+        () => `
+          <div class="survey-q">Come si chiama la tua azienda?</div>
+          <div class="survey-hint">Inserisci il nome commerciale come vuoi che appaia sul sito.</div>
+          <input class="survey-input" id="sv-company" value="${esc(d.companyName||d.company||'')}" placeholder="Es. Rossi Fotografia" style="margin-bottom:14px;" />
+          <div class="survey-q">In quale settore operi?</div>
+          <div class="survey-hint">Es. Fotografia, Ristorazione, E-commerce, Consulenza, Moda...</div>
+          <input class="survey-input" id="sv-sector" value="${esc(d.sector||'')}" placeholder="Es. Fotografia di matrimoni" style="margin-bottom:14px;" />
+          <div class="survey-q">Hai un tagline o slogan?</div>
+          <div class="survey-hint">La frase che riassume il tuo brand (opzionale).</div>
+          <input class="survey-input" id="sv-tagline" value="${esc(d.tagline||'')}" placeholder="Es. Ogni momento racconta una storia" />`,
+
+        // 1 — Logo
+        () => `
+          <div class="survey-q">Carica il tuo logo</div>
+          <div class="survey-hint">Accetta PNG o SVG con sfondo trasparente, o JPG. Max 2MB. Se non hai ancora un logo, vai avanti.</div>
+          ${d.logoDataUrl ? `<div style="margin-bottom:12px;"><img src="${d.logoDataUrl}" style="max-height:70px;max-width:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:6px;" /><br><button onclick="delete _surveyData.logoDataUrl;renderSurveyStep();" style="margin-top:6px;background:none;border:none;color:var(--pink);cursor:pointer;font-size:.78rem;">✕ Rimuovi</button></div>` : ''}
+          <label style="display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:12px 18px;cursor:pointer;font-size:.83rem;color:var(--text-muted);transition:.15s;" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Carica logo
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onchange="handleLogoUpload(event)" style="display:none;" />
+          </label>`,
+
+        // 2 — Stile visivo
+        () => {
+          const styles = [
+            { id:'minimal', name:'Moderno Minimalista', desc:'Pulito, spazio bianco, essenziale', preview:`background:linear-gradient(135deg,#f8f8f8 0%,#eee 100%);display:flex;align-items:center;justify-content:center;`, inner:`<div style="text-align:center;"><div style="width:60px;height:3px;background:#222;margin:0 auto 6px;border-radius:2px;"></div><div style="width:40px;height:2px;background:#888;margin:0 auto;border-radius:2px;"></div></div>` },
+            { id:'luxury', name:'Elegante & Luxury', desc:'Scuro, dorato, premium, sofisticato', preview:`background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);display:flex;align-items:center;justify-content:center;`, inner:`<div style="text-align:center;"><div style="width:50px;height:2px;background:linear-gradient(90deg,#c9a84c,#f0d060);margin:0 auto 6px;border-radius:1px;"></div><div style="width:30px;height:1px;background:rgba(201,168,76,.5);margin:0 auto;border-radius:1px;"></div></div>` },
+            { id:'bold', name:'Audace & Creativo', desc:'Colori vivaci, forme forti, personalità', preview:`background:linear-gradient(135deg,#7c3aed 0%,#ec4899 60%,#f97316 100%);display:flex;align-items:center;justify-content:center;`, inner:`<div style="width:28px;height:28px;background:rgba(255,255,255,.25);border-radius:50%;"></div>` },
+            { id:'corporate', name:'Professionale', desc:'Blu/grigio, ordinato, autorevole', preview:`background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);display:flex;align-items:center;justify-content:center;`, inner:`<div style="display:flex;gap:4px;"><div style="width:12px;height:28px;background:rgba(255,255,255,.3);border-radius:3px;"></div><div style="width:12px;height:20px;background:rgba(255,255,255,.5);border-radius:3px;margin-top:8px;"></div><div style="width:12px;height:24px;background:rgba(255,255,255,.4);border-radius:3px;margin-top:4px;"></div></div>` },
+            { id:'fresh', name:'Fresco & Giocoso', desc:'Brillante, arrotondato, accessibile', preview:`background:linear-gradient(135deg,#4ade80 0%,#06b6d4 100%);display:flex;align-items:center;justify-content:center;`, inner:`<div style="display:flex;gap:5px;align-items:center;"><div style="width:16px;height:16px;background:rgba(255,255,255,.6);border-radius:50%;"></div><div style="width:22px;height:22px;background:rgba(255,255,255,.8);border-radius:50%;"></div><div style="width:14px;height:14px;background:rgba(255,255,255,.5);border-radius:50%;"></div></div>` },
+          ];
+          return `<div class="survey-q">Che stile visivo preferisci per il sito?</div>
+          <div class="survey-hint">Scegli quello che rispecchia meglio la tua identità.</div>
+          <div class="style-grid">
+            ${styles.map(s => `<div class="style-card ${d.style===s.id?'selected':''}" onclick="selectSurveyStyle('${s.id}')">
+              <div class="style-preview" style="${s.preview}">${s.inner}</div>
+              <div class="style-name">${s.name}</div>
+              <div class="style-desc">${s.desc}</div>
+            </div>`).join('')}
+          </div>`;
+        },
+
+        // 3 — Font
+        () => {
+          const fonts = [
+            { id:'modern', name:'Moderno', sample:'Aa Bb', css:'font-family:system-ui,sans-serif;', desc:'Sans-serif pulito (Inter, DM Sans)' },
+            { id:'classic', name:'Classico', sample:'Aa Bb', css:'font-family:Georgia,serif;', desc:'Serif elegante (Playfair, Lora)' },
+            { id:'strong', name:'Audace', sample:'AA BB', css:'font-family:Impact,sans-serif;letter-spacing:.05em;', desc:'Display bold (Bebas, Oswald)' },
+            { id:'elegant', name:'Raffinato', sample:'Aa Bb', css:'font-family:Palatino,serif;font-style:italic;', desc:'Corsivo / serif fine (Cormorant)' },
+          ];
+          return `<div class="survey-q">Che stile di font preferisci?</div>
+          <div class="survey-hint">Influisce su tutto il testo del sito.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            ${fonts.map(f => `<div class="font-card ${d.fontStyle===f.id?'selected':''}" onclick="selectSurveyFont('${f.id}')">
+              <div class="font-sample" style="${f.css}">${f.sample}</div>
+              <div style="font-size:.8rem;font-weight:700;">${f.name}</div>
+              <div style="font-size:.7rem;color:var(--text-muted);">${f.desc}</div>
+            </div>`).join('')}
+          </div>`;
+        },
+
+        // 4 — Colori
+        () => `
+          <div class="survey-q">Scegli la tua palette di colori</div>
+          <div class="survey-hint">Seleziona 3 colori principali per il sito. Clicca sul quadrato colorato per aprire il color picker.</div>
+          ${colorRow('primary','Colore principale',d.colors?.primary||'#7c3aed')}
+          ${colorRow('secondary','Colore secondario',d.colors?.secondary||'#131020')}
+          ${colorRow('accent','Colore accento',d.colors?.accent||'#a78bfa')}`,
+
+        // 5 — Tono di voce + target
+        () => `
+          <div class="survey-q">Che tono di voce usa il tuo brand?</div>
+          <div class="survey-hint">Come parla la tua azienda ai clienti?</div>
+          <div class="tone-opts" style="margin-bottom:18px;">
+            ${[['formal','Formale & Istituzionale','Linguaggio preciso, distaccato, autorevole'],['friendly','Amichevole & Accessibile','Caldo, vicino alle persone, colloquiale'],['professional','Professionale & Diretto','Chiaro, concreto, senza fronzoli'],['creative','Creativo & Originale','Giocoso, sorprendente, fuori dagli schemi']].map(([id,name,hint]) => `
+            <div class="tone-opt ${d.toneOfVoice===id?'selected':''}" onclick="selectTone('${id}')">
+              <div class="tone-name">${name}</div>
+              <div class="tone-hint">${hint}</div>
+            </div>`).join('')}
+          </div>
+          <div class="survey-q">Chi è il tuo pubblico target?</div>
+          <div class="survey-hint">Descrivi brevemente chi sono i tuoi clienti ideali.</div>
+          <input class="survey-input" id="sv-target" value="${esc(d.targetAudience||'')}" placeholder="Es. Coppie 25-40 anni, aziende B2B, appassionati di design…" />`,
+
+        // 6 — Sezioni
+        () => {
+          const secs = ['Home / Benvenuto','Chi siamo','Servizi','Portfolio / Lavori','Blog / News','Prezzi','Contatti','FAQ','Testimonial','Shop / E-commerce','Prenotazioni'];
+          const sel = Array.isArray(d.sections) ? d.sections : [];
+          return `<div class="survey-q">Quali sezioni vuoi nel sito?</div>
+          <div class="survey-hint">Seleziona tutte le sezioni che devono essere presenti.</div>
+          <div class="section-checks">
+            ${secs.map(s => `<div class="section-check ${sel.includes(s)?'checked':''}" onclick="toggleSection('${s}')">
+              ${sel.includes(s)?'✓ ':''}${s}
+            </div>`).join('')}
+          </div>`;
+        },
+
+        // 7 — Servizi + competitors
+        () => `
+          <div class="survey-q">Descrivi brevemente i tuoi servizi o prodotti</div>
+          <div class="survey-hint">Cosa offri? Questo testo aiuta a scrivere i contenuti del sito.</div>
+          <textarea class="survey-textarea" id="sv-services" placeholder="Es. Offriamo servizi di fotografia per matrimoni, eventi aziendali e ritratti…" style="margin-bottom:16px;">${esc(d.services||'')}</textarea>
+          <div class="survey-q">Hai siti di competitors o di ispirazione?</div>
+          <div class="survey-hint">URL di siti che ti piacciono o di concorrenti (opzionale).</div>
+          <textarea class="survey-textarea" id="sv-competitors" placeholder="Es. www.esempio.it — mi piace la semplicità&#10;www.altro.it — uso simile al mio">${esc(d.competitors||'')}</textarea>`,
+
+        // 8 — Contatti + social
+        () => `
+          <div class="survey-q">Informazioni di contatto</div>
+          <div class="survey-hint">Verranno mostrate nel footer e nella pagina Contatti.</div>
+          <input class="survey-input" id="sv-email" value="${esc(d.contactEmail||'')}" placeholder="Email di contatto" style="margin-bottom:10px;" />
+          <input class="survey-input" id="sv-phone" value="${esc(d.contactPhone||'')}" placeholder="Numero di telefono" style="margin-bottom:10px;" />
+          <input class="survey-input" id="sv-address" value="${esc(d.contactAddress||'')}" placeholder="Indirizzo / sede" style="margin-bottom:18px;" />
+          <div class="survey-q">Profili social</div>
+          <div class="survey-hint">Username senza @, solo quelli che vuoi nel sito.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#f58529,#dd2a7b);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg></div>
+            <input class="survey-input" id="sv-ig" value="${esc(d.socialInstagram||'')}" placeholder="Instagram (es. nomeprofilo)" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg></div>
+            <input class="survey-input" id="sv-tt" value="${esc(d.socialTikTok||'')}" placeholder="TikTok (es. nomeprofilo)" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:#1877f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></div>
+            <input class="survey-input" id="sv-fb" value="${esc(d.socialFacebook||'')}" placeholder="Facebook (es. pagina)" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:#0077b5;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></div>
+            <input class="survey-input" id="sv-li" value="${esc(d.socialLinkedIn||'')}" placeholder="LinkedIn (es. nomeazienda)" />
+          </div>
+          <div class="survey-q">Note aggiuntive</div>
+          <div class="survey-hint">Qualcosa di speciale da sapere? Funzionalità particolari, lingue, ecc.</div>
+          <textarea class="survey-textarea" id="sv-notes">${esc(d.notes||'')}</textarea>`,
+      ];
+
+      el.innerHTML = steps[_surveyStep]();
+
+      // Ripristina color picker values dopo render
+      if (_surveyStep === 4) {
+        ['primary','secondary','accent'].forEach(k => {
+          const hex = d.colors?.[k] || (k==='primary'?'#7c3aed':k==='secondary'?'#131020':'#a78bfa');
+          const sw = document.getElementById(`swatch-${k}`);
+          const txt = document.getElementById(`hexinput-${k}`);
+          if (sw) sw.style.background = hex;
+          if (txt) txt.value = hex;
+        });
+      }
+    }
+
+    function colorRow(key, label, defVal) {
+      const hex = _surveyData.colors?.[key] || defVal;
+      return `<div class="color-row">
+        <span class="color-label">${label}</span>
+        <div class="color-input-wrap">
+          <div class="color-swatch" id="swatch-${key}" style="background:${hex};">
+            <input type="color" value="${hex}" oninput="updateColor('${key}',this.value)" />
+          </div>
+          <input class="color-hex" id="hexinput-${key}" value="${hex}" maxlength="7" oninput="updateColorHex('${key}',this.value)" />
+        </div>
+      </div>`;
+    }
+
+    window.updateColor = (key, hex) => {
+      if (!_surveyData.colors) _surveyData.colors = {};
+      _surveyData.colors[key] = hex;
+      const sw = document.getElementById(`swatch-${key}`);
+      const txt = document.getElementById(`hexinput-${key}`);
+      if (sw) sw.style.background = hex;
+      if (txt) txt.value = hex;
+    };
+
+    window.updateColorHex = (key, val) => {
+      if (!/^#[0-9a-fA-F]{6}$/.test(val)) return;
+      updateColor(key, val);
+      const sw = document.getElementById(`swatch-${key}`);
+      if (sw) { const inp = sw.querySelector('input[type=color]'); if (inp) inp.value = val; }
+    };
+
+    window.selectSurveyStyle = (id) => {
+      _surveyData.style = id;
+      document.querySelectorAll('.style-card').forEach(c => c.classList.toggle('selected', c.onclick?.toString().includes(id)));
+      renderSurveyStep();
+    };
+
+    window.selectSurveyFont = (id) => {
+      _surveyData.fontStyle = id;
+      renderSurveyStep();
+    };
+
+    window.selectTone = (id) => {
+      _surveyData.toneOfVoice = id;
+      renderSurveyStep();
+    };
+
+    window.toggleSection = (name) => {
+      if (!Array.isArray(_surveyData.sections)) _surveyData.sections = [];
+      const idx = _surveyData.sections.indexOf(name);
+      if (idx >= 0) _surveyData.sections.splice(idx, 1);
+      else _surveyData.sections.push(name);
+      renderSurveyStep();
+    };
+
+    window.handleLogoUpload = (e) => {
+      const file = e.target.files[0];
+      if (!file || file.size > 2 * 1024 * 1024) { showToast('File troppo grande (max 2MB)'); return; }
+      const reader = new FileReader();
+      reader.onload = ev => { _surveyData.logoDataUrl = ev.target.result; renderSurveyStep(); };
+      reader.readAsDataURL(file);
+    };
+
+    function collectStepData() {
+      const s = _surveyStep;
+      if (s === 0) {
+        _surveyData.companyName   = document.getElementById('sv-company')?.value.trim() || '';
+        _surveyData.sector        = document.getElementById('sv-sector')?.value.trim()  || '';
+        _surveyData.tagline       = document.getElementById('sv-tagline')?.value.trim() || '';
+      } else if (s === 5) {
+        _surveyData.targetAudience = document.getElementById('sv-target')?.value.trim() || '';
+      } else if (s === 7) {
+        _surveyData.services    = document.getElementById('sv-services')?.value.trim()   || '';
+        _surveyData.competitors = document.getElementById('sv-competitors')?.value.trim()|| '';
+      } else if (s === 8) {
+        _surveyData.contactEmail   = document.getElementById('sv-email')?.value.trim()   || '';
+        _surveyData.contactPhone   = document.getElementById('sv-phone')?.value.trim()   || '';
+        _surveyData.contactAddress = document.getElementById('sv-address')?.value.trim() || '';
+        _surveyData.socialInstagram = document.getElementById('sv-ig')?.value.trim()     || '';
+        _surveyData.socialTikTok   = document.getElementById('sv-tt')?.value.trim()      || '';
+        _surveyData.socialFacebook = document.getElementById('sv-fb')?.value.trim()      || '';
+        _surveyData.socialLinkedIn = document.getElementById('sv-li')?.value.trim()      || '';
+        _surveyData.notes          = document.getElementById('sv-notes')?.value.trim()   || '';
+      }
+    }
+
+    window.surveyStep = async (dir) => {
+      collectStepData();
+      if (dir === 1 && _surveyStep === SURVEY_TOTAL - 1) {
+        // Submit
+        _surveyData.status = 'completed';
+        _surveyData.completedAt = new Date().toISOString();
+        _surveyData._lastStep = SURVEY_TOTAL;
+        try {
+          await setDoc(doc(db, 'clients', _surveyUid), { siteConfig: _surveyData }, { merge: true });
+          document.getElementById('siteconfig-survey-modal').classList.remove('open');
+          initSiteConfigCard(_surveyUid, _surveyData);
+          showToast('Questionario inviato! Grazie 🎉');
+        } catch(e) { showToast('Errore: ' + e.message); }
+        return;
+      }
+      _surveyStep = Math.max(0, Math.min(SURVEY_TOTAL - 1, _surveyStep + dir));
+      _surveyData._lastStep = _surveyStep;
+      _surveyData.status = 'in_progress';
+      try { await setDoc(doc(db, 'clients', _surveyUid), { siteConfig: _surveyData }, { merge: true }); } catch(_) {}
+      renderSurveyStep();
+    };
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
     }
 
     async function loadAnalytics(uid, configured) {
