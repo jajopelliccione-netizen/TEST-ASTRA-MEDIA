@@ -233,13 +233,13 @@ async function handleSocialData(request, env) {
       if (!profileR.ok || profileData.status === 'fail') return json({ ok: false, error: 'Profilo Instagram non trovato o API key non valida' });
 
       // Normalizza profilo
-      const raw = profileData.data || profileData.user || profileData;
+      const raw = profileData.data?.user || profileData.data || profileData.user || profileData;
       const profile = {
         username:        raw.username || username,
         full_name:       raw.full_name || raw.name || '',
-        profile_pic_url: raw.profile_pic_url || raw.profile_pic_url_hd || raw.hd_profile_pic_url || '',
-        followers_count: raw.followers_count || raw.edge_followed_by?.count || 0,
-        following_count: raw.following_count || raw.edge_follow?.count || 0,
+        profile_pic_url: raw.profile_pic_url_hd || raw.hd_profile_pic_url_hd || raw.profile_pic_url || '',
+        followers_count: raw.followers_count || raw.follower_count || raw.edge_followed_by?.count || 0,
+        following_count: raw.following_count || raw.following_tag_count || raw.edge_follow?.count || 0,
         media_count:     raw.media_count || raw.edge_owner_to_timeline_media?.count || 0,
       };
 
