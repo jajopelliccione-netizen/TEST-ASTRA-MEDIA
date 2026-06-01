@@ -491,7 +491,7 @@
               <label class="form-label" style="margin-bottom:8px;">Post da mostrare al cliente</label>
               <div style="display:flex;flex-direction:column;gap:7px;">
                 <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="ig-mode" value="auto" id="ig-mode-auto" style="accent-color:var(--purple);" onchange="showPostSelect('ig')"> Automatico — tutti i post dopo la data</label>
-                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="ig-mode" value="manual" id="ig-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('ig')"> Manuale — seleziono io quali post</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="ig-mode" value="manual" id="ig-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('ig')"> Manuale — scelgo il post di partenza</label>
               </div>
             </div>
             <div id="ig-post-select" style="display:none;">
@@ -532,7 +532,7 @@
               <label class="form-label" style="margin-bottom:8px;">Video da mostrare al cliente</label>
               <div style="display:flex;flex-direction:column;gap:7px;">
                 <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="tt-mode" value="auto" id="tt-mode-auto" style="accent-color:var(--purple);" onchange="showPostSelect('tt')"> Automatico — tutti i video dopo la data</label>
-                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="tt-mode" value="manual" id="tt-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('tt')"> Manuale — seleziono io quali video</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.83rem;"><input type="radio" name="tt-mode" value="manual" id="tt-mode-manual" style="accent-color:var(--purple);" onchange="showPostSelect('tt')"> Manuale — scelgo il video di partenza</label>
               </div>
             </div>
             <div id="tt-post-select" style="display:none;">
@@ -1570,7 +1570,7 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
           const modeEl = document.getElementById(`${p}-mode-${cfg.mode || 'auto'}`);
           if (modeEl) { modeEl.checked = true; }
           if (cfg.mode === 'manual') document.getElementById(`${p}-post-select`).style.display = '';
-          window[`_${p}Selected`] = new Set(cfg.selectedPosts || []);
+          window[`_${p}StartFrom`] = cfg.startFrom || null;
         }
       } catch(_) {}
       document.getElementById('social-modal').classList.add('open');
@@ -1610,27 +1610,49 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
         const data = await resp.json();
         if (!data.ok) throw new Error(data.error);
         const items = platform === 'instagram' ? (data.posts || []) : (data.videos || []);
-        const selected = window[`_${p}Selected`] || new Set();
         if (!items.length) { grid.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);grid-column:1/-1;">Nessun contenuto trovato.</p>'; return; }
-        grid.innerHTML = items.map(item => {
-          const id = platform === 'instagram' ? String(item.id || item.pk) : String(item.video_id || item.id);
+        const currentStart = window[`_${p}StartFrom`] || null;
+        const hint = `<p style="font-size:.75rem;color:var(--text-muted);grid-column:1/-1;margin-bottom:4px;">Clicca sul primo post che vuoi mostrare al cliente — tutti i post da quel momento in poi appariranno automaticamente.</p>`;
+        grid.innerHTML = hint + items.map(item => {
+          const ts = platform === 'instagram' ? (item.taken_at || 0) : (item.createTime || 0);
           const thumb = platform === 'instagram'
-            ? (item.image_versions2?.candidates?.[0]?.url || item.thumbnail_url || '')
+            ? (item.thumbnail_url || item.image_versions2?.candidates?.[0]?.url || '')
             : (item.video?.cover || item.cover_url || '');
           const count = platform === 'instagram' ? (item.like_count || 0) : (item.stats?.play_count || item.play_count || 0);
           const lbl = platform === 'instagram' ? '❤' : '▶';
-          const checked = selected.has(id) ? 'checked' : '';
-          return `<label style="cursor:pointer;position:relative;display:block;">
-            <input type="checkbox" class="${p}-chk" value="${id}" ${checked} style="position:absolute;top:4px;left:4px;z-index:2;accent-color:var(--purple);width:14px;height:14px;" />
-            <div style="aspect-ratio:1;border-radius:7px;overflow:hidden;background:var(--bg);">
+          const isSelected = currentStart && currentStart === ts;
+          return `<div data-ts="${ts}" onclick="selectStartPost('${p}', ${ts})" style="cursor:pointer;position:relative;display:block;">
+            <div class="${p}-post-border" style="aspect-ratio:1;border-radius:7px;overflow:hidden;background:var(--bg);border:2.5px solid ${isSelected ? 'var(--purple)' : 'transparent'};transition:border-color .15s;position:relative;">
               ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />` : '<div style="width:100%;height:100%;background:var(--surface);"></div>'}
+              ${isSelected ? `<div class="${p}-start-badge" style="position:absolute;inset:0;background:rgba(124,58,237,.3);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;pointer-events:none;"><span style="font-size:.58rem;font-weight:700;color:#fff;background:var(--purple);border-radius:4px;padding:2px 6px;">Da qui</span></div>` : `<div class="${p}-start-badge" style="display:none;"></div>`}
             </div>
             <div style="font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:3px;">${lbl} ${fmtNum(count)}</div>
-          </label>`;
+          </div>`;
         }).join('');
       } catch(e) {
         grid.innerHTML = `<p style="font-size:.82rem;color:var(--pink);grid-column:1/-1;">Errore: ${e.message}</p>`;
       }
+    };
+
+    window.selectStartPost = (p, ts) => {
+      window[`_${p}StartFrom`] = ts;
+      const grid = document.getElementById(`${p}-posts-grid`);
+      grid.querySelectorAll('[data-ts]').forEach(item => {
+        const isThis = parseInt(item.dataset.ts) === ts;
+        const border = item.querySelector(`.${p}-post-border`);
+        const badge  = item.querySelector(`.${p}-start-badge`);
+        if (border) border.style.borderColor = isThis ? 'var(--purple)' : 'transparent';
+        if (badge) {
+          if (isThis) {
+            badge.style.display = 'flex';
+            badge.style.cssText = 'position:absolute;inset:0;background:rgba(124,58,237,.3);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;pointer-events:none;';
+            badge.innerHTML = '<span style="font-size:.58rem;font-weight:700;color:#fff;background:var(--purple);border-radius:4px;padding:2px 6px;">Da qui</span>';
+          } else {
+            badge.style.display = 'none';
+            badge.innerHTML = '';
+          }
+        }
+      });
     };
 
     window.saveSocialConfig = async () => {
@@ -1638,18 +1660,18 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
       btn.textContent = 'Salvo...'; btn.disabled = true;
       try {
         const ig = {
-          enabled:      document.getElementById('ig-enabled').checked,
-          username:     document.getElementById('ig-username').value.trim().replace('@',''),
-          managedFrom:  document.getElementById('ig-managed-from').value,
-          mode:         document.querySelector('input[name="ig-mode"]:checked')?.value || 'auto',
-          selectedPosts:[...document.querySelectorAll('.ig-chk:checked')].map(c => c.value),
+          enabled:     document.getElementById('ig-enabled').checked,
+          username:    document.getElementById('ig-username').value.trim().replace('@',''),
+          managedFrom: document.getElementById('ig-managed-from').value,
+          mode:        document.querySelector('input[name="ig-mode"]:checked')?.value || 'auto',
+          startFrom:   window._igStartFrom || null,
         };
         const tt = {
-          enabled:      document.getElementById('tt-enabled').checked,
-          username:     document.getElementById('tt-username').value.trim().replace('@',''),
-          managedFrom:  document.getElementById('tt-managed-from').value,
-          mode:         document.querySelector('input[name="tt-mode"]:checked')?.value || 'auto',
-          selectedPosts:[...document.querySelectorAll('.tt-chk:checked')].map(c => c.value),
+          enabled:     document.getElementById('tt-enabled').checked,
+          username:    document.getElementById('tt-username').value.trim().replace('@',''),
+          managedFrom: document.getElementById('tt-managed-from').value,
+          mode:        document.querySelector('input[name="tt-mode"]:checked')?.value || 'auto',
+          startFrom:   window._ttStartFrom || null,
         };
         await updateDoc(doc(db, 'clients', _socialUid), { social: { instagram: ig, tiktok: tt } });
         allClients = allClients.map(c => c.uid === _socialUid ? { ...c, social: { instagram: ig, tiktok: tt } } : c);

@@ -205,7 +205,8 @@ async function handleSocialData(request, env) {
     const username    = pf.username?.stringValue;
     const mode        = pf.mode?.stringValue || 'auto';
     const managedFrom = pf.managedFrom?.stringValue || '';
-    const selectedIds = (pf.selectedPosts?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean);
+    const startFromRaw = pf.startFrom?.integerValue || pf.startFrom?.doubleValue;
+    const startFrom   = startFromRaw ? Number(startFromRaw) : 0;
 
     if (!username) return json({ ok: false, error: 'Username non configurato' });
 
@@ -259,8 +260,8 @@ async function handleSocialData(request, env) {
         if (mode === 'auto' && managedFrom) {
           const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
           posts = posts.filter(p => (p.taken_at || 0) >= fromTs);
-        } else if (mode === 'manual' && selectedIds.length > 0) {
-          posts = posts.filter(p => selectedIds.includes(p.id));
+        } else if (mode === 'manual' && startFrom > 0) {
+          posts = posts.filter(p => (p.taken_at || 0) >= startFrom);
         }
       }
       return json({ ok: true, platform: 'instagram', profile, posts });
@@ -282,8 +283,8 @@ async function handleSocialData(request, env) {
         if (mode === 'auto' && managedFrom) {
           const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
           videos = videos.filter(v => (v.createTime || 0) >= fromTs);
-        } else if (mode === 'manual' && selectedIds.length > 0) {
-          videos = videos.filter(v => selectedIds.includes(String(v.video_id || v.id)));
+        } else if (mode === 'manual' && startFrom > 0) {
+          videos = videos.filter(v => (v.createTime || 0) >= startFrom);
         }
       }
       return json({ ok: true, platform: 'tiktok', profile: profileData.data?.user, stats: profileData.data?.stats, videos });
