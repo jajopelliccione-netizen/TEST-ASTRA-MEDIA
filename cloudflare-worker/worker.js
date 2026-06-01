@@ -557,60 +557,137 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
   );
 }
 
-// ── TikTok via tikwm.com ───────────────────────────────────────────────────
+// ── TikTok — API interna web (stessa usata dal browser su tiktok.com) ──────
 async function fetchTikTokDirect(username, token) {
-  const base = 'https://www.tikwm.com/api';
-  const tk   = token ? `&token=${encodeURIComponent(token)}` : '';
-  const [profileResp, videosResp] = await Promise.all([
-    fetch(`${base}/user/info?unique_id=${encodeURIComponent(username)}${tk}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-    }),
-    fetch(`${base}/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0${tk}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-    }),
-  ]);
+  // Se c'è un token tikwm usa quello come fallback garantito
+  const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+  const h  = {
+    'User-Agent':      ua,
+    'Accept':          'application/json, text/plain, */*',
+    'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Referer':         `https://www.tiktok.com/@${encodeURIComponent(username)}`,
+    'Sec-Ch-Ua':       '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+    'Sec-Ch-Ua-Mobile':   '?0',
+    'Sec-Ch-Ua-Platform': '"Windows"',
+    'Sec-Fetch-Dest':  'empty',
+    'Sec-Fetch-Mode':  'cors',
+    'Sec-Fetch-Site':  'same-origin',
+  };
 
-  if (!profileResp.ok) throw new Error(`tikwm HTTP ${profileResp.status}`);
-  const profileData = await profileResp.json();
-  if (profileData.code !== 0 || !profileData.data?.user_info) {
-    throw new Error(`tikwm: ${profileData.msg || JSON.stringify(profileData).slice(0, 200)}`);
+  const base = new URLSearchParams({
+    aid: '1988', app_language: 'it', app_name: 'tiktok_web',
+    browser_language: 'it-IT', browser_platform: 'Win32',
+    channel: 'tiktok_web', cookie_enabled: 'true',
+    device_platform: 'web_pc', focus_state: 'true',
+    from_page: 'user', history_len: '2',
+    is_fullscreen: 'false', is_page_visible: 'true',
+    os: 'windows', region: 'IT', priority_region: 'IT',
+    screen_height: '1080', screen_width: '1920',
+    tz_name: 'Europe/Rome', webcast_language: 'it',
+  });
+
+  // 1. Profilo
+  const pParams = new URLSearchParams(base);
+  pParams.set('uniqueId', username);
+  const pResp = await fetch(`https://www.tiktok.com/api/user/detail/?${pParams}`, { headers: h });
+  if (!pResp.ok) throw new Error(`HTTP ${pResp.status}`);
+  const pData = await pResp.json();
+
+  if (pData.statusCode !== 0 || !pData.userInfo?.user) {
+    // Fallback tikwm se disponibile il token
+    if (token) return fetchTikTokTikwm(username, token);
+    throw new Error(`TikTok API statusCode=${pData.statusCode} (${pData.statusMsg || 'no permission'})`);
   }
 
-  const u = profileData.data.user_info;
-  const user = {
-    uniqueId:    u.unique_id  || username,
-    nickname:    u.nickname   || '',
-    avatarMedium: u.avatar_medium?.url_list?.[0] || u.avatar_thumb?.url_list?.[0] || '',
-    avatarLarger: u.avatar_larger?.url_list?.[0] || '',
-    avatarThumb:  u.avatar_thumb?.url_list?.[0]  || '',
-    signature:   u.signature  || '',
-    verified:    u.custom_verify ? true : false,
-  };
-  const stats = {
-    followerCount:  u.follower_count  || 0,
-    followingCount: u.following_count || 0,
-    heart:          u.total_favorited || 0,
-    videoCount:     u.aweme_count     || 0,
-  };
+  const u = pData.userInfo.user;
+  const s = pData.userInfo.stats || {};
 
+  // 2. Video (usa secUid per la paginazione)
   let videos = [];
-  if (videosResp.ok) {
-    const videosData = await videosResp.json();
-    videos = (videosData.data?.videos || []).map(v => ({
-      id:          v.video_id || v.id || '',
-      createTime:  v.create_time || 0,
-      cover_url:   v.origin_cover?.url_list?.[0] || v.cover?.url_list?.[0] || '',
+  if (u.secUid) {
+    const vParams = new URLSearchParams(base);
+    vParams.set('secUid', u.secUid);
+    vParams.set('count', '35');
+    vParams.set('cursor', '0');
+    try {
+      const vResp = await fetch(`https://www.tiktok.com/api/post/item_list/?${vParams}`, { headers: h });
+      if (vResp.ok) {
+        const vData = await vResp.json();
+        videos = (vData.itemList || []).map(v => ({
+          id:            v.id || '',
+          createTime:    v.createTime || 0,
+          cover_url:     v.video?.originCover || v.video?.cover || '',
+          origin_cover:  v.video?.originCover || '',
+          title:         v.desc || '',
+          play_count:    v.stats?.playCount    || 0,
+          digg_count:    v.stats?.diggCount    || 0,
+          comment_count: v.stats?.commentCount || 0,
+          share_count:   v.stats?.shareCount   || 0,
+          duration:      v.video?.duration     || 0,
+        }));
+      }
+    } catch (_) {}
+  }
+
+  return {
+    user: {
+      uniqueId:    u.uniqueId    || username,
+      nickname:    u.nickname    || '',
+      avatarMedium: u.avatarMedium || '',
+      avatarLarger: u.avatarLarger || '',
+      avatarThumb:  u.avatarThumb  || '',
+      signature:   u.signature   || '',
+      verified:    u.verified    || false,
+    },
+    stats: {
+      followerCount:  s.followerCount  || 0,
+      followingCount: s.followingCount || 0,
+      heart:          s.heartCount     || 0,
+      videoCount:     s.videoCount     || 0,
+    },
+    videos,
+  };
+}
+
+async function fetchTikTokTikwm(username, token) {
+  const tk = token ? `&token=${encodeURIComponent(token)}` : '';
+  const [pR, vR] = await Promise.all([
+    fetch(`https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(username)}${tk}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } }),
+    fetch(`https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0${tk}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } }),
+  ]);
+  if (!pR.ok) throw new Error(`tikwm HTTP ${pR.status}`);
+  const pD = await pR.json();
+  if (pD.code !== 0 || !pD.data?.user_info)
+    throw new Error(`tikwm: ${pD.msg || JSON.stringify(pD).slice(0, 200)}`);
+  const u = pD.data.user_info;
+  let videos = [];
+  if (vR.ok) {
+    const vD = await vR.json();
+    videos = (vD.data?.videos || []).map(v => ({
+      id: v.video_id || v.id || '', createTime: v.create_time || 0,
+      cover_url: v.origin_cover?.url_list?.[0] || v.cover?.url_list?.[0] || '',
       origin_cover: v.origin_cover?.url_list?.[0] || '',
-      title:       v.title || '',
-      play_count:  v.play_count  || 0,
-      digg_count:  v.digg_count  || 0,
-      comment_count: v.comment_count || 0,
-      share_count: v.share_count || 0,
-      duration:    v.duration    || 0,
+      title: v.title || '', play_count: v.play_count || 0,
+      digg_count: v.digg_count || 0, comment_count: v.comment_count || 0,
+      share_count: v.share_count || 0, duration: v.duration || 0,
     }));
   }
-
-  return { user, stats, videos };
+  return {
+    user: {
+      uniqueId: u.unique_id || username, nickname: u.nickname || '',
+      avatarMedium: u.avatar_medium?.url_list?.[0] || '',
+      avatarLarger: u.avatar_larger?.url_list?.[0] || '',
+      avatarThumb:  u.avatar_thumb?.url_list?.[0]  || '',
+      signature: u.signature || '', verified: !!u.custom_verify,
+    },
+    stats: {
+      followerCount: u.follower_count || 0, followingCount: u.following_count || 0,
+      heart: u.total_favorited || 0, videoCount: u.aweme_count || 0,
+    },
+    videos,
+  };
 }
 
 // ── Auth JWT ───────────────────────────────────────────────────────────────
