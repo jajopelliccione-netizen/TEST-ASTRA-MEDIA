@@ -652,12 +652,17 @@ async function fetchTikTokDirect(username, token) {
 }
 
 async function fetchTikTokTikwm(username, token) {
-  const tk = token ? `&token=${encodeURIComponent(token)}` : '';
+  const postOpts = (body) => ({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
+    body,
+  });
+  const tkPart = token ? `&token=${encodeURIComponent(token)}` : '';
   const [pR, vR] = await Promise.all([
-    fetch(`https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(username)}${tk}`,
-      { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } }),
-    fetch(`https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0${tk}`,
-      { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } }),
+    fetch('https://www.tikwm.com/api/user/info',
+      postOpts(`unique_id=${encodeURIComponent(username)}${tkPart}`)),
+    fetch('https://www.tikwm.com/api/user/posts',
+      postOpts(`unique_id=${encodeURIComponent(username)}&count=35&cursor=0${tkPart}`)),
   ]);
   if (!pR.ok) throw new Error(`tikwm HTTP ${pR.status}`);
   const pD = await pR.json();
