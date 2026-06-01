@@ -606,6 +606,22 @@
 
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Client cards */
+    .cc { border:1px solid var(--border);border-radius:13px;margin-bottom:8px;overflow:hidden;transition:border-color .15s; }
+    .cc.open { border-color:rgba(123,92,240,.45); }
+    .cc-head { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer;transition:background .12s; }
+    .cc-head:hover { background:rgba(123,92,240,.04); }
+    .cc-info { flex:1;min-width:0; }
+    .cc-name { font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .cc-sub  { font-size:.75rem;color:var(--text-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .cc-meta { display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;align-items:center; }
+    .cc-quick { display:flex;align-items:center;gap:6px;flex-shrink:0; }
+    .cc-body { display:none;border-top:1px solid var(--border);padding:12px 16px 14px;background:rgba(7,6,15,.35); }
+    .cc-details { display:flex;flex-wrap:wrap;gap:8px 20px;margin-bottom:10px; }
+    .cc-detail-item { display:flex;flex-direction:column;gap:2px; }
+    .cc-detail-label { font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600; }
+    .cc-detail-item span:last-child { font-size:.82rem; }
   </style>
 
   <script type="module">
@@ -735,68 +751,80 @@
         wrap.innerHTML = '<div class="empty-state"><p>Nessun cliente ancora. Aggiungine uno!</p></div>';
         return;
       }
-      wrap.innerHTML = `
-        <table class="portal-table">
-          <thead><tr>
-            <th>Cliente</th><th>Pacchetto</th><th>Report</th><th>Bozza</th><th>Azioni</th>
-          </tr></thead>
-          <tbody>
-            ${allClients.map(c => `
-              <tr>
-                <td data-label="Cliente">
-                  <div>
-                    <div style="font-weight:600;">${c.displayName || '—'}</div>
-                    <div style="font-size:.78rem;color:var(--text-muted);">${c.email || ''}</div>
-                    ${c.analyticsActive !== undefined
-                      ? `<div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:500;color:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};">
-                           <span style="width:6px;height:6px;border-radius:50%;background:${c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)'};display:inline-block;"></span>
-                           ${c.analyticsActive ? 'Statistiche attive' : c.analyticsConfigured ? 'Configurate, nessun dato ancora' : '<span>Non configurate</span> <span onclick="markAnalyticsConfigured(\'${c.uid}\')" style="cursor:pointer;text-decoration:underline;opacity:.7;">segna come configurato</span>'}
-                         </div>`
-                      : ''}
-                  </div>
-                </td>
-                <td data-label="Pacchetto"><span class="badge badge-purple">${c.package || '—'}</span></td>
-                <td data-label="Report">${c.reports ? c.reports.length + ' report' : '—'}</td>
-                <td data-label="Bozza">
-                  ${c.websiteDraft && c.websiteDraft.url
-                    ? `<span class="status-dot ${c.websiteDraft.status === 'completato' ? 'active' : 'pending'}">${c.websiteDraft.status || '—'}</span>`
-                    : '<span style="color:var(--text-muted);font-size:.82rem;">Nessuna</span>'}
-                </td>
-                <td data-label="Azioni">
-                  <div class="act-btns">
-                    <button class="act-btn" onclick="window.open('/client/dashboard.html?preview=${c.uid}','_blank')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Vedi
-                    </button>
-                    <button class="act-btn" onclick="editClient('${c.uid}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifica
-                    </button>
-                    <button class="act-btn act-green" onclick="openReport('${c.uid}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report
-                    </button>
-                    <button class="act-btn" onclick="showClaudePrompt('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Prompt
-                    </button>
-                    <button class="act-btn" onclick="openManualAnalytics('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dati
-                    </button>
-                    <button class="act-btn" onclick="openSocialModal('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')" title="Configura social">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5z"/><circle cx="12" cy="12" r="3"/></svg>Social
-                    </button>
-                    ${(c.package||'').includes('Sito') ? `
-                    <button class="act-btn ${c.siteConfig?.status === 'completed' ? 'act-green' : ''}" onclick="openSiteConfig('${c.uid}','${(c.displayName||'').replace(/'/g,'')}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>${c.siteConfig?.status === 'completed' ? 'Brief ✓' : c.siteConfig?.status === 'in_progress' ? 'Brief…' : 'Brief'}
-                    </button>` : ''}
-                    <button class="act-btn act-danger" onclick="deleteClient('${c.uid}')">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Elimina
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
+      // Remember which cards are open
+      const openIds = new Set(allClients.map(c => c.uid).filter(uid => document.getElementById(`cc-body-${uid}`)?.style.display !== 'none' && document.getElementById(`cc-body-${uid}`) !== null));
+
+      wrap.innerHTML = allClients.map(c => {
+        const name = (c.displayName || '—').replace(/'/g, '&#39;');
+        const aColor = c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)';
+        const aLabel = c.analyticsActive ? 'Analytics ✓' : c.analyticsConfigured ? 'Analytics cfg' : '';
+        const draftDot = c.websiteDraft?.url
+          ? `<span class="status-dot ${c.websiteDraft.status==='completato'?'active':c.websiteDraft.status==='approvato'?'approved':'pending'}" style="font-size:.65rem;">${c.websiteDraft.status||'bozza'}</span>` : '';
+        const isOpen = openIds.has(c.uid);
+        return `
+        <div class="cc${isOpen?' open':''}" id="cc-${c.uid}">
+          <div class="cc-head" onclick="toggleCC('${c.uid}')">
+            <div class="cc-info">
+              <div class="cc-name">${name}${c.company ? ` <span style="font-weight:400;color:var(--text-muted);font-size:.82rem;">· ${c.company}</span>` : ''}</div>
+              <div class="cc-sub">${c.email||''}</div>
+              <div class="cc-meta">
+                <span class="badge badge-purple" style="font-size:.65rem;padding:2px 7px;">${c.package||'—'}</span>
+                ${aLabel ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:${aColor};"><span style="width:5px;height:5px;border-radius:50%;background:${aColor};"></span>${aLabel}</span>` : ''}
+                ${draftDot}
+                ${c.siteConfig?.status==='completed' ? `<span style="font-size:.65rem;color:var(--green);">Brief ✓</span>` : ''}
+              </div>
+            </div>
+            <div class="cc-quick">
+              <button class="act-btn" onclick="event.stopPropagation();window.open('/client/dashboard.html?preview=${c.uid}','_blank')" title="Vedi dashboard cliente">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Vedi
+              </button>
+              <button class="act-btn" onclick="event.stopPropagation();editClient('${c.uid}')" title="Modifica cliente">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifica
+              </button>
+              <svg id="cc-chev-${c.uid}" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-muted)" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="cc-body" id="cc-body-${c.uid}" style="${isOpen?'':'display:none'}">
+            <div class="cc-details">
+              <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
+              <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
+              <div class="cc-detail-item"><span class="cc-detail-label">Referral</span><span>${c.referralCode||'—'} (${c.referralCount||0} usi)</span></div>
+              ${c.analyticsActive===undefined&&!c.analyticsConfigured ? `<div class="cc-detail-item"><span class="cc-detail-label">Analytics</span><span style="cursor:pointer;color:var(--text-muted);font-size:.78rem;text-decoration:underline;" onclick="markAnalyticsConfigured('${c.uid}')">Segna come configurato</span></div>` : ''}
+            </div>
+            <div class="act-btns">
+              <button class="act-btn act-green" onclick="openReport('${c.uid}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report
+              </button>
+              <button class="act-btn" onclick="showClaudePrompt('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Prompt
+              </button>
+              <button class="act-btn" onclick="openManualAnalytics('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dati
+              </button>
+              <button class="act-btn" onclick="openSocialModal('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5z"/><circle cx="12" cy="12" r="3"/></svg>Social
+              </button>
+              ${(c.package||'').includes('Sito') ? `<button class="act-btn ${c.siteConfig?.status==='completed'?'act-green':''}" onclick="openSiteConfig('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>${c.siteConfig?.status==='completed'?'Brief ✓':c.siteConfig?.status==='in_progress'?'Brief…':'Brief'}
+              </button>` : ''}
+              <button class="act-btn act-danger" onclick="deleteClient('${c.uid}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Elimina
+              </button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
     }
+
+    window.toggleCC = (uid) => {
+      const body = document.getElementById(`cc-body-${uid}`);
+      const chev = document.getElementById(`cc-chev-${uid}`);
+      const card = document.getElementById(`cc-${uid}`);
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      chev.style.transform = open ? '' : 'rotate(180deg)';
+      card.classList.toggle('open', !open);
+    };
 
     // ── LOAD CONTACTS ─────────────────────────────────────────────
     async function loadContacts() {
@@ -2028,10 +2056,20 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
 
     function generateSitePrompt(client, cfg, uid) {
       const styleDesc = { minimal:'Moderno Minimalista — layout pulito, molto spazio bianco, tipografia leggera, design essenziale', luxury:'Elegante & Luxury — colori scuri/neutri, dettagli dorati, serif raffinato, atmosfera premium', bold:'Audace & Creativo — colori vivaci, forme geometriche, contrasti forti, personalità distintiva', corporate:'Professionale & Corporate — palette blu/grigio, struttura ordinata, ispira fiducia e autorevolezza', fresh:'Fresco & Giocoso — colori brillanti, bordi arrotondati, tono leggero e accessibile' };
-      const fontDesc  = { modern:'Sans-serif moderna (es. Inter, DM Sans, Plus Jakarta Sans)', classic:'Serif classico (es. Playfair Display, Lora, Merriweather)', strong:'Display bold (es. Bebas Neue, Oswald, Black Han Sans)', elegant:'Corsivo elegante (es. Cormorant Garamond, Italiana, Sorts Mill Goudy)' };
       const toneDesc  = { formal:'Formale e istituzionale', friendly:'Amichevole e accessibile', professional:'Professionale e diretto', creative:'Creativo e originale' };
       const secs = Array.isArray(cfg.sections) ? cfg.sections : (cfg.sections||'').split(',').filter(Boolean);
       const social = [cfg.socialInstagram&&`Instagram: @${cfg.socialInstagram}`, cfg.socialTikTok&&`TikTok: @${cfg.socialTikTok}`, cfg.socialFacebook&&`Facebook: ${cfg.socialFacebook}`, cfg.socialLinkedIn&&`LinkedIn: ${cfg.socialLinkedIn}`].filter(Boolean).join('\n- ');
+
+      // Gestisce sia vecchio formato {primary,secondary,accent} che nuovo colorsArray [{hex,label}]
+      let colorsText = '';
+      if (Array.isArray(cfg.colorsArray) && cfg.colorsArray.length) {
+        colorsText = cfg.colorsArray.map((c, i) => `- ${c.label||`Colore ${i+1}`}: ${c.hex}`).join('\n');
+        colorsText += '\nUsa questi colori come palette di riferimento per tutto il sito (pulsanti, heading, sfondi, accenti).';
+      } else if (cfg.colors?.primary) {
+        colorsText = `- Principale: ${cfg.colors.primary}\n- Secondario: ${cfg.colors.secondary||''}\n- Accento: ${cfg.colors.accent||''}`;
+      } else {
+        colorsText = 'Il cliente non ha specificato colori — hai carta bianca, lasciati guidare dallo stile e dal logo.';
+      }
 
       return `# Brief sito web — ${cfg.companyName || client.displayName || 'Cliente'}
 Generato da Astra Agency per il cliente ${client.displayName || ''} (${client.company || ''})
@@ -2047,10 +2085,9 @@ Target audience: ${cfg.targetAudience || ''}
 
 ━━━ DESIGN & STILE ━━━
 Stile visivo: ${styleDesc[cfg.style] || cfg.style || ''}
-Font: ${fontDesc[cfg.fontStyle] || cfg.fontStyle || ''}
-Colore principale: ${cfg.colors?.primary || ''} — usa per CTA, bottoni, heading principali
-Colore secondario: ${cfg.colors?.secondary || ''} — usa per background sezioni alternate
-Colore accento: ${cfg.colors?.accent || ''} — usa per hover, highlights, dettagli
+Font: lasciati guidare dallo stile scelto e dal logo — scegli tu il font più adatto al brand
+Palette colori del cliente:
+${colorsText}
 
 ━━━ SEZIONI DA INCLUDERE ━━━
 ${secs.map(s => `- ${s}`).join('\n') || 'Da definire'}

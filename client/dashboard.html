@@ -84,7 +84,7 @@
           <!-- Progress bar -->
           <div style="padding:0 22px 14px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <span style="font-size:.72rem;color:var(--text-muted);" id="survey-step-label">Step 1 di 9</span>
+              <span style="font-size:.72rem;color:var(--text-muted);" id="survey-step-label">Step 1 di 8</span>
               <span style="font-size:.72rem;color:var(--purple);font-weight:600;" id="survey-pct-label">0%</span>
             </div>
             <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
@@ -200,10 +200,6 @@
     .style-preview { height:56px;border-radius:8px;margin-bottom:9px;overflow:hidden;position:relative; }
     .style-name { font-size:.8rem;font-weight:700;margin-bottom:2px; }
     .style-desc { font-size:.7rem;color:var(--text-muted);line-height:1.35; }
-    .font-card { border:2px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:4px; }
-    .font-card:hover { border-color:rgba(123,92,240,.4); }
-    .font-card.selected { border-color:var(--purple);background:rgba(123,92,240,.08); }
-    .font-sample { font-size:1.3rem;font-weight:700;line-height:1.1; }
     .section-checks { display:flex;flex-wrap:wrap;gap:8px; }
     .section-check { display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:.8rem;transition:.15s; }
     .section-check:hover { border-color:rgba(123,92,240,.4); }
@@ -225,7 +221,7 @@
   <script type="module">
     import { auth, db } from '../js/firebase-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const loading   = document.getElementById('loading-state');
     const main      = document.getElementById('main-content');
@@ -288,24 +284,7 @@
 
       // Draft
       if (data.websiteDraft && data.websiteDraft.url) {
-        const statusMap = {
-          in_revisione: ['pending', 'In revisione'],
-          approvato:    ['approved', 'Approvato'],
-          completato:   ['active', 'Completato'],
-          in_lavorazione: ['draft', 'In lavorazione'],
-        };
-        const [statusClass, statusLabel] = statusMap[data.websiteDraft.status] || ['draft', 'In lavorazione'];
-        document.getElementById('draft-content').innerHTML = `
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-            <div>
-              <p style="font-weight:600;margin-bottom:6px;">${data.websiteDraft.description || 'Bozza sito web'}</p>
-              <span class="status-dot ${statusClass}">${statusLabel}</span>
-            </div>
-            <a href="${data.websiteDraft.url}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-              Visualizza bozza ↗
-            </a>
-          </div>
-        `;
+        renderDraft(targetUid, data.websiteDraft);
       }
 
       // Reports
@@ -526,13 +505,101 @@
       content.innerHTML = tabsHtml + `<div id="social-platform-content">${cached[activePlatform]}</div>`;
     }
 
+    // ── BOZZA SITO — APPROVA / DECLINA ───────────────────────────────────────
+    function renderDraft(uid, draft) {
+      const statusMap = {
+        in_revisione:  ['pending',  'In revisione'],
+        approvato:     ['approved', 'Approvato ✓'],
+        completato:    ['active',   'Completato'],
+        in_lavorazione:['draft',    'In lavorazione'],
+        da_rivedere:   ['pending',  'Revisione richiesta'],
+      };
+      const [statusClass, statusLabel] = statusMap[draft.status] || ['draft', draft.status||'In lavorazione'];
+
+      const reviewActions = draft.status === 'in_revisione' ? `
+        <div id="review-actions" style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px;">Hai visualizzato la bozza? Cosa vuoi fare?</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="approveDraft('${uid}')" class="btn btn-primary" style="font-size:.82rem;padding:8px 18px;background:var(--green);border-color:var(--green);">
+              ✓ Approvo, va bene così
+            </button>
+            <button onclick="showDeclineForm('${uid}')" class="btn btn-outline" style="font-size:.82rem;padding:8px 18px;color:var(--pink);border-color:rgba(255,45,120,.4);">
+              ✗ Richiedi modifiche
+            </button>
+          </div>
+          <div id="decline-form" style="display:none;margin-top:14px;">
+            <textarea id="decline-notes" placeholder="Descrivi cosa vuoi migliorare o cambiare…" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:.85rem;resize:vertical;min-height:80px;box-sizing:border-box;line-height:1.5;" onkeydown="if(event.key==='Escape')hideDeclineForm()"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="submitDecline('${uid}')" class="btn btn-primary" style="font-size:.8rem;padding:7px 16px;">Invia feedback</button>
+              <button onclick="hideDeclineForm()" class="btn btn-outline" style="font-size:.8rem;padding:7px 14px;">Annulla</button>
+            </div>
+          </div>
+        </div>` : '';
+
+      const feedbackNote = draft.declineFeedback ? `
+        <div style="margin-top:10px;background:rgba(255,45,120,.07);border:1px solid rgba(255,45,120,.2);border-radius:8px;padding:10px 13px;">
+          <div style="font-size:.72rem;color:var(--pink);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Feedback inviato</div>
+          <div style="font-size:.82rem;line-height:1.5;">${draft.declineFeedback}</div>
+        </div>` : '';
+
+      document.getElementById('draft-content').innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:${reviewActions||feedbackNote?'0':'0'}">
+          <div>
+            <p style="font-weight:600;margin-bottom:6px;">${draft.description || 'Bozza sito web'}</p>
+            <span class="status-dot ${statusClass}">${statusLabel}</span>
+          </div>
+          <a href="${draft.url}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex-shrink:0;">
+            Visualizza bozza ↗
+          </a>
+        </div>
+        ${feedbackNote}
+        ${reviewActions}
+      `;
+    }
+
+    window.approveDraft = async (uid) => {
+      try {
+        await updateDoc(doc(db, 'clients', uid), { 'websiteDraft.status': 'approvato' });
+        renderDraft(uid, { ...JSON.parse(document.getElementById('draft-content').dataset.draft||'{}'), status: 'approvato' });
+        document.getElementById('draft-content').innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><div><div style="font-weight:700;">Bozza approvata!</div><div style="font-size:.8rem;color:var(--text-muted);">Grazie, procederemo con la fase successiva.</div></div></div>`;
+        showToast('Approvazione inviata!');
+      } catch(e) { showToast('Errore: ' + e.message); }
+    };
+
+    window.showDeclineForm = () => {
+      document.getElementById('decline-form').style.display = '';
+      document.getElementById('decline-notes').focus();
+    };
+
+    window.hideDeclineForm = () => {
+      document.getElementById('decline-form').style.display = 'none';
+    };
+
+    window.submitDecline = async (uid) => {
+      const notes = document.getElementById('decline-notes')?.value.trim();
+      if (!notes) { showToast('Scrivi prima cosa vuoi modificare'); return; }
+      try {
+        await updateDoc(doc(db, 'clients', uid), { 'websiteDraft.status': 'da_rivedere', 'websiteDraft.declineFeedback': notes });
+        document.getElementById('review-actions').innerHTML = `
+          <div style="background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.25);border-radius:8px;padding:10px 13px;">
+            <div style="font-size:.82rem;color:var(--green);font-weight:600;margin-bottom:4px;">✓ Feedback inviato!</div>
+            <div style="font-size:.8rem;color:var(--text-muted);">Ti risponderemo il prima possibile.</div>
+          </div>
+          <div style="margin-top:10px;background:rgba(255,45,120,.07);border:1px solid rgba(255,45,120,.2);border-radius:8px;padding:10px 13px;">
+            <div style="font-size:.72rem;color:var(--pink);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Hai scritto</div>
+            <div style="font-size:.82rem;line-height:1.5;">${notes}</div>
+          </div>`;
+        showToast('Feedback inviato!');
+      } catch(e) { showToast('Errore: ' + e.message); }
+    };
+
     // ── QUESTIONARIO SITO ─────────────────────────────────────────────────────
 
     let _surveyUid = null;
     let _surveyStep = 0;
     let _surveyData = {};
 
-    const SURVEY_TOTAL = 9;
+    const SURVEY_TOTAL = 8;
 
     function initSiteConfigCard(uid, existing) {
       _surveyUid = uid;
@@ -644,34 +711,23 @@
           </div>`;
         },
 
-        // 3 — Font
+        // 3 — Colori
         () => {
-          const fonts = [
-            { id:'modern', name:'Moderno', sample:'Aa Bb', css:'font-family:system-ui,sans-serif;', desc:'Sans-serif pulito (Inter, DM Sans)' },
-            { id:'classic', name:'Classico', sample:'Aa Bb', css:'font-family:Georgia,serif;', desc:'Serif elegante (Playfair, Lora)' },
-            { id:'strong', name:'Audace', sample:'AA BB', css:'font-family:Impact,sans-serif;letter-spacing:.05em;', desc:'Display bold (Bebas, Oswald)' },
-            { id:'elegant', name:'Raffinato', sample:'Aa Bb', css:'font-family:Palatino,serif;font-style:italic;', desc:'Corsivo / serif fine (Cormorant)' },
-          ];
-          return `<div class="survey-q">Che stile di font preferisci?</div>
-          <div class="survey-hint">Influisce su tutto il testo del sito.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            ${fonts.map(f => `<div class="font-card ${d.fontStyle===f.id?'selected':''}" onclick="selectSurveyFont('${f.id}')">
-              <div class="font-sample" style="${f.css}">${f.sample}</div>
-              <div style="font-size:.8rem;font-weight:700;">${f.name}</div>
-              <div style="font-size:.7rem;color:var(--text-muted);">${f.desc}</div>
-            </div>`).join('')}
-          </div>`;
+          const arr = Array.isArray(d.colorsArray) && d.colorsArray.length
+            ? d.colorsArray
+            : [{hex:'#7c3aed', label:'Colore 1'}];
+          // sync to _surveyData so functions can update it
+          if (!Array.isArray(d.colorsArray) || !d.colorsArray.length) _surveyData.colorsArray = arr;
+          return `<div class="survey-q">Colori del tuo brand</div>
+          <div class="survey-hint">Aggiungi uno o più colori. Puoi partire da uno solo e aggiungerne altri, oppure estrarli automaticamente dal logo.</div>
+          ${d.logoDataUrl ? `<button onclick="extractColorsFromLogo()" style="display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--text-muted);cursor:pointer;font-size:.8rem;margin-bottom:14px;transition:.15s;" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12s1-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Estrai colori dal logo</button>` : `<div style="font-size:.76rem;color:var(--text-muted);background:rgba(123,92,240,.07);border:1px solid rgba(123,92,240,.15);border-radius:8px;padding:8px 12px;margin-bottom:14px;">Carica prima il logo (step 2) per estrarre i colori automaticamente.</div>`}
+          <div id="colors-list">
+            ${arr.map((c, i) => colorRowDynamic(c.hex, c.label || \`Colore \${i+1}\`, i, arr.length)).join('')}
+          </div>
+          <button onclick="addSurveyColor()" style="background:none;border:1px dashed var(--border);border-radius:8px;padding:7px 16px;color:var(--text-muted);cursor:pointer;font-size:.8rem;margin-top:8px;transition:.15s;display:inline-flex;align-items:center;gap:6px;" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">+ Aggiungi colore</button>`;
         },
 
-        // 4 — Colori
-        () => `
-          <div class="survey-q">Scegli la tua palette di colori</div>
-          <div class="survey-hint">Seleziona 3 colori principali per il sito. Clicca sul quadrato colorato per aprire il color picker.</div>
-          ${colorRow('primary','Colore principale',d.colors?.primary||'#7c3aed')}
-          ${colorRow('secondary','Colore secondario',d.colors?.secondary||'#131020')}
-          ${colorRow('accent','Colore accento',d.colors?.accent||'#a78bfa')}`,
-
-        // 5 — Tono di voce + target
+        // 4 — Tono di voce + target
         () => `
           <div class="survey-q">Che tono di voce usa il tuo brand?</div>
           <div class="survey-hint">Come parla la tua azienda ai clienti?</div>
@@ -686,7 +742,7 @@
           <div class="survey-hint">Descrivi brevemente chi sono i tuoi clienti ideali.</div>
           <input class="survey-input" id="sv-target" value="${esc(d.targetAudience||'')}" placeholder="Es. Coppie 25-40 anni, aziende B2B, appassionati di design…" />`,
 
-        // 6 — Sezioni
+        // 5 — Sezioni
         () => {
           const secs = ['Home / Benvenuto','Chi siamo','Servizi','Portfolio / Lavori','Blog / News','Prezzi','Contatti','FAQ','Testimonial','Shop / E-commerce','Prenotazioni'];
           const sel = Array.isArray(d.sections) ? d.sections : [];
@@ -699,7 +755,7 @@
           </div>`;
         },
 
-        // 7 — Servizi + competitors
+        // 6 — Servizi + competitors
         () => `
           <div class="survey-q">Descrivi brevemente i tuoi servizi o prodotti</div>
           <div class="survey-hint">Cosa offri? Questo testo aiuta a scrivere i contenuti del sito.</div>
@@ -708,7 +764,7 @@
           <div class="survey-hint">URL di siti che ti piacciono o di concorrenti (opzionale).</div>
           <textarea class="survey-textarea" id="sv-competitors" placeholder="Es. www.esempio.it — mi piace la semplicità&#10;www.altro.it — uso simile al mio">${esc(d.competitors||'')}</textarea>`,
 
-        // 8 — Contatti + social
+        // 7 — Contatti + social
         () => `
           <div class="survey-q">Informazioni di contatto</div>
           <div class="survey-hint">Verranno mostrate nel footer e nella pagina Contatti.</div>
@@ -741,54 +797,104 @@
       el.innerHTML = steps[_surveyStep]();
 
       // Ripristina color picker values dopo render
-      if (_surveyStep === 4) {
-        ['primary','secondary','accent'].forEach(k => {
-          const hex = d.colors?.[k] || (k==='primary'?'#7c3aed':k==='secondary'?'#131020':'#a78bfa');
-          const sw = document.getElementById(`swatch-${k}`);
-          const txt = document.getElementById(`hexinput-${k}`);
-          if (sw) sw.style.background = hex;
-          if (txt) txt.value = hex;
+      if (_surveyStep === 3) {
+        const arr = Array.isArray(_surveyData.colorsArray) ? _surveyData.colorsArray : [];
+        arr.forEach((c, i) => {
+          const sw = document.getElementById(`swatch-${i}`);
+          const txt = document.getElementById(`hexinput-${i}`);
+          if (sw) { sw.style.background = c.hex; const inp = sw.querySelector('input[type=color]'); if (inp) inp.value = c.hex; }
+          if (txt) txt.value = c.hex;
         });
       }
     }
 
-    function colorRow(key, label, defVal) {
-      const hex = _surveyData.colors?.[key] || defVal;
-      return `<div class="color-row">
-        <span class="color-label">${label}</span>
-        <div class="color-input-wrap">
-          <div class="color-swatch" id="swatch-${key}" style="background:${hex};">
-            <input type="color" value="${hex}" oninput="updateColor('${key}',this.value)" />
-          </div>
-          <input class="color-hex" id="hexinput-${key}" value="${hex}" maxlength="7" oninput="updateColorHex('${key}',this.value)" />
+    function colorRowDynamic(hex, label, idx, total) {
+      return `<div class="color-row" id="color-row-${idx}" style="align-items:center;gap:10px;margin-bottom:10px;display:flex;">
+        <div class="color-swatch" id="swatch-${idx}" style="background:${hex};flex-shrink:0;">
+          <input type="color" value="${hex}" oninput="updateColorInArray(${idx},this.value)" />
         </div>
+        <input class="color-hex" id="hexinput-${idx}" value="${hex}" maxlength="7" oninput="updateColorHexInArray(${idx},this.value)" />
+        <span style="font-size:.78rem;color:var(--text-muted);flex:1;">${label}</span>
+        ${idx > 0 ? `<button onclick="removeSurveyColor(${idx})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 6px;flex-shrink:0;" title="Rimuovi">×</button>` : '<div style="width:26px;"></div>'}
       </div>`;
     }
 
-    window.updateColor = (key, hex) => {
-      if (!_surveyData.colors) _surveyData.colors = {};
-      _surveyData.colors[key] = hex;
-      const sw = document.getElementById(`swatch-${key}`);
-      const txt = document.getElementById(`hexinput-${key}`);
+    window.updateColorInArray = (idx, hex) => {
+      if (!Array.isArray(_surveyData.colorsArray)) return;
+      if (_surveyData.colorsArray[idx]) _surveyData.colorsArray[idx].hex = hex;
+      const sw = document.getElementById(`swatch-${idx}`);
+      const txt = document.getElementById(`hexinput-${idx}`);
       if (sw) sw.style.background = hex;
       if (txt) txt.value = hex;
     };
 
-    window.updateColorHex = (key, val) => {
+    window.updateColorHexInArray = (idx, val) => {
       if (!/^#[0-9a-fA-F]{6}$/.test(val)) return;
-      updateColor(key, val);
-      const sw = document.getElementById(`swatch-${key}`);
+      updateColorInArray(idx, val);
+      const sw = document.getElementById(`swatch-${idx}`);
       if (sw) { const inp = sw.querySelector('input[type=color]'); if (inp) inp.value = val; }
+    };
+
+    window.addSurveyColor = () => {
+      if (!Array.isArray(_surveyData.colorsArray)) _surveyData.colorsArray = [];
+      const n = _surveyData.colorsArray.length + 1;
+      _surveyData.colorsArray.push({ hex: '#a78bfa', label: `Colore ${n}` });
+      const list = document.getElementById('colors-list');
+      if (list) {
+        const total = _surveyData.colorsArray.length;
+        const div = document.createElement('div');
+        div.innerHTML = colorRowDynamic('#a78bfa', `Colore ${n}`, total - 1, total);
+        list.appendChild(div.firstChild);
+        const sw = document.getElementById(`swatch-${total - 1}`);
+        if (sw) { const inp = sw.querySelector('input[type=color]'); if (inp) inp.value = '#a78bfa'; }
+      }
+    };
+
+    window.removeSurveyColor = (idx) => {
+      if (!Array.isArray(_surveyData.colorsArray) || idx <= 0) return;
+      _surveyData.colorsArray.splice(idx, 1);
+      renderSurveyStep();
+    };
+
+    window.extractColorsFromLogo = () => {
+      const dataUrl = _surveyData.logoDataUrl;
+      if (!dataUrl) { showToast('Carica prima il logo'); return; }
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 80; canvas.height = 80;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 80, 80);
+        const data = ctx.getImageData(0, 0, 80, 80).data;
+        const buckets = {};
+        for (let i = 0; i < data.length; i += 4) {
+          const a = data[i+3];
+          if (a < 50) continue;
+          const r = data[i], g = data[i+1], b = data[i+2];
+          const brightness = (r + g + b) / 3;
+          if (brightness > 235 || brightness < 18) continue;
+          const qr = Math.round(r / 40) * 40;
+          const qg = Math.round(g / 40) * 40;
+          const qb = Math.round(b / 40) * 40;
+          const key = `${qr},${qg},${qb}`;
+          buckets[key] = (buckets[key] || 0) + 1;
+        }
+        const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        if (!sorted.length) { showToast('Nessun colore trovato nel logo'); return; }
+        _surveyData.colorsArray = sorted.map(([rgb], i) => {
+          const [r, g, b] = rgb.split(',').map(Number);
+          const hex = '#' + [r, g, b].map(v => Math.min(255, v).toString(16).padStart(2, '0')).join('');
+          return { hex, label: `Colore ${i + 1}` };
+        });
+        renderSurveyStep();
+        showToast(`${_surveyData.colorsArray.length} colori estratti dal logo!`);
+      };
+      img.src = dataUrl;
     };
 
     window.selectSurveyStyle = (id) => {
       _surveyData.style = id;
       document.querySelectorAll('.style-card').forEach(c => c.classList.toggle('selected', c.onclick?.toString().includes(id)));
-      renderSurveyStep();
-    };
-
-    window.selectSurveyFont = (id) => {
-      _surveyData.fontStyle = id;
       renderSurveyStep();
     };
 
@@ -819,12 +925,12 @@
         _surveyData.companyName   = document.getElementById('sv-company')?.value.trim() || '';
         _surveyData.sector        = document.getElementById('sv-sector')?.value.trim()  || '';
         _surveyData.tagline       = document.getElementById('sv-tagline')?.value.trim() || '';
-      } else if (s === 5) {
+      } else if (s === 4) {
         _surveyData.targetAudience = document.getElementById('sv-target')?.value.trim() || '';
-      } else if (s === 7) {
+      } else if (s === 6) {
         _surveyData.services    = document.getElementById('sv-services')?.value.trim()   || '';
         _surveyData.competitors = document.getElementById('sv-competitors')?.value.trim()|| '';
-      } else if (s === 8) {
+      } else if (s === 7) {
         _surveyData.contactEmail   = document.getElementById('sv-email')?.value.trim()   || '';
         _surveyData.contactPhone   = document.getElementById('sv-phone')?.value.trim()   || '';
         _surveyData.contactAddress = document.getElementById('sv-address')?.value.trim() || '';
