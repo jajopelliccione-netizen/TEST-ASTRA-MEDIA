@@ -322,19 +322,24 @@
         btn.textContent = 'Copiato!';
         btn.classList.add('copied');
         setTimeout(() => { btn.textContent = 'Copia'; btn.classList.remove('copied'); }, 2000);
-      });
+      }, { once: true });
 
       // Questionario configurazione sito
       if (data.configModeEnabled) {
         initSiteConfigCard(targetUid, data.siteConfig || null);
       }
 
-      // Analytics sito
-      await loadAnalytics(targetUid, !!data.analyticsConfigured);
+      // Analytics sito — non-blocking, runs in background
+      loadAnalytics(targetUid, !!data.analyticsConfigured);
 
-      // Social media
+      // Social media — lazy: load only when card scrolls into view
       if (data.social?.instagram?.enabled || data.social?.tiktok?.enabled) {
-        loadSocial(targetUid, data.social);
+        const socialCard = document.getElementById('social-card');
+        socialCard.style.display = ''; // show placeholder while waiting to intersect
+        const obs = new IntersectionObserver((entries, o) => {
+          if (entries[0].isIntersecting) { o.disconnect(); loadSocial(targetUid, data.social); }
+        }, { rootMargin: '200px' });
+        obs.observe(socialCard);
       }
     });
 

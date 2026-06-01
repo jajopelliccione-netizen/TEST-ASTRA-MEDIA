@@ -731,19 +731,13 @@
       const snap = await getDocs(collection(db, 'clients'));
       allClients = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
       renderClientsTable();
-      // check analytics status in background, re-render when done
-      const statuses = await Promise.all(
-        allClients.map(async c => {
-          try {
-            const q = query(collection(db, 'analytics', c.uid, 'daily'), limit(1));
-            const s = await getDocs(q);
-            return { uid: c.uid, active: !s.empty };
-          } catch { return { uid: c.uid, active: false }; }
-        })
-      );
-      const map = Object.fromEntries(statuses.map(s => [s.uid, s.active]));
-      allClients = allClients.map(c => ({ ...c, analyticsActive: map[c.uid] }));
-      renderClientsTable();
+      // check analytics status in background — re-render only after all resolve
+      Promise.all(allClients.map(async c => {
+        try {
+          const s = await getDocs(query(collection(db, 'analytics', c.uid, 'daily'), limit(1)));
+          c.analyticsActive = !s.empty;
+        } catch { c.analyticsActive = false; }
+      })).then(() => renderClientsTable());
     }
 
     function renderClientsTable() {
