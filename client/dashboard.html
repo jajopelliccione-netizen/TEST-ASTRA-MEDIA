@@ -406,7 +406,10 @@
           if (!data.ok) return `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;">${data.error}</div>`;
           const profileHtml = renderProfile(platform, data.profile, data.stats);
           const ttUser = social?.tiktok?.username || '';
-          const gridHtml = renderGrid(platform, platform === 'instagram' ? (data.posts||[]) : (data.videos||[]), ttUser);
+          const rawItems = platform === 'instagram' ? (data.posts||[]) : (data.videos||[]);
+          const tsKey = platform === 'instagram' ? 'taken_at' : 'createTime';
+          const sortedItems = [...rawItems].sort((a, b) => (b[tsKey] || 0) - (a[tsKey] || 0));
+          const gridHtml = renderGrid(platform, sortedItems, ttUser);
           return profileHtml + gridHtml;
         } catch(e) {
           return `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;">Errore: ${e.message}</div>`;

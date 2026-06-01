@@ -1617,8 +1617,10 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
         const resp = await fetch(`https://astra-notify.jacopopelliccione.workers.dev/api/social?clientId=${_socialUid}&platform=${platform}&allPosts=1`);
         const data = await resp.json();
         if (!data.ok) throw new Error(data.error);
-        const items = platform === 'instagram' ? (data.posts || []) : (data.videos || []);
-        if (!items.length) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:.82rem;color:var(--text-muted);">Nessun contenuto trovato.</div>'; return; }
+        const rawItems = platform === 'instagram' ? (data.posts || []) : (data.videos || []);
+        if (!rawItems.length) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:.82rem;color:var(--text-muted);">Nessun contenuto trovato.</div>'; return; }
+        const tsKey = platform === 'instagram' ? 'taken_at' : 'createTime';
+        const items = [...rawItems].sort((a, b) => (b[tsKey] || 0) - (a[tsKey] || 0));
         window[`_${p}Items`] = items;
         const currentStart = window[`_${p}StartFrom`] || null;
         hint.style.display = '';
