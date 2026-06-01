@@ -557,9 +557,11 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
   );
 }
 
-// ── TikTok — API interna web (stessa usata dal browser su tiktok.com) ──────
+// ── TikTok — tikwm.com (con token) o API interna come fallback ────────────
 async function fetchTikTokDirect(username, token) {
-  // Se c'è un token tikwm usa quello come fallback garantito
+  // Se c'è un token tikwm usa quello direttamente (più affidabile)
+  if (token) return fetchTikTokTikwm(username, token);
+
   const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
   const h  = {
     'User-Agent':      ua,
