@@ -269,11 +269,26 @@ async function handleSocialData(request, env) {
     // Proxy CDN images through our Worker to bypass Instagram/TikTok CORP headers
     const origin = new URL(request.url).origin;
     const px = u => u ? `${origin}/api/proxy-image?url=${encodeURIComponent(u)}` : '';
-    const pxProfile = p => p ? { ...p, profile_pic_url: px(p.profile_pic_url) } : p;
-    const pxPosts   = arr => arr.map(p => ({ ...p, thumbnail_url: px(p.thumbnail_url) }));
-    const pxVideos  = arr => arr.map(v => {
+    // Proxia profilo Instagram (profile_pic_url) e TikTok (avatarMedium/Larger/Thumb)
+    const pxProfile = p => {
+      if (!p) return p;
+      const r = { ...p };
+      if (p.profile_pic_url) r.profile_pic_url = px(p.profile_pic_url);
+      if (p.avatarMedium)    r.avatarMedium    = px(p.avatarMedium);
+      if (p.avatarLarger)    r.avatarLarger    = px(p.avatarLarger);
+      if (p.avatarThumb)     r.avatarThumb     = px(p.avatarThumb);
+      return r;
+    };
+    const pxPosts  = arr => arr.map(p => ({ ...p, thumbnail_url: px(p.thumbnail_url) }));
+    const pxVideos = arr => arr.map(v => {
       const cover = v.video?.cover || v.cover_url || v.origin_cover || '';
-      return cover ? { ...v, cover_url: px(cover), video: v.video ? { ...v.video, cover: px(v.video.cover) } : v.video } : v;
+      if (!cover) return v;
+      return {
+        ...v,
+        cover_url:    v.cover_url    ? px(v.cover_url)    : px(cover),
+        origin_cover: v.origin_cover ? px(v.origin_cover) : v.origin_cover,
+        video: v.video ? { ...v.video, cover: v.video.cover ? px(v.video.cover) : v.video.cover } : v.video,
+      };
     });
 
     const projectId = env.FCM_PROJECT_ID;
