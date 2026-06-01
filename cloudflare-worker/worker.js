@@ -180,13 +180,50 @@ async function handleRecoverCollab(request, env) {
   }
 }
 
+// ── Cache helpers (Firestore social_cache, TTL 6h) ────────────────────────
+const SOCIAL_CACHE_TTL = 6 * 3600;
+
+async function loadSocialCache(fsBase, token, key) {
+  try {
+    const r = await fetch(`${fsBase}/social_cache/${key}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) return null;
+    const fields = (await r.json()).fields || {};
+    const age = Math.floor(Date.now() / 1000) - parseInt(fields.cachedAt?.integerValue || '0');
+    if (age > SOCIAL_CACHE_TTL) return null;
+    const s = fields.data?.stringValue;
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
+function saveSocialCache(fsBase, token, key, data) {
+  fetch(`${fsBase}/social_cache/${key}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: {
+      cachedAt: { integerValue: String(Math.floor(Date.now() / 1000)) },
+      data:     { stringValue: JSON.stringify(data) },
+    }}),
+  }).catch(() => {});
+}
+
+function applyFilter(items, mode, managedFrom, startFrom, tsKey) {
+  if (mode === 'auto' && managedFrom) {
+    const from = Math.floor(new Date(managedFrom).getTime() / 1000);
+    return items.filter(i => (i[tsKey] || 0) >= from);
+  }
+  if (mode === 'manual' && startFrom > 0) {
+    return items.filter(i => (i[tsKey] || 0) >= startFrom);
+  }
+  return items;
+}
+
 // ── GET /api/social ────────────────────────────────────────────────────────
 async function handleSocialData(request, env) {
   try {
     const url      = new URL(request.url);
     const clientId = url.searchParams.get('clientId');
-    const platform = url.searchParams.get('platform'); // 'instagram' | 'tiktok'
-    const allPosts = url.searchParams.get('allPosts') === '1';
+    const platform = url.searchParams.get('platform');
+    const wantAll  = url.searchParams.get('allPosts') === '1';
 
     if (!clientId || !platform) return json({ ok: false, error: 'clientId e platform richiesti' });
     if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker' });
@@ -202,43 +239,39 @@ async function handleSocialData(request, env) {
 
     if (!pf.enabled?.booleanValue) return json({ ok: false, error: `${platform} non attivato` });
 
-    const username    = pf.username?.stringValue;
-    const mode        = pf.mode?.stringValue || 'auto';
-    const managedFrom = pf.managedFrom?.stringValue || '';
+    const username     = pf.username?.stringValue;
+    const mode         = pf.mode?.stringValue || 'auto';
+    const managedFrom  = pf.managedFrom?.stringValue || '';
     const startFromRaw = pf.startFrom?.integerValue || pf.startFrom?.doubleValue;
-    const startFrom   = startFromRaw ? Number(startFromRaw) : 0;
+    const startFrom    = startFromRaw ? Number(startFromRaw) : 0;
 
     if (!username) return json({ ok: false, error: 'Username non configurato' });
 
+    const cacheKey = `${clientId}_${platform}`;
     const RK = env.RAPID_API_KEY;
 
+    // ── Instagram ────────────────────────────────────────────────────
     if (platform === 'instagram') {
+      // Cache check
+      const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
+      if (cached) {
+        const posts = wantAll ? cached.posts : applyFilter(cached.posts, mode, managedFrom, startFrom, 'taken_at');
+        return json({ ok: true, platform: 'instagram', profile: cached.profile, posts });
+      }
+
+      // Fetch fresh
       const igHost = 'instagram-scraper-stable-api.p.rapidapi.com';
-      const igHeaders = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'x-rapidapi-host': igHost,
-        'x-rapidapi-key': RK,
-      };
+      const igH    = { 'Content-Type': 'application/x-www-form-urlencoded', 'x-rapidapi-host': igHost, 'x-rapidapi-key': RK };
       const [profileR, postsR] = await Promise.all([
-        fetch(`https://${igHost}/ig_get_fb_profile_v3.php`, {
-          method: 'POST', headers: igHeaders,
-          body: `username_or_url=${encodeURIComponent(username)}`,
-        }),
-        fetch(`https://${igHost}/get_ig_user_posts.php`, {
-          method: 'POST', headers: igHeaders,
-          body: `username_or_url=${encodeURIComponent('https://www.instagram.com/' + username + '/')}&amount=35&pagination_token=`,
-        }),
+        fetch(`https://${igHost}/ig_get_fb_profile_v3.php`, { method: 'POST', headers: igH, body: `username_or_url=${encodeURIComponent(username)}` }),
+        fetch(`https://${igHost}/get_ig_user_posts.php`,    { method: 'POST', headers: igH, body: `username_or_url=${encodeURIComponent('https://www.instagram.com/' + username + '/')}&amount=35&pagination_token=` }),
       ]);
       const profileData = await profileR.json();
       const postsData   = await postsR.json();
-      if (!profileR.ok) {
-        return json({ ok: false, error: `RapidAPI HTTP ${profileR.status} — ${profileData?.message || JSON.stringify(profileData).slice(0,200)}` });
-      }
-      if (profileData.status === 'fail' || profileData.status === 'error' || profileData.message?.toLowerCase().includes('not found')) {
-        return json({ ok: false, error: `Profilo non trovato — ${profileData.message || JSON.stringify(profileData).slice(0,200)}` });
-      }
 
-      // Normalizza profilo
+      if (!profileR.ok) return json({ ok: false, error: `RapidAPI HTTP ${profileR.status} — ${profileData?.message || JSON.stringify(profileData).slice(0,200)}` });
+      if (profileData.status === 'fail' || profileData.status === 'error') return json({ ok: false, error: `Profilo non trovato — ${profileData.message || JSON.stringify(profileData).slice(0,200)}` });
+
       const raw = profileData.data?.user || profileData.data || profileData.user || profileData;
       const profile = {
         username:        raw.username || username,
@@ -248,10 +281,7 @@ async function handleSocialData(request, env) {
         following_count: raw.following_count || raw.following_tag_count || raw.edge_follow?.count || 0,
         media_count:     raw.media_count || raw.edge_owner_to_timeline_media?.count || 0,
       };
-
-      // Normalizza post — risposta reale: { posts: [{ node: {...} }, ...] }
-      const rawPosts = (postsData.posts || []).map(item => item.node || item).filter(Boolean);
-      let posts = rawPosts.map(p => ({
+      const allIgPosts = (postsData.posts || []).map(item => item.node || item).filter(Boolean).map(p => ({
         id:             String(p.id || p.pk || ''),
         taken_at:       p.taken_at || p.timestamp || 0,
         like_count:     p.like_count || p.likes_count || 0,
@@ -261,38 +291,41 @@ async function handleSocialData(request, env) {
         permalink:      p.permalink || (p.code ? `https://www.instagram.com/p/${p.code}/` : '') || (p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '') || '',
       }));
 
-      if (!allPosts) {
-        if (mode === 'auto' && managedFrom) {
-          const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
-          posts = posts.filter(p => (p.taken_at || 0) >= fromTs);
-        } else if (mode === 'manual' && startFrom > 0) {
-          posts = posts.filter(p => (p.taken_at || 0) >= startFrom);
-        }
-      }
+      // Save to cache (unfiltered)
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts });
+
+      const posts = wantAll ? allIgPosts : applyFilter(allIgPosts, mode, managedFrom, startFrom, 'taken_at');
       return json({ ok: true, platform: 'instagram', profile, posts });
     }
 
+    // ── TikTok ───────────────────────────────────────────────────────
     if (platform === 'tiktok') {
+      // Cache check
+      const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
+      if (cached) {
+        const videos = wantAll ? cached.videos : applyFilter(cached.videos, mode, managedFrom, startFrom, 'createTime');
+        return json({ ok: true, platform: 'tiktok', profile: cached.profile, stats: cached.stats, videos });
+      }
+
+      // Fetch fresh
+      const ttH = { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK };
       const [profileR, videosR] = await Promise.all([
-        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/info?uniqueId=${encodeURIComponent(username)}`,
-          { headers: { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK } }),
-        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/posts?uniqueId=${encodeURIComponent(username)}&count=35&cursor=0`,
-          { headers: { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK } }),
+        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/info?uniqueId=${encodeURIComponent(username)}`,            { headers: ttH }),
+        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/posts?uniqueId=${encodeURIComponent(username)}&count=35&cursor=0`, { headers: ttH }),
       ]);
       const profileData = await profileR.json();
       const videosData  = await videosR.json();
-      if (profileData.code !== 0) return json({ ok: false, error: 'Profilo TikTok non trovato o API key non valida' });
+      if (profileData.code !== 0) return json({ ok: false, error: `RapidAPI TikTok: ${profileData.msg || JSON.stringify(profileData).slice(0,200)}` });
 
-      let videos = videosData.data?.videos || [];
-      if (!allPosts) {
-        if (mode === 'auto' && managedFrom) {
-          const fromTs = Math.floor(new Date(managedFrom).getTime() / 1000);
-          videos = videos.filter(v => (v.createTime || 0) >= fromTs);
-        } else if (mode === 'manual' && startFrom > 0) {
-          videos = videos.filter(v => (v.createTime || 0) >= startFrom);
-        }
-      }
-      return json({ ok: true, platform: 'tiktok', profile: profileData.data?.user, stats: profileData.data?.stats, videos });
+      const ttProfile = profileData.data?.user;
+      const ttStats   = profileData.data?.stats;
+      const allVideos = videosData.data?.videos || [];
+
+      // Save to cache (unfiltered)
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos });
+
+      const videos = wantAll ? allVideos : applyFilter(allVideos, mode, managedFrom, startFrom, 'createTime');
+      return json({ ok: true, platform: 'tiktok', profile: ttProfile, stats: ttStats, videos });
     }
 
     return json({ ok: false, error: 'Platform non supportata' });
