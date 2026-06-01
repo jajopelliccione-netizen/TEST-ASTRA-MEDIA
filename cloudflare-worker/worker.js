@@ -257,20 +257,22 @@ async function handleSocialData(request, env) {
       }
 
       const igResp = await fetch(
-        `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`,
+        `https://i.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`,
         {
           headers: {
-            'x-ig-app-id': '317761232026879',
+            'x-ig-app-id': '936619743392459',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'Accept': '*/*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': `https://www.instagram.com/${encodeURIComponent(username)}/`,
+            'Origin': 'https://www.instagram.com',
+            'Referer': 'https://www.instagram.com/',
           },
         }
       );
 
       if (!igResp.ok) {
-        return json({ ok: false, error: `Instagram HTTP ${igResp.status} — account privato o richiesta bloccata` });
+        const errText = await igResp.text().catch(() => '');
+        return json({ ok: false, error: `Instagram HTTP ${igResp.status} — ${errText.slice(0, 200)}` });
       }
 
       const igData = await igResp.json();
