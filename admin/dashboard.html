@@ -619,6 +619,8 @@
     .cc-quick { display:flex;align-items:center;gap:6px;flex-shrink:0; }
     .cc-body { display:none;border-top:1px solid var(--border);padding:12px 16px 14px;background:rgba(7,6,15,.35); }
     .cc.open .cc-body { display:block; }
+    .cc-alert { border-color:rgba(255,45,120,.35) !important; }
+    .cc-alert .cc-head { background:rgba(255,45,120,.04); }
     .cc-details { display:flex;flex-wrap:wrap;gap:8px 20px;margin-bottom:10px; }
     .cc-detail-item { display:flex;flex-direction:column;gap:2px; }
     .cc-detail-label { font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600; }
@@ -753,11 +755,12 @@
         const name = (c.displayName || '—').replace(/'/g, '&#39;');
         const aColor = c.analyticsActive ? '#22c55e' : c.analyticsConfigured ? '#f59e0b' : 'var(--text-muted)';
         const aLabel = c.analyticsActive ? 'Analytics ✓' : c.analyticsConfigured ? 'Analytics cfg' : '';
+        const needsRevision = c.websiteDraft?.status === 'da_rivedere';
         const draftDot = c.websiteDraft?.url
-          ? `<span class="status-dot ${c.websiteDraft.status==='completato'?'active':c.websiteDraft.status==='approvato'?'approved':'pending'}" style="font-size:.65rem;">${c.websiteDraft.status||'bozza'}</span>` : '';
+          ? `<span class="status-dot ${c.websiteDraft.status==='completato'?'active':c.websiteDraft.status==='approvato'?'approved':c.websiteDraft.status==='da_rivedere'?'pending':'draft'}" style="font-size:.65rem;">${c.websiteDraft.status||'bozza'}</span>` : '';
         const isOpen = openIds.has(c.uid);
         return `
-        <div class="cc${isOpen?' open':''}" id="cc-${c.uid}">
+        <div class="cc${isOpen?' open':''}${needsRevision?' cc-alert':''}" id="cc-${c.uid}">
           <div class="cc-head" onclick="toggleCC('${c.uid}')">
             <div class="cc-info">
               <div class="cc-name">${name}${c.company ? ` <span style="font-weight:400;color:var(--text-muted);font-size:.82rem;">· ${c.company}</span>` : ''}</div>
@@ -766,6 +769,7 @@
                 <span class="badge badge-purple" style="font-size:.65rem;padding:2px 7px;">${c.package||'—'}</span>
                 ${aLabel ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:${aColor};"><span style="width:5px;height:5px;border-radius:50%;background:${aColor};"></span>${aLabel}</span>` : ''}
                 ${draftDot}
+                ${needsRevision ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:.65rem;font-weight:700;color:var(--pink);background:rgba(255,45,120,.12);border:1px solid rgba(255,45,120,.3);border-radius:99px;padding:1px 7px;">✎ Revisione richiesta</span>` : ''}
                 ${c.siteConfig?.status==='completed' ? `<span style="font-size:.65rem;color:var(--green);">Brief ✓</span>` : ''}
               </div>
             </div>
@@ -780,6 +784,17 @@
             </div>
           </div>
           <div class="cc-body" id="cc-body-${c.uid}">
+            ${needsRevision && c.websiteDraft?.declineFeedback ? `
+            <div style="background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.3);border-radius:10px;padding:11px 14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Il cliente ha richiesto modifiche
+              </div>
+              <div style="font-size:.83rem;line-height:1.55;color:var(--text);">${c.websiteDraft.declineFeedback.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+              <button onclick="markDraftRevised('${c.uid}')" style="margin-top:10px;background:none;border:1px solid rgba(255,45,120,.4);border-radius:7px;padding:5px 12px;color:var(--pink);cursor:pointer;font-size:.76rem;font-weight:600;transition:.15s;" onmouseover="this.style.background='rgba(255,45,120,.1)'" onmouseout="this.style.background='none'">
+                ✓ Preso in carico — rimetti in lavorazione
+              </button>
+            </div>` : ''}
             <div class="cc-details">
               <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
               <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
@@ -810,6 +825,19 @@
         </div>`;
       }).join('');
     }
+
+    window.markDraftRevised = async (uid) => {
+      try {
+        await updateDoc(doc(db, 'clients', uid), {
+          'websiteDraft.status': 'in_lavorazione',
+          'websiteDraft.declineFeedback': ''
+        });
+        const c = allClients.find(x => x.uid === uid);
+        if (c) { c.websiteDraft.status = 'in_lavorazione'; c.websiteDraft.declineFeedback = ''; }
+        renderClientsTable();
+        showToast('Rimesso in lavorazione!');
+      } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+    };
 
     window.toggleCC = (uid) => {
       const card = document.getElementById(`cc-${uid}`);
