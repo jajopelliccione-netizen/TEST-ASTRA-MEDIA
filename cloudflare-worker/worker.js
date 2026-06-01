@@ -378,7 +378,7 @@ async function handleSocialData(request, env) {
 
       let ttData;
       try {
-        ttData = await fetchTikTokDirect(username);
+        ttData = await fetchTikTokDirect(username, env.TIKWM_TOKEN);
       } catch (err) {
         return json({ ok: false, error: 'TikTok: ' + err.message });
       }
@@ -557,14 +557,15 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
   );
 }
 
-// ── TikTok via tikwm.com (free, no key) ───────────────────────────────────
-async function fetchTikTokDirect(username) {
+// ── TikTok via tikwm.com ───────────────────────────────────────────────────
+async function fetchTikTokDirect(username, token) {
   const base = 'https://www.tikwm.com/api';
+  const tk   = token ? `&token=${encodeURIComponent(token)}` : '';
   const [profileResp, videosResp] = await Promise.all([
-    fetch(`${base}/user/info?unique_id=${encodeURIComponent(username)}`, {
+    fetch(`${base}/user/info?unique_id=${encodeURIComponent(username)}${tk}`, {
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
     }),
-    fetch(`${base}/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0`, {
+    fetch(`${base}/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0${tk}`, {
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
     }),
   ]);
