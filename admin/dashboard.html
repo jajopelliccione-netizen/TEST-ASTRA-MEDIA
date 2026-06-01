@@ -538,7 +538,11 @@
               </div>
             </div>
             <div id="tt-post-select" style="display:none;">
-              <button type="button" onclick="loadPostsGrid('tt')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:8px;">Carica video da TikTok</button>
+              <div id="tt-connect-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;border-radius:8px;background:var(--surface);">
+              <span id="tt-connect-status" style="font-size:.8rem;flex:1;color:var(--text-muted);">Non connesso</span>
+              <button type="button" onclick="connectTikTok()" id="tt-connect-btn" class="btn" style="font-size:.75rem;padding:4px 12px;background:#000;border-color:#444;">Connetti TikTok</button>
+            </div>
+            <button type="button" onclick="loadPostsGrid('tt')" class="btn" style="font-size:.8rem;padding:5px 14px;margin-bottom:8px;">Carica video da TikTok</button>
               <p id="tt-posts-hint" style="display:none;font-size:.74rem;color:var(--text-muted);margin-bottom:6px;line-height:1.4;">Clicca su un video per vedere i dettagli e sceglierlo come punto di partenza.</p>
               <div id="tt-posts-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;max-height:180px;overflow-y:auto;border-radius:8px;overflow:hidden;"></div>
               <div id="tt-post-detail" style="display:none;margin-top:10px;"></div>
@@ -1544,6 +1548,33 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
     // ── SOCIAL MEDIA CONFIG ────────────────────────────────────────────────
     let _socialUid = null;
 
+    window.connectTikTok = async () => {
+      if (!_socialUid) return;
+      const btn = document.getElementById('tt-connect-btn');
+      btn.disabled = true; btn.textContent = 'Apertura…';
+      try {
+        const r = await fetch(`https://astra-notify.jacopopelliccione.workers.dev/api/tiktok-auth?clientId=${_socialUid}`);
+        const d = await r.json();
+        if (!d.ok) { showToast(d.error || 'Errore'); btn.disabled = false; btn.textContent = 'Connetti TikTok'; return; }
+        const popup = window.open(d.authUrl, 'tiktok-auth', 'width=520,height=720,scrollbars=yes,resizable=yes');
+        btn.textContent = 'In attesa…';
+        const handler = (e) => {
+          if (e.data?.type === 'tiktok-connected') {
+            window.removeEventListener('message', handler);
+            document.getElementById('tt-connect-status').textContent = '✓ Connesso';
+            document.getElementById('tt-connect-status').style.color = '#4ade80';
+            btn.textContent = 'Riconnetti';
+            btn.disabled = false;
+            showToast('TikTok connesso con successo!');
+          }
+        };
+        window.addEventListener('message', handler);
+        const poll = setInterval(() => {
+          if (popup.closed) { clearInterval(poll); window.removeEventListener('message', handler); btn.disabled = false; btn.textContent = 'Connetti TikTok'; }
+        }, 500);
+      } catch(err) { showToast('Errore: ' + err.message); btn.disabled = false; btn.textContent = 'Connetti TikTok'; }
+    };
+
     function fmtNum(n) {
       n = Number(n) || 0;
       if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'M';
@@ -1576,6 +1607,19 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
           if (cfg.mode === 'manual') document.getElementById(`${p}-post-select`).style.display = '';
           window[`_${p}StartFrom`] = cfg.startFrom || null;
         }
+        // Controlla se TikTok è già connesso
+        try {
+          const tokSnap = await getDoc(doc(db, 'tiktok_tokens', uid));
+          const statusEl = document.getElementById('tt-connect-status');
+          const btnEl = document.getElementById('tt-connect-btn');
+          if (tokSnap.exists() && tokSnap.data()?.access_token) {
+            statusEl.textContent = '✓ Connesso'; statusEl.style.color = '#4ade80';
+            btnEl.textContent = 'Riconnetti';
+          } else {
+            statusEl.textContent = 'Non connesso'; statusEl.style.color = '';
+            btnEl.textContent = 'Connetti TikTok';
+          }
+        } catch(_) {}
       } catch(_) {}
       document.getElementById('social-modal').classList.add('open');
     };

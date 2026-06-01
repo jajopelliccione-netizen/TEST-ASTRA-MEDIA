@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connessione TikTok</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #07060f; color: #e8e6f0; font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .card { background: #131020; border: 1px solid #2a2540; border-radius: 16px; padding: 40px 32px; text-align: center; max-width: 340px; width: 100%; }
+    .icon { font-size: 2.8rem; margin-bottom: 16px; line-height: 1; }
+    h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+    p { font-size: .88rem; color: #8b8a9b; line-height: 1.5; }
+    .spinner { width: 42px; height: 42px; border: 3px solid #2a2540; border-top-color: #7c5cbf; border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="spinner"></div>
+    <h2>Connessione TikTok…</h2>
+    <p>Attendere prego</p>
+  </div>
+  <script>
+    const p     = new URLSearchParams(location.search);
+    const code  = p.get('code');
+    const state = p.get('state');
+    const error = p.get('error');
+
+    function show(icon, title, msg) {
+      document.getElementById('card').innerHTML =
+        `<div class="icon">${icon}</div><h2>${title}</h2><p>${msg}</p>`;
+    }
+
+    async function run() {
+      if (error || !code) {
+        show('❌', 'Autorizzazione negata', error || 'Nessun codice ricevuto da TikTok');
+        setTimeout(() => window.close(), 3000);
+        return;
+      }
+      try {
+        const resp = await fetch('https://astragency.it/api/tiktok-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, state }),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          show('✅', 'TikTok connesso!', 'Puoi chiudere questa finestra');
+          if (window.opener) window.opener.postMessage({ type: 'tiktok-connected' }, '*');
+          setTimeout(() => window.close(), 2000);
+        } else {
+          show('❌', 'Errore', data.error || 'Errore sconosciuto');
+          setTimeout(() => window.close(), 5000);
+        }
+      } catch (err) {
+        show('❌', 'Errore di rete', err.message);
+        setTimeout(() => window.close(), 5000);
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>

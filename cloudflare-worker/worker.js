@@ -48,6 +48,14 @@ export default {
       return handleProxyImage(request);
     }
 
+    if (request.method === 'GET' && path.endsWith('/tiktok-auth')) {
+      return handleTikTokAuth(request, env);
+    }
+
+    if (request.method === 'POST' && path.endsWith('/tiktok-token')) {
+      return handleTikTokToken(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   },
 };
@@ -368,7 +376,7 @@ async function handleSocialData(request, env) {
       return json({ ok: true, platform: 'instagram', profile: pxProfile(profile), posts: pxPosts(posts) });
     }
 
-    // ── TikTok — direct page scraping ───────────────────────────────
+    // ── TikTok — Display API ufficiale (OAuth) ───────────────────────
     if (platform === 'tiktok') {
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
@@ -376,24 +384,133 @@ async function handleSocialData(request, env) {
         return json({ ok: true, platform: 'tiktok', profile: pxProfile(cached.profile), stats: cached.stats, videos: pxVideos(videos) });
       }
 
-      let ttData;
-      try {
-        ttData = await fetchTikTokDirect(username, env.TIKWM_TOKEN);
-      } catch (err) {
-        return json({ ok: false, error: 'TikTok: ' + err.message });
+      // Leggi token OAuth da Firestore
+      const tokResp = await fetch(`${fsBase}/tiktok_tokens/${clientId}`, { headers: { Authorization: `Bearer ${svcToken}` } });
+      if (!tokResp.ok) return json({ ok: false, error: 'TikTok non connesso — clicca "Connetti TikTok"' });
+      const tf = (await tokResp.json()).fields || {};
+      let accessToken = tf.access_token?.stringValue;
+      if (!accessToken) return json({ ok: false, error: 'TikTok non connesso — clicca "Connetti TikTok"' });
+
+      const nowTs = Math.floor(Date.now() / 1000);
+      const expiresAt = parseInt(tf.expires_at?.integerValue || '0');
+      const refreshToken = tf.refresh_token?.stringValue || '';
+      const refreshExpiresAt = parseInt(tf.refresh_expires_at?.integerValue || '0');
+
+      // Auto-refresh se scaduto
+      if (nowTs >= expiresAt && refreshToken && nowTs < refreshExpiresAt) {
+        try {
+          const rr = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, grant_type: 'refresh_token', refresh_token: refreshToken }),
+          });
+          const rd = await rr.json();
+          if (rd.access_token) {
+            accessToken = rd.access_token;
+            await fetch(`${fsBase}/tiktok_tokens/${clientId}`, {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fields: { access_token: { stringValue: rd.access_token }, expires_at: { integerValue: String(nowTs + (rd.expires_in || 86400)) }, ...(rd.refresh_token ? { refresh_token: { stringValue: rd.refresh_token } } : {}) } }),
+            });
+          }
+        } catch (_) {}
       }
 
-      const ttProfile = ttData.user;
-      const ttStats   = ttData.stats;
-      const allVideos = ttData.videos || [];
+      if (nowTs >= expiresAt && (!refreshToken || nowTs >= refreshExpiresAt)) {
+        return json({ ok: false, error: 'TikTok token scaduto — riconnetti l\'account' });
+      }
 
-      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos });
+      // Profilo
+      const uResp = await fetch(
+        'https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url,avatar_url_100,follower_count,following_count,likes_count,video_count',
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!uResp.ok) return json({ ok: false, error: `TikTok API HTTP ${uResp.status}` });
+      const uData = await uResp.json();
+      if (uData.error?.code && uData.error.code !== 'ok') return json({ ok: false, error: `TikTok: ${uData.error.message}` });
+      const u = uData.data?.user || {};
+      const profile = { uniqueId: username, nickname: u.display_name || '', avatarMedium: u.avatar_url || '', avatarLarger: u.avatar_url || '', avatarThumb: u.avatar_url_100 || u.avatar_url || '', signature: '', verified: u.is_verified || false };
+      const stats   = { followerCount: u.follower_count || 0, followingCount: u.following_count || 0, heart: u.likes_count || 0, videoCount: u.video_count || 0 };
 
+      // Video
+      let allVideos = [];
+      try {
+        const vResp = await fetch(
+          'https://open.tiktokapis.com/v2/video/list/?fields=id,title,create_time,cover_image_url,like_count,comment_count,share_count,view_count,duration',
+          { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ max_count: 20 }) }
+        );
+        if (vResp.ok) {
+          const vData = await vResp.json();
+          allVideos = (vData.data?.videos || []).map(v => ({ id: v.id || '', createTime: v.create_time || 0, cover_url: v.cover_image_url || '', origin_cover: v.cover_image_url || '', title: v.title || '', play_count: v.view_count || 0, digg_count: v.like_count || 0, comment_count: v.comment_count || 0, share_count: v.share_count || 0, duration: v.duration || 0 }));
+        }
+      } catch (_) {}
+
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile, stats, videos: allVideos });
       const videos = wantAll ? allVideos : applyFilter(allVideos, mode, managedFrom, startFrom, 'createTime');
-      return json({ ok: true, platform: 'tiktok', profile: pxProfile(ttProfile), stats: ttStats, videos: pxVideos(videos) });
+      return json({ ok: true, platform: 'tiktok', profile: pxProfile(profile), stats, videos: pxVideos(videos) });
     }
 
     return json({ ok: false, error: 'Platform non supportata' });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── GET /api/tiktok-auth ───────────────────────────────────────────────────
+async function handleTikTokAuth(request, env) {
+  const clientId = new URL(request.url).searchParams.get('clientId');
+  if (!clientId) return json({ ok: false, error: 'clientId richiesto' });
+  if (!env.TIKTOK_CLIENT_KEY) return json({ ok: false, error: 'TIKTOK_CLIENT_KEY non configurata nel Worker' });
+  const state = btoa(JSON.stringify({ clientId, ts: Date.now() }));
+  const params = new URLSearchParams({
+    client_key: env.TIKTOK_CLIENT_KEY,
+    scope: 'user.info.basic,video.list',
+    response_type: 'code',
+    redirect_uri: 'https://astragency.it/admin/tiktok-callback.html',
+    state,
+  });
+  return json({ ok: true, authUrl: `https://www.tiktok.com/v2/auth/authorize/?${params}` });
+}
+
+// ── POST /api/tiktok-token ─────────────────────────────────────────────────
+async function handleTikTokToken(request, env) {
+  try {
+    const { code, state } = await request.json();
+    if (!code || !state) return json({ ok: false, error: 'code e state richiesti' });
+    let clientId;
+    try { clientId = JSON.parse(atob(state)).clientId; } catch { return json({ ok: false, error: 'state non valido' }); }
+
+    const tokenResp = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_key: env.TIKTOK_CLIENT_KEY,
+        client_secret: env.TIKTOK_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: 'https://astragency.it/admin/tiktok-callback.html',
+      }),
+    });
+    const td = await tokenResp.json();
+    if (!td.access_token) return json({ ok: false, error: td.error_description || JSON.stringify(td) });
+
+    const projectId = env.FCM_PROJECT_ID;
+    const svcToken  = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase    = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+    const now       = Math.floor(Date.now() / 1000);
+
+    await fetch(`${fsBase}/tiktok_tokens/${clientId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: {
+        access_token:       { stringValue: td.access_token },
+        refresh_token:      { stringValue: td.refresh_token || '' },
+        expires_at:         { integerValue: String(now + (td.expires_in || 86400)) },
+        refresh_expires_at: { integerValue: String(now + (td.refresh_expires_in || 31536000)) },
+        open_id:            { stringValue: td.open_id || '' },
+      }}),
+    });
+    return json({ ok: true });
   } catch (err) {
     return json({ ok: false, error: err.message });
   }
