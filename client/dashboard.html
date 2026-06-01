@@ -149,24 +149,6 @@
       </div>
     </div>
 
-    <!-- REFERRAL -->
-    <div class="card">
-      <div class="card-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Programma Referral
-      </div>
-      <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:16px;">
-        Porta un amico o un'azienda da noi e ottieni uno <strong style="color:var(--green);">sconto del 10%</strong> sul tuo prossimo rinnovo.
-      </p>
-      <div class="referral-box" id="referral-box">
-        <span class="referral-link" id="referral-link">Caricamento…</span>
-        <button class="copy-btn" id="copy-btn">Copia</button>
-      </div>
-      <p style="margin-top:14px;font-size:.82rem;color:var(--text-muted);">
-        Referral completati: <strong id="referral-count" style="color:var(--cyan);">0</strong>
-      </p>
-    </div>
-
   </div>
 
   <!-- LOADING -->
@@ -311,18 +293,6 @@
         `;
       }
 
-      // Referral
-      const referralUrl = `https://astragency.it/?ref=${data.referralCode || targetUid.slice(0,8)}`;
-      document.getElementById('referral-link').textContent  = referralUrl;
-      document.getElementById('referral-count').textContent = data.referralCount || 0;
-
-      document.getElementById('copy-btn').addEventListener('click', () => {
-        navigator.clipboard.writeText(referralUrl);
-        const btn = document.getElementById('copy-btn');
-        btn.textContent = 'Copiato!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copia'; btn.classList.remove('copied'); }, 2000);
-      }, { once: true });
 
       // Questionario configurazione sito
       if (data.configModeEnabled) {

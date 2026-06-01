@@ -307,10 +307,6 @@
               <option value="Social + Sito Web">Social + Sito Web</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Codice Referral</label>
-            <input class="form-input" id="f-referral" placeholder="Es. MARIO2024" />
-          </div>
         </div>
         <!-- Config mode toggle — visibile solo per pacchetti con sito -->
         <div class="form-group" id="config-mode-group" style="display:none;">
@@ -804,7 +800,7 @@
             <div class="cc-details">
               <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
               <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
-              <div class="cc-detail-item"><span class="cc-detail-label">Referral</span><span>${c.referralCode||'—'} (${c.referralCount||0} usi)</span></div>
+
               ${c.analyticsActive===undefined&&!c.analyticsConfigured ? `<div class="cc-detail-item"><span class="cc-detail-label">Analytics</span><span style="cursor:pointer;color:var(--text-muted);font-size:.78rem;text-decoration:underline;" onclick="markAnalyticsConfigured('${c.uid}')">Segna come configurato</span></div>` : ''}
             </div>
             <div class="act-btns">
@@ -1172,7 +1168,7 @@
       document.getElementById('f-company').value       = c.company || '';
       document.getElementById('f-email').value         = c.email || '';
       document.getElementById('f-package').value       = c.package || 'Gestione Social Media';
-      document.getElementById('f-referral').value      = c.referralCode || '';
+
       document.getElementById('f-draft-url').value     = c.websiteDraft?.url || '';
       document.getElementById('f-draft-desc').value    = c.websiteDraft?.description || '';
       document.getElementById('f-draft-status').value  = c.websiteDraft?.status || 'in_lavorazione';
@@ -1200,8 +1196,7 @@
         company:           document.getElementById('f-company').value.trim(),
         email:             document.getElementById('f-email').value.trim(),
         package:           document.getElementById('f-package').value,
-        referralCode:      document.getElementById('f-referral').value.trim() || Math.random().toString(36).slice(2,8).toUpperCase(),
-        referralCount:     0,
+
         configModeEnabled: document.getElementById('f-config-mode').checked,
         websiteDraft: {
           url:         document.getElementById('f-draft-url').value.trim(),
