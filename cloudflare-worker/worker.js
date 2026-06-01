@@ -464,7 +464,7 @@ async function handleTikTokAuth(request, env) {
   const state = btoa(JSON.stringify({ clientId, ts: Date.now() }));
   const params = new URLSearchParams({
     client_key: env.TIKTOK_CLIENT_KEY,
-    scope: 'user.info.basic,video.list',
+    scope: 'user.info.basic,user.info.profile,user.info.stats,video.list',
     response_type: 'code',
     redirect_uri: 'https://astragency.it/admin/tiktok-callback.html',
     state,
