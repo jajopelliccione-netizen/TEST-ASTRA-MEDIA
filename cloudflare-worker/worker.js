@@ -272,7 +272,8 @@ async function handleSocialData(request, env) {
       if (!profileR.ok) return json({ ok: false, error: `RapidAPI HTTP ${profileR.status} — ${profileData?.message || JSON.stringify(profileData).slice(0,300)}` });
       if (!profileData.data) return json({ ok: false, error: `Risposta inattesa profilo — ${JSON.stringify(profileData).slice(0,300)}` });
 
-      const raw = profileData.data;
+      // Some API versions nest user under data.user, others put it directly in data
+      const raw = profileData.data?.user || profileData.data;
       const profile = {
         username:        raw.username || username,
         full_name:       raw.full_name || raw.name || '',
