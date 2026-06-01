@@ -648,7 +648,7 @@
     }
 
     window.openSurveyModal = () => {
-      _surveyStep = _surveyData._lastStep || 0;
+      _surveyStep = Math.min(_surveyData._lastStep || 0, SURVEY_TOTAL - 1);
       renderSurveyStep();
       document.getElementById('siteconfig-survey-modal').classList.add('open');
     };
