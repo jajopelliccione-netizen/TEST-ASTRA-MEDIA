@@ -302,7 +302,7 @@
         if (platform === 'instagram') {
           const pic = profile?.profile_pic_url_hd || profile?.profile_pic_url || '';
           return `<div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:18px;">
-            ${pic ? `<img src="${pic}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(245,133,41,.4);" />` : `<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f58529,#dd2a7b);flex-shrink:0;"></div>`}
+            ${pic ? `<img src="${pic}" referrerpolicy="no-referrer" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(245,133,41,.4);" />` : `<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f58529,#dd2a7b);flex-shrink:0;"></div>`}
             <div style="flex:1;min-width:0;">
               <div style="font-weight:700;">@${profile?.username || ''}</div>
               ${profile?.full_name ? `<div style="font-size:.8rem;color:var(--text-muted);">${profile.full_name}</div>` : ''}
@@ -315,7 +315,7 @@
         } else {
           const pic = profile?.avatarMedium || profile?.avatarLarger || '';
           return `<div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:18px;">
-            ${pic ? `<img src="${pic}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;" />` : `<div style="width:52px;height:52px;border-radius:50%;background:#000;flex-shrink:0;"></div>`}
+            ${pic ? `<img src="${pic}" referrerpolicy="no-referrer" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;" />` : `<div style="width:52px;height:52px;border-radius:50%;background:#000;flex-shrink:0;"></div>`}
             <div style="flex:1;min-width:0;">
               <div style="font-weight:700;">@${profile?.uniqueId || ''}</div>
               ${profile?.nickname ? `<div style="font-size:.8rem;color:var(--text-muted);">${profile.nickname}</div>` : ''}
@@ -342,7 +342,7 @@
               const isVid = post.media_type === 2;
               const d = JSON.stringify({id,thumb,likes,comments:cmts,isVid,link:post.permalink||''}).replace(/"/g,'&quot;');
               return `<div onclick='showSocialDetail("ig",${d})' style="cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:1;position:relative;background:var(--bg);">
-                ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
+                ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
                 ${isVid ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);border-radius:4px;padding:1px 5px;font-size:.62rem;color:#fff;">▶</div>' : ''}
                 <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:5px 6px 4px;display:flex;gap:7px;">
                   <span style="font-size:.65rem;color:#fff;">❤ ${fmtSocialNum(likes)}</span>
@@ -364,7 +364,7 @@
               const link  = `https://www.tiktok.com/@${ttUsername}/video/${id}`;
               const d = JSON.stringify({id,thumb,plays,likes,comments:cmts,shares:shrs,link}).replace(/"/g,'&quot;');
               return `<div onclick='showSocialDetail("tt",${d})' style="cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:9/16;position:relative;background:var(--bg);">
-                ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
+                ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>` : ''}
                 <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:6px 6px 5px;">
                   <div style="font-size:.67rem;color:#fff;">▶ ${fmtSocialNum(plays)}</div>
                   <div style="font-size:.63rem;color:rgba(255,255,255,.8);">❤ ${fmtSocialNum(likes)}</div>
@@ -379,7 +379,7 @@
         const det = document.getElementById('social-detail-content');
         if (type === 'ig') {
           det.innerHTML = `
-            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;aspect-ratio:1;"><img src="${item.thumb}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
+            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;aspect-ratio:1;"><img src="${item.thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
               <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:#e1306c;">❤ ${fmtSocialNum(item.likes)}</div><div style="font-size:.73rem;color:var(--text-muted);">Like</div></div>
               <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;">💬 ${fmtSocialNum(item.comments)}</div><div style="font-size:.73rem;color:var(--text-muted);">Commenti</div></div>
@@ -387,7 +387,7 @@
             ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;justify-content:center;text-decoration:none;">Apri su Instagram ↗</a>` : ''}`;
         } else {
           det.innerHTML = `
-            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;max-height:260px;aspect-ratio:9/16;"><img src="${item.thumb}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
+            ${item.thumb ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:14px;max-height:260px;aspect-ratio:9/16;"><img src="${item.thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;"/></div>` : ''}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
               <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:var(--purple);">▶ ${fmtSocialNum(item.plays)}</div><div style="font-size:.73rem;color:var(--text-muted);">Views</div></div>
               <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:1.2rem;font-weight:800;color:#fe2c55;">❤ ${fmtSocialNum(item.likes)}</div><div style="font-size:.73rem;color:var(--text-muted);">Like</div></div>
