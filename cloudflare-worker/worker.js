@@ -231,7 +231,12 @@ async function handleSocialData(request, env) {
       ]);
       const profileData = await profileR.json();
       const postsData   = await postsR.json();
-      if (!profileR.ok || profileData.status === 'fail') return json({ ok: false, error: 'Profilo Instagram non trovato o API key non valida' });
+      if (!profileR.ok) {
+        return json({ ok: false, error: `RapidAPI HTTP ${profileR.status} — ${profileData?.message || JSON.stringify(profileData).slice(0,200)}` });
+      }
+      if (profileData.status === 'fail' || profileData.status === 'error' || profileData.message?.toLowerCase().includes('not found')) {
+        return json({ ok: false, error: `Profilo non trovato — ${profileData.message || JSON.stringify(profileData).slice(0,200)}` });
+      }
 
       // Normalizza profilo
       const raw = profileData.data?.user || profileData.data || profileData.user || profileData;
