@@ -226,7 +226,6 @@ async function handleSocialData(request, env) {
     const wantAll  = url.searchParams.get('allPosts') === '1';
 
     if (!clientId || !platform) return json({ ok: false, error: 'clientId e platform richiesti' });
-    if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker' });
 
     const projectId = env.FCM_PROJECT_ID;
     const svcToken  = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
@@ -248,49 +247,55 @@ async function handleSocialData(request, env) {
     if (!username) return json({ ok: false, error: 'Username non configurato' });
 
     const cacheKey = `${clientId}_${platform}`;
-    const RK = env.RAPID_API_KEY;
 
-    // ── Instagram ────────────────────────────────────────────────────
+    // ── Instagram — chiamata diretta, nessun servizio esterno ────────
     if (platform === 'instagram') {
-      // Cache check
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
         const posts = wantAll ? cached.posts : applyFilter(cached.posts, mode, managedFrom, startFrom, 'taken_at');
         return json({ ok: true, platform: 'instagram', profile: cached.profile, posts });
       }
 
-      // Fetch fresh — instagram-scraper-api2 (dsnapilabs), quota separata
-      const igHost = 'instagram-scraper-api2.p.rapidapi.com';
-      const igH    = { 'x-rapidapi-host': igHost, 'x-rapidapi-key': RK };
-      const [profileR, postsR] = await Promise.all([
-        fetch(`https://${igHost}/v1/info?username_or_id_or_url=${encodeURIComponent(username)}`, { headers: igH }),
-        fetch(`https://${igHost}/v1/posts?username_or_id_or_url=${encodeURIComponent(username)}`, { headers: igH }),
-      ]);
-      const profileData = await profileR.json();
-      const postsData   = await postsR.json();
+      const igResp = await fetch(
+        `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`,
+        {
+          headers: {
+            'x-ig-app-id': '317761232026879',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': `https://www.instagram.com/${encodeURIComponent(username)}/`,
+          },
+        }
+      );
 
-      if (!profileR.ok) return json({ ok: false, error: `RapidAPI HTTP ${profileR.status} — ${profileData?.message || JSON.stringify(profileData).slice(0,300)}` });
-      if (!profileData.data) return json({ ok: false, error: `Risposta inattesa profilo — ${JSON.stringify(profileData).slice(0,300)}` });
+      if (!igResp.ok) {
+        return json({ ok: false, error: `Instagram HTTP ${igResp.status} — account privato o richiesta bloccata` });
+      }
 
-      // Some API versions nest user under data.user, others put it directly in data
-      const raw = profileData.data?.user || profileData.data;
+      const igData = await igResp.json();
+      const igUser = igData.data?.user;
+      if (!igUser) {
+        return json({ ok: false, error: `Instagram: risposta inattesa — ${JSON.stringify(igData).slice(0, 300)}` });
+      }
+
       const profile = {
-        username:        raw.username || username,
-        full_name:       raw.full_name || raw.name || '',
-        profile_pic_url: raw.profile_pic_url_hd || raw.hd_profile_pic_url || raw.profile_pic_url || '',
-        followers_count: raw.followers_count || raw.follower_count || raw.edge_followed_by?.count || 0,
-        following_count: raw.following_count || raw.edge_follow?.count || 0,
-        media_count:     raw.media_count || raw.edge_owner_to_timeline_media?.count || 0,
+        username:        igUser.username || username,
+        full_name:       igUser.full_name || '',
+        profile_pic_url: igUser.profile_pic_url_hd || igUser.profile_pic_url || '',
+        followers_count: igUser.edge_followed_by?.count || 0,
+        following_count: igUser.edge_follow?.count || 0,
+        media_count:     igUser.edge_owner_to_timeline_media?.count || 0,
       };
-      const rawItems = postsData.data?.items || postsData.data?.posts || postsData.items || [];
-      const allIgPosts = rawItems.map(p => ({
-        id:             String(p.id || p.pk || ''),
-        taken_at:       p.taken_at || p.timestamp || 0,
-        like_count:     p.like_count || p.likes_count || 0,
-        comments_count: p.comments_count || p.comment_count || 0,
-        media_type:     p.media_type || 1,
-        thumbnail_url:  p.image_versions2?.candidates?.[0]?.url || p.thumbnail_url || p.display_url || p.image_url || '',
-        permalink:      p.permalink || (p.code ? `https://www.instagram.com/p/${p.code}/` : '') || (p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '') || '',
+
+      const allIgPosts = (igUser.edge_owner_to_timeline_media?.edges || []).map(({ node: p }) => ({
+        id:             p.id || '',
+        taken_at:       p.taken_at_timestamp || 0,
+        like_count:     p.edge_liked_by?.count || 0,
+        comments_count: p.edge_media_to_comment?.count || 0,
+        media_type:     p.__typename === 'GraphVideo' ? 2 : 1,
+        thumbnail_url:  p.thumbnail_src || p.display_url || '',
+        permalink:      p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '',
       }));
 
       saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts });
@@ -300,15 +305,14 @@ async function handleSocialData(request, env) {
 
     // ── TikTok ───────────────────────────────────────────────────────
     if (platform === 'tiktok') {
-      // Cache check
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
         const videos = wantAll ? cached.videos : applyFilter(cached.videos, mode, managedFrom, startFrom, 'createTime');
         return json({ ok: true, platform: 'tiktok', profile: cached.profile, stats: cached.stats, videos });
       }
 
-      // Fetch fresh
-      const ttH = { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': RK };
+      if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker (necessaria per TikTok)' });
+      const ttH = { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': env.RAPID_API_KEY };
       const [profileR, videosR] = await Promise.all([
         fetch(`https://tiktok-scraper7.p.rapidapi.com/user/info?uniqueId=${encodeURIComponent(username)}`,            { headers: ttH }),
         fetch(`https://tiktok-scraper7.p.rapidapi.com/user/posts?uniqueId=${encodeURIComponent(username)}&count=35&cursor=0`, { headers: ttH }),
