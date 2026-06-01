@@ -269,7 +269,6 @@ async function handleSocialData(request, env) {
     // Proxy CDN images through our Worker to bypass Instagram/TikTok CORP headers
     const origin = new URL(request.url).origin;
     const px = u => u ? `${origin}/api/proxy-image?url=${encodeURIComponent(u)}` : '';
-    // Proxia profilo Instagram (profile_pic_url) e TikTok (avatarMedium/Larger/Thumb)
     const pxProfile = p => {
       if (!p) return p;
       const r = { ...p };
@@ -364,12 +363,12 @@ async function handleSocialData(request, env) {
         permalink:      p.shortcode ? `https://www.instagram.com/p/${p.shortcode}/` : '',
       }));
 
-      saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts }); // originals in cache
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile, posts: allIgPosts });
       const posts = wantAll ? allIgPosts : applyFilter(allIgPosts, mode, managedFrom, startFrom, 'taken_at');
       return json({ ok: true, platform: 'instagram', profile: pxProfile(profile), posts: pxPosts(posts) });
     }
 
-    // ── TikTok ───────────────────────────────────────────────────────
+    // ── TikTok — direct page scraping ───────────────────────────────
     if (platform === 'tiktok') {
       const cached = await loadSocialCache(fsBase, svcToken, cacheKey);
       if (cached) {
@@ -377,22 +376,18 @@ async function handleSocialData(request, env) {
         return json({ ok: true, platform: 'tiktok', profile: pxProfile(cached.profile), stats: cached.stats, videos: pxVideos(videos) });
       }
 
-      if (!env.RAPID_API_KEY) return json({ ok: false, error: 'RAPID_API_KEY non configurata nel Worker (necessaria per TikTok)' });
-      const ttH = { 'x-rapidapi-host': 'tiktok-scraper7.p.rapidapi.com', 'x-rapidapi-key': env.RAPID_API_KEY };
-      const [profileR, videosR] = await Promise.all([
-        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/info?uniqueId=${encodeURIComponent(username)}`,            { headers: ttH }),
-        fetch(`https://tiktok-scraper7.p.rapidapi.com/user/posts?uniqueId=${encodeURIComponent(username)}&count=35&cursor=0`, { headers: ttH }),
-      ]);
-      const profileData = await profileR.json();
-      const videosData  = await videosR.json();
-      if (profileData.code !== 0) return json({ ok: false, error: `RapidAPI TikTok: ${profileData.msg || JSON.stringify(profileData).slice(0,200)}` });
+      let ttData;
+      try {
+        ttData = await fetchTikTokDirect(username);
+      } catch (err) {
+        return json({ ok: false, error: 'TikTok: ' + err.message });
+      }
 
-      const ttProfile = profileData.data?.user;
-      const ttStats   = profileData.data?.stats;
-      const allVideos = videosData.data?.videos || [];
+      const ttProfile = ttData.user;
+      const ttStats   = ttData.stats;
+      const allVideos = ttData.videos || [];
 
-      // Save to cache (unfiltered)
-      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos }); // originals in cache
+      saveSocialCache(fsBase, svcToken, cacheKey, { profile: ttProfile, stats: ttStats, videos: allVideos });
 
       const videos = wantAll ? allVideos : applyFilter(allVideos, mode, managedFrom, startFrom, 'createTime');
       return json({ ok: true, platform: 'tiktok', profile: pxProfile(ttProfile), stats: ttStats, videos: pxVideos(videos) });
@@ -560,6 +555,36 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
       })
     )
   );
+}
+
+// ── TikTok direct scraping ─────────────────────────────────────────────────
+async function fetchTikTokDirect(username) {
+  const resp = await fetch(`https://www.tiktok.com/@${encodeURIComponent(username)}`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const html = await resp.text();
+  const m = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('dati non trovati nella pagina (possibile bot detection)');
+  let raw;
+  try { raw = JSON.parse(m[1]); } catch { throw new Error('JSON non valido nella pagina TikTok'); }
+  const scope = raw.__DEFAULT_SCOPE__ || {};
+  const ud = scope['webapp.user-detail'] || {};
+  const userInfo = ud.userInfo || {};
+  if (!userInfo.user?.uniqueId) {
+    for (const k of Object.keys(scope)) {
+      const s = scope[k];
+      if (s?.userInfo?.user?.uniqueId) {
+        return { user: s.userInfo.user, stats: s.userInfo.stats || {}, videos: s.itemList || [] };
+      }
+    }
+    throw new Error('profilo non trovato nel JSON della pagina');
+  }
+  return { user: userInfo.user, stats: userInfo.stats || {}, videos: ud.itemList || [] };
 }
 
 // ── Auth JWT ───────────────────────────────────────────────────────────────
