@@ -430,7 +430,7 @@ async function handleSocialData(request, env) {
       if (uData.error?.code && uData.error.code !== 'ok') return json({ ok: false, error: `TikTok: ${uData.error.message}` });
       const u = uData.data?.user || {};
       const profile = { uniqueId: username, nickname: u.display_name || '', avatarMedium: u.avatar_url || '', avatarLarger: u.avatar_url || '', avatarThumb: u.avatar_url_100 || u.avatar_url || '', signature: '', verified: u.is_verified || false };
-      const stats   = { followerCount: u.follower_count || 0, followingCount: u.following_count || 0, heart: u.likes_count || 0, videoCount: u.video_count || 0 };
+      const stats   = { followerCount: u.follower_count || 0, followingCount: u.following_count || 0, heartCount: u.likes_count || 0, videoCount: u.video_count || 0 };
 
       // Video
       let allVideos = [];
@@ -768,7 +768,7 @@ async function fetchTikTokDirect(username, token) {
     stats: {
       followerCount:  s.followerCount  || 0,
       followingCount: s.followingCount || 0,
-      heart:          s.heartCount     || 0,
+      heartCount:     s.heartCount     || 0,
       videoCount:     s.videoCount     || 0,
     },
     videos,
