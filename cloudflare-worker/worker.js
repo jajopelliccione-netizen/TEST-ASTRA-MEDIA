@@ -561,30 +561,57 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
 async function fetchTikTokDirect(username) {
   const resp = await fetch(`https://www.tiktok.com/@${encodeURIComponent(username)}`, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
     },
   });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   const html = await resp.text();
+
+  // Try __UNIVERSAL_DATA_FOR_REHYDRATION__
   const m = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]*?)<\/script>/);
-  if (!m) throw new Error('dati non trovati nella pagina (possibile bot detection)');
-  let raw;
-  try { raw = JSON.parse(m[1]); } catch { throw new Error('JSON non valido nella pagina TikTok'); }
-  const scope = raw.__DEFAULT_SCOPE__ || {};
-  const ud = scope['webapp.user-detail'] || {};
-  const userInfo = ud.userInfo || {};
-  if (!userInfo.user?.uniqueId) {
+  if (m) {
+    let raw;
+    try { raw = JSON.parse(m[1]); } catch { throw new Error('JSON non valido nella pagina TikTok'); }
+    const scope = raw.__DEFAULT_SCOPE__ || {};
+
+    const ud = scope['webapp.user-detail'];
+    if (ud?.userInfo?.user?.uniqueId) {
+      return { user: ud.userInfo.user, stats: ud.userInfo.stats || {}, videos: ud.itemList || [] };
+    }
     for (const k of Object.keys(scope)) {
       const s = scope[k];
       if (s?.userInfo?.user?.uniqueId) {
         return { user: s.userInfo.user, stats: s.userInfo.stats || {}, videos: s.itemList || [] };
       }
     }
-    throw new Error('profilo non trovato nel JSON della pagina');
+    // Return scope keys in error to help diagnose bot detection
+    throw new Error(`chiavi scope: [${Object.keys(scope).join(', ')}]`);
   }
-  return { user: userInfo.user, stats: userInfo.stats || {}, videos: ud.itemList || [] };
+
+  // Fallback: __NEXT_DATA__ (struttura precedente TikTok)
+  const n = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+  if (n) {
+    let raw;
+    try { raw = JSON.parse(n[1]); } catch {}
+    const props = raw?.props?.pageProps;
+    if (props?.userInfo?.user?.uniqueId) {
+      return { user: props.userInfo.user, stats: props.userInfo.stats || {}, videos: props.itemList || [] };
+    }
+  }
+
+  throw new Error('struttura HTML non riconosciuta — bot detection attiva');
 }
 
 // ── Auth JWT ───────────────────────────────────────────────────────────────
