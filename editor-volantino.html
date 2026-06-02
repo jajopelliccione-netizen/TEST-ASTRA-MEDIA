@@ -517,6 +517,64 @@
     /* hidden class */
     .hidden { display: none !important; }
 
+    /* ── Free-transform ── */
+    [data-ft] { cursor: pointer; }
+    [data-ft]:hover { outline: 1px dashed rgba(123,92,240,0.45); outline-offset: 5px; border-radius: 4px; }
+    [data-ft].ft-sel { outline: 2px solid #7B5CF0 !important; outline-offset: 5px; border-radius: 4px; cursor: move; z-index: 10; }
+
+    #sel-overlay {
+      display: none;
+      position: absolute;
+      pointer-events: none;
+      z-index: 50;
+    }
+    .sel-handle {
+      position: absolute;
+      width: 14px; height: 14px;
+      background: #7B5CF0;
+      border: 2px solid #fff;
+      border-radius: 4px;
+      pointer-events: all;
+      box-shadow: 0 0 6px rgba(123,92,240,0.8);
+    }
+    .sel-nw { top: -7px;  left: -7px;  cursor: nw-resize; }
+    .sel-ne { top: -7px;  right: -7px; cursor: ne-resize; }
+    .sel-sw { bottom: -7px; left: -7px;  cursor: sw-resize; }
+    .sel-se { bottom: -7px; right: -7px; cursor: se-resize; }
+
+    .sel-toolbar {
+      position: absolute;
+      top: -46px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: #0d0b1e;
+      border: 1px solid rgba(123,92,240,0.4);
+      border-radius: 10px;
+      padding: 5px 8px;
+      pointer-events: all;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .sel-toolbar button {
+      background: rgba(123,92,240,0.18);
+      border: 1px solid rgba(123,92,240,0.25);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .sel-toolbar button:hover { background: rgba(123,92,240,0.45); }
+    .sel-toolbar .sel-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.1); margin: 0 2px; }
+    .sel-toolbar .sel-info { font-size: 11px; color: rgba(255,255,255,0.35); padding: 0 4px; font-family: 'Space Grotesk',sans-serif; min-width: 48px; text-align: center; }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .editor-layout { flex-direction: column; height: auto; overflow: visible; }
@@ -800,29 +858,49 @@
         <div class="f-dot" style="width:5px;height:5px;top:44%;left:5%;opacity:.3;"></div>
         <div class="f-dot" style="width:3px;height:3px;bottom:28%;right:8%;opacity:.5;"></div>
 
+        <!-- Selection overlay -->
+        <div id="sel-overlay">
+          <div class="sel-handle sel-nw" data-corner="nw"></div>
+          <div class="sel-handle sel-ne" data-corner="ne"></div>
+          <div class="sel-handle sel-sw" data-corner="sw"></div>
+          <div class="sel-handle sel-se" data-corner="se"></div>
+          <div class="sel-toolbar">
+            <button onclick="ft_scale(0.08)" title="Ingrandisci">+</button>
+            <button onclick="ft_scale(-0.08)" title="Rimpicciolisci">−</button>
+            <div class="sel-sep"></div>
+            <button onclick="ft_nudge(0,-5)" title="Su">↑</button>
+            <button onclick="ft_nudge(0,5)"  title="Giù">↓</button>
+            <button onclick="ft_nudge(-5,0)" title="Sinistra">←</button>
+            <button onclick="ft_nudge(5,0)"  title="Destra">→</button>
+            <div class="sel-sep"></div>
+            <button onclick="ft_reset()" title="Reset posizione">↺</button>
+            <span class="sel-info" id="sel-info">100%</span>
+          </div>
+        </div>
+
         <!-- Logo -->
-        <img src="logo.png" class="f-logo" id="f-logo" alt="Logo" />
+        <img src="logo.png" class="f-logo" id="f-logo" alt="Logo" data-ft="1" />
 
         <!-- Badge -->
-        <div class="f-badge" id="f-badge">
+        <div class="f-badge" id="f-badge" data-ft="1">
           <div class="f-badge-dot"></div>
           <span class="f-badge-text" id="f-badge-text">Social Media Agency</span>
         </div>
 
         <!-- Headline -->
-        <h1 class="f-headline" id="f-headline">
+        <h1 class="f-headline" id="f-headline" data-ft="1">
           <span id="f-h1">Portiamo il tuo</span><br/>
           <span class="f-gradient-word" id="f-hg">brand</span><span id="f-h2"> tra le stelle</span>
         </h1>
 
         <!-- Subline -->
-        <p class="f-subline" id="f-subline">Strategia &nbsp;·&nbsp; Contenuti &nbsp;·&nbsp; Crescita</p>
+        <p class="f-subline" id="f-subline" data-ft="1">Strategia &nbsp;·&nbsp; Contenuti &nbsp;·&nbsp; Crescita</p>
 
         <!-- Divider -->
         <div class="f-divider" id="f-divider"></div>
 
         <!-- Services -->
-        <div class="f-services" id="f-services">
+        <div class="f-services" id="f-services" data-ft="1">
           <div class="f-service-card">
             <div class="f-svc-icon" style="background:linear-gradient(135deg,rgba(123,92,240,0.25),rgba(180,79,216,0.2));">
               <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="2" fill="#7B5CF0"/><rect x="13" y="2" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/><rect x="2" y="13" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/><rect x="13" y="13" width="9" height="9" rx="2" fill="#7B5CF0" opacity=".5"/></svg>
@@ -844,12 +922,12 @@
         </div>
 
         <!-- CTA -->
-        <div class="f-cta-wrap">
+        <div class="f-cta-wrap" id="f-cta-wrap" data-ft="1">
           <span class="f-cta-btn" id="f-cta">Prenota una consulenza gratuita ✦</span>
         </div>
 
         <!-- Contacts -->
-        <div class="f-contacts" id="f-contacts">
+        <div class="f-contacts" id="f-contacts" data-ft="1">
           <div class="f-contact-chip">
             <svg viewBox="0 0 24 24" fill="#7B5CF0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
             <span id="f-email">info@astragency.it</span>
@@ -861,7 +939,7 @@
         </div>
 
         <!-- Social -->
-        <div class="f-social-row" id="f-social">
+        <div class="f-social-row" id="f-social" data-ft="1">
           <span class="f-social-btn ig">
             <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             <span id="f-ig">@astragency.it</span>
@@ -872,7 +950,7 @@
           </span>
         </div>
 
-        <p class="f-footer" id="f-footer">© 2025 Astra Agency · Tutti i diritti riservati</p>
+        <p class="f-footer" id="f-footer" data-ft="1">© 2025 Astra Agency · Tutti i diritti riservati</p>
 
       </div>
     </div>
@@ -1097,6 +1175,164 @@
     } catch(e) { alert('Errore PPTX: '+e.message); }
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>Canva (.pptx)</span>`;
   }
+
+  /* ══════════════════════════════════════
+     FREE TRANSFORM — drag, resize, nudge
+  ══════════════════════════════════════ */
+
+  const ftState = {};   // { id: { x, y, scale } }
+  let ftSel     = null;
+  let ftDrag    = false;
+  let ftResize  = false;
+  let ftDragD   = {};
+  let ftResizeD = {};
+
+  function ftGet(id) {
+    if (!ftState[id]) ftState[id] = { x:0, y:0, scale:1 };
+    return ftState[id];
+  }
+
+  function ftApply(el) {
+    if (!el || !el.id) return;
+    const s = ftGet(el.id);
+    el.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.scale})`;
+    el.style.transformOrigin = 'center center';
+    document.getElementById('sel-info').textContent = Math.round(s.scale * 100) + '%';
+  }
+
+  function ftSelect(el) {
+    if (ftSel === el) return;
+    ftDeselect();
+    ftSel = el;
+    el.classList.add('ft-sel');
+    rafOverlay();
+  }
+
+  function ftDeselect() {
+    if (!ftSel) return;
+    ftSel.classList.remove('ft-sel');
+    ftSel = null;
+    document.getElementById('sel-overlay').style.display = 'none';
+  }
+
+  function rafOverlay() {
+    requestAnimationFrame(updateOverlay);
+  }
+
+  function updateOverlay() {
+    if (!ftSel) return;
+    const flyerEl  = document.getElementById('flyer');
+    const flyerRect = flyerEl.getBoundingClientRect();
+    const elRect   = ftSel.getBoundingClientRect();
+    const ol = document.getElementById('sel-overlay');
+    const pad = 6;
+    ol.style.display = 'block';
+    ol.style.left    = (elRect.left - flyerRect.left - pad) + 'px';
+    ol.style.top     = (elRect.top  - flyerRect.top  - pad) + 'px';
+    ol.style.width   = (elRect.width  + pad * 2) + 'px';
+    ol.style.height  = (elRect.height + pad * 2) + 'px';
+    const scale = ftSel.id ? ftGet(ftSel.id).scale : 1;
+    document.getElementById('sel-info').textContent = Math.round(scale * 100) + '%';
+  }
+
+  /* ── Public controls ── */
+  function ft_scale(delta) {
+    if (!ftSel || !ftSel.id) return;
+    const s = ftGet(ftSel.id);
+    s.scale = Math.max(0.05, Math.min(5, s.scale + delta));
+    ftApply(ftSel);
+    rafOverlay();
+  }
+
+  function ft_nudge(dx, dy) {
+    if (!ftSel || !ftSel.id) return;
+    const s = ftGet(ftSel.id);
+    s.x += dx; s.y += dy;
+    ftApply(ftSel);
+    rafOverlay();
+  }
+
+  function ft_reset() {
+    if (!ftSel || !ftSel.id) return;
+    ftState[ftSel.id] = { x:0, y:0, scale:1 };
+    ftSel.style.transform = '';
+    rafOverlay();
+  }
+
+  /* ── Drag to move ── */
+  document.addEventListener('mousedown', (e) => {
+    // Corner resize handle
+    const handle = e.target.closest('.sel-handle');
+    if (handle && ftSel) {
+      ftResize = true;
+      const s = ftGet(ftSel.id);
+      const elRect = ftSel.getBoundingClientRect();
+      ftResizeD = {
+        startMx: e.clientX, startMy: e.clientY,
+        startScale: s.scale,
+        origW: elRect.width, origH: elRect.height
+      };
+      e.preventDefault(); e.stopPropagation(); return;
+    }
+
+    // Click on selectable element
+    const el = e.target.closest('[data-ft]');
+    if (el) {
+      ftSelect(el);
+      ftDrag = true;
+      const s = ftGet(el.id);
+      ftDragD = { startMx: e.clientX, startMy: e.clientY, startX: s.x, startY: s.y };
+      e.preventDefault(); return;
+    }
+
+    // Click on toolbar buttons — don't deselect
+    if (e.target.closest('.sel-toolbar')) return;
+
+    // Click elsewhere — deselect
+    if (!e.target.closest('.sidebar')) ftDeselect();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (ftDrag && ftSel) {
+      const s = ftGet(ftSel.id);
+      s.x = ftDragD.startX + (e.clientX - ftDragD.startMx);
+      s.y = ftDragD.startY + (e.clientY - ftDragD.startMy);
+      ftApply(ftSel);
+      rafOverlay();
+    }
+    if (ftResize && ftSel) {
+      const dx = e.clientX - ftResizeD.startMx;
+      const dy = e.clientY - ftResizeD.startMy;
+      const mag = (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+      const ref = Math.max(ftResizeD.origW, ftResizeD.origH, 80);
+      const delta = mag / ref;
+      const s = ftGet(ftSel.id);
+      s.scale = Math.max(0.05, Math.min(5, ftResizeD.startScale + delta));
+      ftApply(ftSel);
+      rafOverlay();
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    ftDrag = false; ftResize = false;
+  });
+
+  /* ── Keyboard nudge ── */
+  document.addEventListener('keydown', (e) => {
+    if (!ftSel) return;
+    const step = e.shiftKey ? 20 : 5;
+    if (e.key === 'ArrowLeft')  { ft_nudge(-step, 0); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { ft_nudge( step, 0); e.preventDefault(); }
+    if (e.key === 'ArrowUp')    { ft_nudge(0, -step); e.preventDefault(); }
+    if (e.key === 'ArrowDown')  { ft_nudge(0,  step); e.preventDefault(); }
+    if (e.key === 'Escape')     { ftDeselect(); }
+    if ((e.key === '+' || e.key === '=') && !e.target.matches('input,textarea')) { ft_scale(0.05); e.preventDefault(); }
+    if (e.key === '-' && !e.target.matches('input,textarea'))                    { ft_scale(-0.05); e.preventDefault(); }
+  });
+
+  /* ── Update overlay on window resize / scroll ── */
+  window.addEventListener('resize', () => { if (ftSel) rafOverlay(); });
+  document.getElementById('preview-area').addEventListener('scroll', () => { if (ftSel) rafOverlay(); });
 </script>
 </body>
 </html>
