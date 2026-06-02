@@ -73,7 +73,7 @@
     }
     .tb-btn:hover { opacity: .85; transform: translateY(-1px); }
     .tb-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-    .btn-png  { background: rgba(0,245,255,0.12); color: #00F5FF; border: 1px solid rgba(0,245,255,0.25); }
+    .btn-png  { background: linear-gradient(135deg,#00c853,#00897b); color: #fff; box-shadow: 0 0 16px rgba(0,200,83,0.3); }
     .btn-pdf  { background: rgba(255,45,120,0.12); color: #FF2D78; border: 1px solid rgba(255,45,120,0.25); }
     .btn-pptx { background: linear-gradient(135deg,var(--purple),var(--pink)); color: #fff; }
     .btn-reset { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
@@ -598,8 +598,8 @@
       <span>Reset</span>
     </button>
     <button class="tb-btn btn-png" onclick="exportPNG()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      <span>PNG</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>💾 Salva foto</span>
     </button>
     <button class="tb-btn btn-pdf" onclick="exportPDF()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
