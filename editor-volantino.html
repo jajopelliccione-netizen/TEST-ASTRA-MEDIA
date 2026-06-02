@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.0/dist/dom-to-image-more.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
@@ -1055,39 +1055,63 @@
     location.reload();
   }
 
+  /* ── Helper: cattura flyer a dimensione reale ── */
+  async function captureFlyer() {
+    const scaler = document.getElementById('preview-scaler');
+    const flyer  = document.getElementById('flyer');
+    // rimuovi temporaneamente lo scale della preview
+    const origT = scaler.style.transform;
+    const origM = scaler.style.marginBottom;
+    scaler.style.transform  = 'scale(1)';
+    scaler.style.marginBottom = '0';
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const scale = 3;
+    const dataUrl = await domtoimage.toPng(flyer, {
+      width:  flyer.offsetWidth  * scale,
+      height: flyer.offsetHeight * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        borderRadius: '0'
+      }
+    });
+    // ripristina scale
+    scaler.style.transform  = origT;
+    scaler.style.marginBottom = origM;
+    scaleFlyer();
+    return dataUrl;
+  }
+
   /* ── Export PNG ── */
   async function exportPNG() {
     const btn = document.querySelector('.btn-png');
-    btn.textContent = '...';
+    btn.innerHTML = '⏳';
+    btn.style.opacity = '.7';
     try {
-      const canvas = await html2canvas(document.getElementById('flyer'), {
-        scale: 2,
-        backgroundColor: null,
-        useCORS: true,
-        allowTaint: true
-      });
+      const dataUrl = await captureFlyer();
       const link = document.createElement('a');
       link.download = 'Volantino-AstraAgency.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
     } catch(e) { alert('Errore PNG: ' + e.message); }
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span>PNG</span>`;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span>💾 Salva foto</span>`;
+    btn.style.opacity = '1';
   }
 
   /* ── Export PDF ── */
   async function exportPDF() {
     const btn = document.querySelector('.btn-pdf');
-    btn.textContent = '...';
+    btn.innerHTML = '⏳';
+    btn.style.opacity = '.7';
     try {
-      const canvas = await html2canvas(document.getElementById('flyer'), {
-        scale: 2, backgroundColor: null, useCORS: true, allowTaint: true
-      });
+      const dataUrl = await captureFlyer();
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [700, 990] });
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 700, 990);
+      pdf.addImage(dataUrl, 'PNG', 0, 0, 700, 990);
       pdf.save('Volantino-AstraAgency.pdf');
     } catch(e) { alert('Errore PDF: ' + e.message); }
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> <span>PDF</span>`;
+    btn.style.opacity = '1';
   }
 
   /* ── Export PPTX ── */

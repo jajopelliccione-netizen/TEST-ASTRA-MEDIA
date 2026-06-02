@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.0/dist/dom-to-image-more.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -646,17 +646,19 @@ async function salvaFoto() {
   btn.style.pointerEvents = 'none';
   try {
     const flyer = document.getElementById('flyer');
-    const canvas = await html2canvas(flyer, {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#07060F',
-      width: flyer.offsetWidth,
-      height: flyer.offsetHeight
+    const scale = 3;
+    const dataUrl = await domtoimage.toPng(flyer, {
+      width:  flyer.offsetWidth  * scale,
+      height: flyer.offsetHeight * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        borderRadius: '0'
+      }
     });
     const link = document.createElement('a');
     link.download = 'Volantino-AstraAgency.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = dataUrl;
     link.click();
   } catch(e) {
     alert('Errore salvataggio foto: ' + e.message);
