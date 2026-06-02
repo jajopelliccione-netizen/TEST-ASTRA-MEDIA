@@ -688,6 +688,10 @@
             </div>
           </div>
           <div class="form-group">
+            <label for="contact-phone">Numero di telefono</label>
+            <input type="tel" id="contact-phone" name="phone" placeholder="+39 320 000 0000" required />
+          </div>
+          <div class="form-group">
             <label for="service">Cosa ti interessa?</label>
             <select id="service" name="service">
               <option value="">Scegli un'opzione</option>
@@ -802,6 +806,7 @@
           await addDoc(collection(db, 'contacts'), {
             name:      contactName,
             email:     document.getElementById('email').value.trim(),
+            phone:     document.getElementById('contact-phone').value.trim(),
             service:   document.getElementById('service').value,
             message:   document.getElementById('message').value.trim(),
             status:    'new',
