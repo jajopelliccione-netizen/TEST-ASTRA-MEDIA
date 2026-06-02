@@ -142,6 +142,7 @@
       letter-spacing: -0.02em;
       color: #ffffff;
       text-align: center;
+      width: 100%;
       margin-bottom: 20px;
       position: relative;
       z-index: 2;
@@ -162,6 +163,7 @@
       color: rgba(255,255,255,0.42);
       letter-spacing: 0.16em;
       text-align: center;
+      width: 100%;
       margin-bottom: 46px;
       position: relative;
       z-index: 2;
@@ -217,6 +219,8 @@
     .cta-wrap {
       position: relative;
       z-index: 2;
+      width: 100%;
+      text-align: center;
       margin-bottom: 42px;
     }
     .cta-btn {
@@ -234,49 +238,56 @@
 
     /* ── Contacts ── */
     .contacts {
+      width: 100%;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 22px;
-      margin-bottom: 32px;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
       position: relative;
       z-index: 2;
     }
-    .contact-chip {
-      display: inline-flex;
+    .contact-row {
+      display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 12.5px;
-      color: rgba(255,255,255,0.42);
+      justify-content: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: 0.01em;
     }
-    .contact-chip svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .contact-row svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* ── Social ── */
     .social-row {
       display: flex;
-      gap: 12px;
+      gap: 14px;
       justify-content: center;
       position: relative;
       z-index: 2;
+      width: 100%;
     }
     .social-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-size: 13px;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 12px;
+      padding: 13px 28px;
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
       text-decoration: none;
+      min-width: 210px;
     }
     .social-btn.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
     .social-btn.tt {
       background: linear-gradient(135deg,#1a1a2e,#16213e);
-      border: 1px solid rgba(0,245,255,0.3);
-      box-shadow: 0 0 14px rgba(0,245,255,0.12);
+      border: 1px solid rgba(0,245,255,0.35);
+      box-shadow: 0 0 18px rgba(0,245,255,0.14);
     }
-    .social-btn svg { width: 15px; height: 15px; }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* ── Footer ── */
     .footer-line {
@@ -378,14 +389,14 @@
 
   <!-- Contacts -->
   <div class="contacts">
-    <span class="contact-chip">
-      <svg viewBox="0 0 24 24" fill="rgba(123,92,240,0.8)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    <div class="contact-row">
+      <svg viewBox="0 0 24 24" fill="#7B5CF0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
       info@astragency.it
-    </span>
-    <span class="contact-chip">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(0,245,255,0.7)" stroke-width="2"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="rgba(0,245,255,0.7)" stroke-width="2"/></svg>
+    </div>
+    <div class="contact-row">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#00F5FF" stroke-width="2"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="#00F5FF" stroke-width="2"/></svg>
       astragency.it
-    </span>
+    </div>
   </div>
 
   <!-- Social -->
