@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volantino – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #07060F;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .flyer {
+      width: 700px;
+      min-height: 990px;
+      background: #07060F;
+      border-radius: 28px;
+      border: 1px solid rgba(123,92,240,0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 56px 52px;
+      gap: 0;
+    }
+
+    /* Ambient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 420px; height: 420px;
+      background: rgba(123,92,240,0.28);
+      bottom: -120px; left: -140px;
+    }
+    .orb-2 {
+      width: 300px; height: 300px;
+      background: rgba(255,45,120,0.18);
+      top: -80px; right: -100px;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: rgba(0,245,255,0.08);
+      top: 40%; left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Particles */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+    }
+
+    /* Logo */
+    .logo {
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 18px rgba(123,92,240,0.5));
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(0,245,255,0.45);
+      border-radius: 100px;
+      padding: 9px 24px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 2;
+      background: rgba(0,245,255,0.05);
+      box-shadow: 0 0 20px rgba(0,245,255,0.12), inset 0 0 20px rgba(0,245,255,0.04);
+    }
+    .badge-dot {
+      width: 10px; height: 10px;
+      background: #00F5FF;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00F5FF, 0 0 20px rgba(0,245,255,0.6);
+      flex-shrink: 0;
+    }
+    .badge-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      color: #00F5FF;
+      text-transform: uppercase;
+    }
+
+    /* Headline */
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 56px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 40px rgba(123,92,240,0.25);
+    }
+    .gradient-word {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78, #00F5FF);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Subline */
+    .subline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.15em;
+      text-align: center;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Divider */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(123,92,240,0.3), rgba(0,245,255,0.2), transparent);
+      margin-bottom: 44px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Services */
+    .services {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 44px;
+      position: relative;
+      z-index: 2;
+    }
+    .service-card {
+      flex: 1;
+      background: rgba(123,92,240,0.07);
+      border: 1px solid rgba(123,92,240,0.22);
+      border-radius: 16px;
+      padding: 22px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .service-icon-wrap {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .service-icon-wrap svg { width: 24px; height: 24px; }
+    .service-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.4;
+    }
+
+    /* CTA Button */
+    .cta-wrap {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 44px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 100px;
+      padding: 16px 44px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      box-shadow: 0 0 30px rgba(123,92,240,0.45), 0 0 60px rgba(255,45,120,0.2);
+    }
+
+    /* Contacts */
+    .contacts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 20px;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 2;
+    }
+    .contact-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.45);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .contact-chip svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* Social row */
+    .social-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #fff;
+      text-decoration: none;
+    }
+    .social-btn.ig {
+      background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af);
+    }
+    .social-btn.tt {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid rgba(0,245,255,0.3);
+      box-shadow: 0 0 12px rgba(0,245,255,0.15);
+    }
+    .social-btn svg { width: 15px; height: 15px; }
+
+    /* Footer line */
+    .footer-line {
+      margin-top: 32px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 0.05em;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+<div class="flyer">
+
+  <!-- Ambient orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Decorative dots -->
+  <div class="dot" style="width:4px;height:4px;top:12%;left:8%;opacity:.5;"></div>
+  <div class="dot" style="width:3px;height:3px;top:22%;right:12%;opacity:.4;"></div>
+  <div class="dot" style="width:5px;height:5px;top:45%;left:5%;opacity:.3;"></div>
+  <div class="dot" style="width:3px;height:3px;bottom:30%;right:7%;opacity:.5;"></div>
+  <div class="dot" style="width:4px;height:4px;bottom:15%;left:14%;opacity:.35;"></div>
+
+  <!-- Logo -->
+  <img src="logo.png" class="logo" alt="Astra Agency" />
+
+  <!-- Badge -->
+  <div class="badge">
+    <div class="badge-dot"></div>
+    <span class="badge-text">Social Media Agency</span>
+  </div>
+
+  <!-- Headline -->
+  <h1 class="headline">
+    Portiamo il tuo<br/>
+    <span class="gradient-word">brand</span> tra le stelle
+  </h1>
+
+  <!-- Subline -->
+  <p class="subline">Strategia &nbsp;·&nbsp; Contenuti &nbsp;·&nbsp; Crescita</p>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Services -->
+  <div class="services">
+
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(123,92,240,0.25),rgba(180,79,216,0.2));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="9" height="9" rx="2" fill="#7B5CF0"/>
+          <rect x="13" y="2" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/>
+          <rect x="2" y="13" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/>
+          <rect x="13" y="13" width="9" height="9" rx="2" fill="#7B5CF0" opacity=".5"/>
+        </svg>
+      </div>
+      <span class="service-name">Gestione<br/>Social Media</span>
+    </div>
+
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(255,45,120,0.2),rgba(255,107,107,0.15));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="5" width="20" height="15" rx="2" stroke="#FF2D78" stroke-width="2"/>
+          <path d="M10 9l6 3-6 3V9z" fill="#FF2D78"/>
+        </svg>
+      </div>
+      <span class="service-name">Foto<br/>& Video</span>
+    </div>
+
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,153,204,0.12));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <polyline points="22,7 13.5,15.5 8.5,10.5 2,17" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="16,7 22,7 22,13" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="service-name">Strategia<br/>di Crescita</span>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <span class="cta-btn">Prenota una consulenza gratuita ✦</span>
+  </div>
+
+  <!-- Contacts -->
+  <div class="contacts">
+    <span class="contact-chip">
+      <svg viewBox="0 0 24 24" fill="rgba(123,92,240,0.8)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      info@astragency.it
+    </span>
+    <span class="contact-chip">
+      <svg viewBox="0 0 24 24" fill="rgba(0,245,255,0.7)"><circle cx="12" cy="12" r="10" stroke="rgba(0,245,255,0.7)" stroke-width="2" fill="none"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="rgba(0,245,255,0.7)" stroke-width="2" fill="none"/></svg>
+      astragency.it
+    </span>
+  </div>
+
+  <!-- Social buttons -->
+  <div class="social-row">
+    <a href="https://instagram.com/astragency.it" class="social-btn ig">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      @astragency.it
+    </a>
+    <a href="https://tiktok.com/@astragency.it" class="social-btn tt">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.26 8.26 0 0 0 4.84 1.56V6.79a4.85 4.85 0 0 1-1.07-.1z"/></svg>
+      @astragency.it
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <p class="footer-line">© 2025 Astra Agency · Tutti i diritti riservati</p>
+
+</div>
+
+</body>
+</html>
