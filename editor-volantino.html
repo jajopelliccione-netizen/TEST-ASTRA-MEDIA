@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor Volantino – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --purple: #7B5CF0;
+      --pink:   #FF2D78;
+      --cyan:   #00F5FF;
+      --bg:     #07060F;
+      --sidebar-bg: #0d0b1e;
+      --border: rgba(123,92,240,0.2);
+      --text:   rgba(255,255,255,0.85);
+      --muted:  rgba(255,255,255,0.4);
+      --input-bg: rgba(255,255,255,0.05);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: #030208;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      height: 52px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+    }
+    .topbar-logo span { color: var(--purple); }
+    .topbar-actions { display: flex; gap: 8px; }
+    .tb-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, transform .15s;
+    }
+    .tb-btn:hover { opacity: .85; transform: translateY(-1px); }
+    .tb-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .btn-png  { background: rgba(0,245,255,0.12); color: #00F5FF; border: 1px solid rgba(0,245,255,0.25); }
+    .btn-pdf  { background: rgba(255,45,120,0.12); color: #FF2D78; border: 1px solid rgba(255,45,120,0.25); }
+    .btn-pptx { background: linear-gradient(135deg,var(--purple),var(--pink)); color: #fff; }
+    .btn-reset { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+
+    /* ── Main layout ── */
+    .editor-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 52px);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding-bottom: 40px;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(123,92,240,0.3); border-radius: 2px; }
+
+    /* Accordion sections */
+    .section {
+      border-bottom: 1px solid var(--border);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 18px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .section-header:hover { background: rgba(255,255,255,0.03); }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .section-title svg { width: 14px; height: 14px; color: var(--purple); }
+    .chevron {
+      width: 14px; height: 14px;
+      color: var(--muted);
+      transition: transform .2s;
+    }
+    .section.open .chevron { transform: rotate(180deg); }
+    .section-body {
+      display: none;
+      padding: 0 18px 16px;
+    }
+    .section.open .section-body { display: block; }
+
+    /* Form controls */
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .field input[type="text"],
+    .field input[type="email"],
+    .field textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      color: #fff;
+      outline: none;
+      transition: border-color .2s;
+      resize: none;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      border-color: rgba(123,92,240,0.5);
+    }
+    .field textarea { height: 56px; }
+
+    /* Color row */
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-swatch {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.15);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .color-swatch input[type="color"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      opacity: 0;
+    }
+    .color-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .color-hex {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      font-family: monospace;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 13px; color: var(--text); }
+    .toggle {
+      width: 38px; height: 21px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 100px;
+      position: relative;
+      cursor: pointer;
+      transition: background .2s;
+      border: none;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--purple); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 15px; height: 15px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform .2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    .toggle.on::after { transform: translateX(17px); }
+
+    /* Logo upload */
+    .logo-upload-area {
+      border: 1.5px dashed rgba(123,92,240,0.35);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-upload-area:hover {
+      border-color: rgba(123,92,240,0.7);
+      background: rgba(123,92,240,0.05);
+    }
+    .logo-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .logo-upload-area p { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .logo-preview-thumb {
+      height: 36px;
+      object-fit: contain;
+      margin-bottom: 6px;
+      display: block;
+      margin: 0 auto 6px;
+    }
+
+    /* Range slider */
+    .field input[type="range"] {
+      width: 100%;
+      accent-color: var(--purple);
+      cursor: pointer;
+    }
+    .range-value {
+      font-size: 11px;
+      color: var(--purple);
+      font-weight: 700;
+      float: right;
+      margin-top: -18px;
+    }
+
+    /* ── Preview area ── */
+    .preview-area {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 28px 20px 60px;
+      background: #030208;
+    }
+    .preview-area::-webkit-scrollbar { width: 6px; }
+    .preview-area::-webkit-scrollbar-track { background: transparent; }
+    .preview-area::-webkit-scrollbar-thumb { background: rgba(123,92,240,0.3); border-radius: 3px; }
+
+    .preview-scaler {
+      transform-origin: top center;
+    }
+
+    /* ════════════════════════════════
+       FLYER STYLES
+    ════════════════════════════════ */
+    .flyer {
+      width: 700px;
+      min-height: 990px;
+      background: var(--bg);
+      border-radius: 28px;
+      border: 1px solid rgba(123,92,240,0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 56px 52px;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      transition: background .4s;
+    }
+    .orb-1 { width:460px;height:460px;bottom:-140px;left:-160px; }
+    .orb-2 { width:320px;height:320px;top:-90px;right:-110px; }
+    .orb-3 { width:220px;height:220px;top:42%;left:50%;transform:translateX(-50%); }
+
+    .f-dot { position:absolute;border-radius:50%;background:rgba(255,255,255,0.4);pointer-events:none; }
+
+    .f-logo {
+      height: 58px;
+      object-fit: contain;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 22px rgba(123,92,240,0.55));
+    }
+
+    .f-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg,rgba(0,38,58,0.95),rgba(4,18,44,0.92));
+      border: 1.5px solid rgba(0,245,255,0.6);
+      border-radius: 100px;
+      padding: 12px 32px;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 0 18px rgba(0,245,255,0.22),0 0 40px rgba(0,245,255,0.09),inset 0 0 22px rgba(0,245,255,0.06);
+      transition: display .2s;
+    }
+    .f-badge-dot {
+      width: 12px; height: 12px;
+      background: #00F5FF;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px #00F5FF,0 0 18px rgba(0,245,255,0.7),0 0 32px rgba(0,245,255,0.35);
+    }
+    .f-badge-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13.5px;
+      letter-spacing: 0.22em;
+      color: #00F5FF;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(0,245,255,0.55);
+    }
+
+    .f-headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 56px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 40px rgba(123,92,240,0.22);
+    }
+    .f-gradient-word {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 55%, var(--cyan) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .f-subline {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.42);
+      letter-spacing: 0.16em;
+      text-align: center;
+      margin-bottom: 46px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .f-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg,transparent,rgba(123,92,240,0.35),rgba(0,245,255,0.2),transparent);
+      margin-bottom: 42px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .f-services {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+      margin-bottom: 42px;
+      position: relative;
+      z-index: 2;
+    }
+    .f-service-card {
+      flex: 1;
+      background: rgba(123,92,240,0.07);
+      border: 1px solid rgba(123,92,240,0.22);
+      border-radius: 16px;
+      padding: 22px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 11px;
+      text-align: center;
+    }
+    .f-svc-icon {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .f-svc-icon svg { width: 24px; height: 24px; }
+    .f-svc-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.4;
+    }
+
+    .f-cta-wrap { position:relative;z-index:2;margin-bottom:42px; }
+    .f-cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border-radius: 100px;
+      padding: 16px 48px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      letter-spacing: 0.02em;
+      box-shadow: 0 0 32px rgba(123,92,240,0.5),0 0 64px rgba(255,45,120,0.2);
+    }
+
+    .f-contacts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 22px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+    }
+    .f-contact-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.42);
+    }
+    .f-contact-chip svg { width:13px;height:13px;flex-shrink:0; }
+
+    .f-social-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+    .f-social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+    }
+    .f-social-btn.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+    .f-social-btn.tt {
+      background: linear-gradient(135deg,#1a1a2e,#16213e);
+      border: 1px solid rgba(0,245,255,0.3);
+      box-shadow: 0 0 14px rgba(0,245,255,0.12);
+    }
+    .f-social-btn svg { width:15px;height:15px; }
+
+    .f-footer {
+      margin-top: 30px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.05em;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* hidden class */
+    .hidden { display: none !important; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .editor-layout { flex-direction: column; height: auto; overflow: visible; }
+      .sidebar { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); }
+      .preview-area { padding: 20px 10px 40px; }
+      .topbar-actions .tb-btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg width="20" height="20" viewBox="0 0 300 300"><defs><linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7B5CF0"/><stop offset="100%" stop-color="#FF2D78"/></linearGradient></defs><polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#tg)"/></svg>
+    <span>ASTRA</span> Editor Volantino
+  </div>
+  <div class="topbar-actions">
+    <button class="tb-btn btn-reset" onclick="resetAll()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+      <span>Reset</span>
+    </button>
+    <button class="tb-btn btn-png" onclick="exportPNG()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>PNG</span>
+    </button>
+    <button class="tb-btn btn-pdf" onclick="exportPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>PDF</span>
+    </button>
+    <button class="tb-btn btn-pptx" onclick="exportPPTX()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Canva (.pptx)</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── Layout ── -->
+<div class="editor-layout">
+
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="sidebar">
+
+    <!-- Logo -->
+    <div class="section open" id="sec-logo">
+      <div class="section-header" onclick="toggleSection('sec-logo')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Logo
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="logo-upload-area" id="logo-drop">
+          <input type="file" accept="image/*" id="logo-file" onchange="uploadLogo(this)" />
+          <img src="logo.png" class="logo-preview-thumb" id="logo-thumb" alt="logo" />
+          <p>Clicca per cambiare logo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testi -->
+    <div class="section open" id="sec-testi">
+      <div class="section-header" onclick="toggleSection('sec-testi')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Testi
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>Badge (pillola in cima)</label>
+          <input type="text" id="inp-badge" value="Social Media Agency" oninput="upd('f-badge-text','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Titolo — riga 1</label>
+          <input type="text" id="inp-h1" value="Portiamo il tuo" oninput="upd('f-h1','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Parola con gradiente (riga 2)</label>
+          <input type="text" id="inp-hg" value="brand" oninput="upd('f-hg','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Titolo — riga 2 (dopo la parola)</label>
+          <input type="text" id="inp-h2" value=" tra le stelle" oninput="upd('f-h2','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Sottotitolo</label>
+          <input type="text" id="inp-sub" value="Strategia · Contenuti · Crescita" oninput="upd('f-subline','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Testo bottone CTA</label>
+          <input type="text" id="inp-cta" value="Prenota una consulenza gratuita ✦" oninput="upd('f-cta','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Email contatto</label>
+          <input type="text" id="inp-email" value="info@astragency.it" oninput="upd('f-email','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Sito web</label>
+          <input type="text" id="inp-web" value="astragency.it" oninput="upd('f-web','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Handle Instagram</label>
+          <input type="text" id="inp-ig" value="@astragency.it" oninput="upd('f-ig','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Handle TikTok</label>
+          <input type="text" id="inp-tt" value="@astragency.it" oninput="upd('f-tt','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Footer copyright</label>
+          <input type="text" id="inp-foot" value="© 2025 Astra Agency · Tutti i diritti riservati" oninput="upd('f-footer','text',this.value)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Servizi -->
+    <div class="section" id="sec-servizi">
+      <div class="section-header" onclick="toggleSection('sec-servizi')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="2" y="12" width="6" height="6" rx="1"/><rect x="9" y="12" width="6" height="6" rx="1"/><rect x="16" y="12" width="6" height="6" rx="1"/></svg>
+          Servizi (3 card)
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>Servizio 1</label>
+          <input type="text" id="inp-s1" value="Gestione Social Media" oninput="upd('f-s1','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Servizio 2</label>
+          <input type="text" id="inp-s2" value="Foto &amp; Video" oninput="upd('f-s2','text',this.value)" />
+        </div>
+        <div class="field">
+          <label>Servizio 3</label>
+          <input type="text" id="inp-s3" value="Strategia di Crescita" oninput="upd('f-s3','text',this.value)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Dimensioni testo -->
+    <div class="section" id="sec-dim">
+      <div class="section-header" onclick="toggleSection('sec-dim')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          Dimensioni testo
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>Titolo principale</label>
+          <input type="range" min="32" max="80" value="56" oninput="setFontSize('f-headline',this.value)" />
+          <div class="range-value" id="rv-headline">56px</div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Sottotitolo</label>
+          <input type="range" min="10" max="26" value="15" oninput="setFontSize('f-subline',this.value)" />
+          <div class="range-value" id="rv-subline">15px</div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Bottone CTA</label>
+          <input type="range" min="10" max="26" value="16" oninput="setFontSize('f-cta',this.value)" />
+          <div class="range-value" id="rv-cta">16px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colori -->
+    <div class="section" id="sec-colori">
+      <div class="section-header" onclick="toggleSection('sec-colori')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22c4.97 0 9-2.69 9-6-1.33-1.33-3.5-2-6-2s-4.67.67-6 2c0 3.31 4.03 6 9 6z"/></svg>
+          Colori brand
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <div class="color-row">
+            <div class="color-swatch" id="sw-purple" style="background:#7B5CF0;">
+              <input type="color" value="#7B5CF0" oninput="setColor('purple',this.value,'sw-purple')" />
+            </div>
+            <div>
+              <div class="color-label">Viola principale</div>
+              <div class="color-hex" id="hex-purple">#7B5CF0</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="color-row">
+            <div class="color-swatch" id="sw-pink" style="background:#FF2D78;">
+              <input type="color" value="#FF2D78" oninput="setColor('pink',this.value,'sw-pink')" />
+            </div>
+            <div>
+              <div class="color-label">Rosa / accento</div>
+              <div class="color-hex" id="hex-pink">#FF2D78</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="color-row">
+            <div class="color-swatch" id="sw-cyan" style="background:#00F5FF;">
+              <input type="color" value="#00F5FF" oninput="setColor('cyan',this.value,'sw-cyan')" />
+            </div>
+            <div>
+              <div class="color-label">Cyan (badge, sito)</div>
+              <div class="color-hex" id="hex-cyan">#00F5FF</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="color-row">
+            <div class="color-swatch" id="sw-bg" style="background:#07060F;">
+              <input type="color" value="#07060F" oninput="setColor('bg',this.value,'sw-bg')" />
+            </div>
+            <div>
+              <div class="color-label">Sfondo</div>
+              <div class="color-hex" id="hex-bg">#07060F</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visibilità -->
+    <div class="section" id="sec-vis">
+      <div class="section-header" onclick="toggleSection('sec-vis')">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Mostra / Nascondi
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="toggle-row">
+          <span class="toggle-label">Badge (Social Media Agency)</span>
+          <button class="toggle on" onclick="toggleEl('f-badge',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Linea divisoria</span>
+          <button class="toggle on" onclick="toggleEl('f-divider',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Card servizi</span>
+          <button class="toggle on" onclick="toggleEl('f-services',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Contatti (email / sito)</span>
+          <button class="toggle on" onclick="toggleEl('f-contacts',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Bottoni social (IG / TT)</span>
+          <button class="toggle on" onclick="toggleEl('f-social',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Footer</span>
+          <button class="toggle on" onclick="toggleEl('f-footer',this)"></button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ════ PREVIEW ════ -->
+  <main class="preview-area" id="preview-area">
+    <div class="preview-scaler" id="preview-scaler">
+
+      <div class="flyer" id="flyer">
+
+        <!-- Orbs -->
+        <div class="orb orb-1" id="orb1" style="background:rgba(123,92,240,0.3);"></div>
+        <div class="orb orb-2" id="orb2" style="background:rgba(255,45,120,0.18);"></div>
+        <div class="orb orb-3" id="orb3" style="background:rgba(0,245,255,0.07);"></div>
+
+        <div class="f-dot" style="width:4px;height:4px;top:11%;left:9%;opacity:.5;"></div>
+        <div class="f-dot" style="width:3px;height:3px;top:21%;right:11%;opacity:.4;"></div>
+        <div class="f-dot" style="width:5px;height:5px;top:44%;left:5%;opacity:.3;"></div>
+        <div class="f-dot" style="width:3px;height:3px;bottom:28%;right:8%;opacity:.5;"></div>
+
+        <!-- Logo -->
+        <img src="logo.png" class="f-logo" id="f-logo" alt="Logo" />
+
+        <!-- Badge -->
+        <div class="f-badge" id="f-badge">
+          <div class="f-badge-dot"></div>
+          <span class="f-badge-text" id="f-badge-text">Social Media Agency</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="f-headline" id="f-headline">
+          <span id="f-h1">Portiamo il tuo</span><br/>
+          <span class="f-gradient-word" id="f-hg">brand</span><span id="f-h2"> tra le stelle</span>
+        </h1>
+
+        <!-- Subline -->
+        <p class="f-subline" id="f-subline">Strategia &nbsp;·&nbsp; Contenuti &nbsp;·&nbsp; Crescita</p>
+
+        <!-- Divider -->
+        <div class="f-divider" id="f-divider"></div>
+
+        <!-- Services -->
+        <div class="f-services" id="f-services">
+          <div class="f-service-card">
+            <div class="f-svc-icon" style="background:linear-gradient(135deg,rgba(123,92,240,0.25),rgba(180,79,216,0.2));">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="2" fill="#7B5CF0"/><rect x="13" y="2" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/><rect x="2" y="13" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/><rect x="13" y="13" width="9" height="9" rx="2" fill="#7B5CF0" opacity=".5"/></svg>
+            </div>
+            <span class="f-svc-name" id="f-s1">Gestione Social Media</span>
+          </div>
+          <div class="f-service-card">
+            <div class="f-svc-icon" style="background:linear-gradient(135deg,rgba(255,45,120,0.2),rgba(255,107,107,0.15));">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="15" rx="2" stroke="#FF2D78" stroke-width="2"/><path d="M10 9l6 3-6 3V9z" fill="#FF2D78"/></svg>
+            </div>
+            <span class="f-svc-name" id="f-s2">Foto &amp; Video</span>
+          </div>
+          <div class="f-service-card">
+            <div class="f-svc-icon" style="background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,153,204,0.12));">
+              <svg viewBox="0 0 24 24" fill="none"><polyline points="22,7 13.5,15.5 8.5,10.5 2,17" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16,7 22,7 22,13" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="f-svc-name" id="f-s3">Strategia di Crescita</span>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="f-cta-wrap">
+          <span class="f-cta-btn" id="f-cta">Prenota una consulenza gratuita ✦</span>
+        </div>
+
+        <!-- Contacts -->
+        <div class="f-contacts" id="f-contacts">
+          <span class="f-contact-chip">
+            <svg viewBox="0 0 24 24" fill="rgba(123,92,240,0.8)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <span id="f-email">info@astragency.it</span>
+          </span>
+          <span class="f-contact-chip">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(0,245,255,0.7)" stroke-width="2"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="rgba(0,245,255,0.7)" stroke-width="2"/></svg>
+            <span id="f-web">astragency.it</span>
+          </span>
+        </div>
+
+        <!-- Social -->
+        <div class="f-social-row" id="f-social">
+          <span class="f-social-btn ig">
+            <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            <span id="f-ig">@astragency.it</span>
+          </span>
+          <span class="f-social-btn tt">
+            <svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.26 8.26 0 0 0 4.84 1.56V6.79a4.85 4.85 0 0 1-1.07-.1z"/></svg>
+            <span id="f-tt">@astragency.it</span>
+          </span>
+        </div>
+
+        <p class="f-footer" id="f-footer">© 2025 Astra Agency · Tutti i diritti riservati</p>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  /* ── Scale flyer to fit preview area ── */
+  function scaleFlyer() {
+    const area = document.getElementById('preview-area');
+    const scaler = document.getElementById('preview-scaler');
+    const flyer = document.getElementById('flyer');
+    const areaW = area.clientWidth - 40;
+    const fW = 700;
+    const scale = Math.min(1, areaW / fW);
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.transformOrigin = 'top center';
+    scaler.style.marginBottom = `-${flyer.offsetHeight * (1 - scale)}px`;
+  }
+  window.addEventListener('load', scaleFlyer);
+  window.addEventListener('resize', scaleFlyer);
+
+  /* ── Section accordion ── */
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  /* ── Generic text updater ── */
+  function upd(elId, prop, val) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (prop === 'text') el.textContent = val;
+  }
+
+  /* ── Font size ── */
+  function setFontSize(elId, val) {
+    document.getElementById(elId).style.fontSize = val + 'px';
+    const map = { 'f-headline': 'rv-headline', 'f-subline': 'rv-subline', 'f-cta': 'rv-cta' };
+    if (map[elId]) document.getElementById(map[elId]).textContent = val + 'px';
+  }
+
+  /* ── Colors ── */
+  function setColor(key, val, swId) {
+    document.getElementById(swId).style.background = val;
+    document.getElementById('hex-' + key).textContent = val;
+    const varMap = { purple: '--purple', pink: '--pink', cyan: '--cyan', bg: '--bg' };
+    document.documentElement.style.setProperty(varMap[key], val);
+    if (key === 'purple') {
+      document.getElementById('orb1').style.background = hexToRgba(val, 0.3);
+    }
+    if (key === 'pink') {
+      document.getElementById('orb2').style.background = hexToRgba(val, 0.18);
+    }
+    if (key === 'cyan') {
+      document.getElementById('orb3').style.background = hexToRgba(val, 0.07);
+      // Update badge border and dot
+      document.querySelector('.f-badge').style.borderColor = hexToRgba(val, 0.6);
+      document.querySelector('.f-badge-dot').style.background = val;
+      document.querySelector('.f-badge-text').style.color = val;
+    }
+    if (key === 'bg') {
+      document.getElementById('flyer').style.background = val;
+    }
+    // Update gradient word
+    const gw = document.getElementById('f-hg');
+    const p = getComputedStyle(document.documentElement);
+    const pu = p.getPropertyValue('--purple').trim();
+    const pi = p.getPropertyValue('--pink').trim();
+    const cy = p.getPropertyValue('--cyan').trim();
+    gw.style.backgroundImage = `linear-gradient(135deg, ${pu} 0%, ${pi} 55%, ${cy} 100%)`;
+  }
+
+  function hexToRgba(hex, a) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  /* ── Show/hide toggle ── */
+  function toggleEl(elId, btn) {
+    const el = document.getElementById(elId);
+    btn.classList.toggle('on');
+    el.classList.toggle('hidden');
+  }
+
+  /* ── Logo upload ── */
+  function uploadLogo(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('f-logo').src = e.target.result;
+      document.getElementById('logo-thumb').src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  /* ── Reset ── */
+  function resetAll() {
+    if (!confirm('Resettare tutto alle impostazioni originali?')) return;
+    location.reload();
+  }
+
+  /* ── Export PNG ── */
+  async function exportPNG() {
+    const btn = document.querySelector('.btn-png');
+    btn.textContent = '...';
+    try {
+      const canvas = await html2canvas(document.getElementById('flyer'), {
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
+        allowTaint: true
+      });
+      const link = document.createElement('a');
+      link.download = 'Volantino-AstraAgency.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch(e) { alert('Errore PNG: ' + e.message); }
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span>PNG</span>`;
+  }
+
+  /* ── Export PDF ── */
+  async function exportPDF() {
+    const btn = document.querySelector('.btn-pdf');
+    btn.textContent = '...';
+    try {
+      const canvas = await html2canvas(document.getElementById('flyer'), {
+        scale: 2, backgroundColor: null, useCORS: true, allowTaint: true
+      });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [700, 990] });
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 700, 990);
+      pdf.save('Volantino-AstraAgency.pdf');
+    } catch(e) { alert('Errore PDF: ' + e.message); }
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> <span>PDF</span>`;
+  }
+
+  /* ── Export PPTX ── */
+  async function exportPPTX() {
+    const btn = document.querySelector('.btn-pptx');
+    btn.textContent = 'Generando...';
+    try {
+      const pptx = new PptxGenJS();
+      pptx.defineLayout({ name:'A4V', width:7.48, height:10.58 });
+      pptx.layout = 'A4V';
+      const slide = pptx.addSlide();
+
+      const cs = getComputedStyle(document.documentElement);
+      const purpleHex = cs.getPropertyValue('--purple').trim().replace('#','');
+      const pinkHex   = cs.getPropertyValue('--pink').trim().replace('#','');
+      const cyanHex   = cs.getPropertyValue('--cyan').trim().replace('#','');
+      const bgHex     = cs.getPropertyValue('--bg').trim().replace('#','');
+
+      slide.background = { color: bgHex };
+
+      // Orbs
+      slide.addShape(pptx.ShapeType.ellipse,{ x:-1.4,y:7.5,w:4.5,h:4.5, fill:{color:purpleHex,transparency:72}, line:{color:purpleHex,transparency:100} });
+      slide.addShape(pptx.ShapeType.ellipse,{ x:5.5,y:-0.8,w:3.2,h:3.2, fill:{color:pinkHex,transparency:82}, line:{color:pinkHex,transparency:100} });
+
+      // Logo
+      try {
+        const img = document.getElementById('f-logo');
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img,0,0);
+        const lH = 0.55, lW = lH*(img.naturalWidth/img.naturalHeight);
+        slide.addImage({ data: c.toDataURL('image/png'), x:(7.48-lW)/2, y:0.48, w:lW, h:lH });
+      } catch(e) {
+        slide.addText('ASTRA AGENCY',{ x:0,y:0.45,w:7.48,h:0.6,align:'center',fontFace:'Syne',fontSize:22,bold:true,color:'FFFFFF' });
+      }
+
+      // Badge
+      slide.addShape(pptx.ShapeType.roundRect,{ x:1.3,y:1.32,w:4.88,h:0.5,rectRadius:0.25, fill:{color:'00263A',transparency:8}, line:{color:cyanHex,width:1.5,transparency:35} });
+      slide.addShape(pptx.ShapeType.ellipse,{ x:1.74,y:1.49,w:0.14,h:0.14, fill:{color:cyanHex}, line:{color:cyanHex,transparency:100} });
+      slide.addText(document.getElementById('f-badge-text').textContent,{ x:2.0,y:1.34,w:3.8,h:0.46,align:'left',valign:'middle',fontFace:'Syne',fontSize:9,bold:true,color:cyanHex,charSpacing:4 });
+
+      // Headline
+      const h1 = document.getElementById('f-h1').textContent;
+      const hg = document.getElementById('f-hg').textContent;
+      const h2 = document.getElementById('f-h2').textContent;
+      slide.addText([
+        { text: h1+'\n', options: { color:'FFFFFF' } },
+        { text: hg, options: { color: purpleHex } },
+        { text: h2, options: { color:'FFFFFF' } }
+      ],{ x:0.3,y:1.95,w:6.88,h:2.2,align:'center',fontFace:'Syne',fontSize:38,bold:true,lineSpacingMultiple:1.1 });
+
+      // Subline
+      slide.addText(document.getElementById('f-subline').textContent,{ x:0.5,y:4.22,w:6.48,h:0.4,align:'center',fontFace:'Space Grotesk',fontSize:11,color:'666688',charSpacing:2.5 });
+
+      // Divider
+      slide.addShape(pptx.ShapeType.line,{ x:0.5,y:4.82,w:6.48,h:0, line:{color:purpleHex,width:0.5,transparency:60} });
+
+      // Services
+      const svcs = ['f-s1','f-s2','f-s3'];
+      svcs.forEach((id,i)=>{
+        const x = 0.3+i*2.3;
+        slide.addShape(pptx.ShapeType.roundRect,{ x,y:5.02,w:2.12,h:1.52,rectRadius:0.14, fill:{color:purpleHex,transparency:93}, line:{color:purpleHex,width:0.75,transparency:78} });
+        slide.addText(document.getElementById(id).textContent,{ x,y:5.5,w:2.12,h:0.8,align:'center',fontFace:'Space Grotesk',fontSize:10.5,bold:true,color:'DDDDEE' });
+      });
+
+      // CTA
+      slide.addShape(pptx.ShapeType.roundRect,{ x:1.24,y:6.82,w:5.0,h:0.55,rectRadius:0.28, fill:{color:'A040C0',transparency:0}, line:{color:pinkHex,transparency:100} });
+      slide.addText(document.getElementById('f-cta').textContent,{ x:1.24,y:6.82,w:5.0,h:0.55,align:'center',valign:'middle',fontFace:'Syne',fontSize:12,bold:true,color:'FFFFFF' });
+
+      // Contacts
+      const email = document.getElementById('f-email').textContent;
+      const web   = document.getElementById('f-web').textContent;
+      slide.addText(`${email}   ·   ${web}`,{ x:0.5,y:7.6,w:6.48,h:0.35,align:'center',fontFace:'Space Grotesk',fontSize:9.5,color:'666680' });
+
+      // Social
+      slide.addShape(pptx.ShapeType.roundRect,{ x:1.44,y:8.1,w:2.0,h:0.42,rectRadius:0.1, fill:{color:'C0306A',transparency:0}, line:{color:'C0306A',transparency:100} });
+      slide.addText(document.getElementById('f-ig').textContent,{ x:1.44,y:8.1,w:2.0,h:0.42,align:'center',valign:'middle',fontFace:'Space Grotesk',fontSize:9,bold:true,color:'FFFFFF' });
+      slide.addShape(pptx.ShapeType.roundRect,{ x:3.64,y:8.1,w:2.0,h:0.42,rectRadius:0.1, fill:{color:'111128',transparency:0}, line:{color:cyanHex,width:1,transparency:60} });
+      slide.addText(document.getElementById('f-tt').textContent,{ x:3.64,y:8.1,w:2.0,h:0.42,align:'center',valign:'middle',fontFace:'Space Grotesk',fontSize:9,bold:true,color:'FFFFFF' });
+
+      // Footer
+      slide.addText(document.getElementById('f-footer').textContent,{ x:0.5,y:10.1,w:6.48,h:0.3,align:'center',fontFace:'Space Grotesk',fontSize:7.5,color:'333344' });
+
+      await pptx.writeFile({ fileName:'Volantino-AstraAgency.pptx' });
+    } catch(e) { alert('Errore PPTX: '+e.message); }
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>Canva (.pptx)</span>`;
+  }
+</script>
+</body>
+</html>
