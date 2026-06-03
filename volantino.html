@@ -61,6 +61,58 @@
       color: #fff;
       box-shadow: 0 0 18px rgba(0,200,83,0.35);
     }
+    .btn-schermo {
+      background: linear-gradient(135deg, #7B5CF0, #00F5FF);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(0,245,255,0.3);
+      font-size: 15px;
+      padding: 13px 28px;
+    }
+
+    /* ── Modalità schermo intero ── */
+    #fullscreen-mode {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07060F;
+      overflow-y: auto;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0;
+    }
+    #fullscreen-mode.active { display: flex; }
+    #fullscreen-mode .flyer {
+      border-radius: 0;
+      width: 100%;
+      max-width: 700px;
+      min-height: 100vh;
+      border: none;
+    }
+    #fs-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(7,6,15,0.95);
+      border-top: 1px solid rgba(123,92,240,0.3);
+      padding: 16px 20px;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      z-index: 10000;
+    }
+    #fs-banner p { font-size: 15px; color: #fff; margin-bottom: 10px; }
+    #fs-banner span { color: #00F5FF; font-weight: 700; }
+    #fs-close {
+      display: inline-block;
+      padding: 8px 22px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      font-weight: 600;
+    }
 
     /* ── Flyer card ── */
     .flyer {
@@ -311,18 +363,28 @@
 
 <!-- ── Export bar ── -->
 <div class="export-bar">
-  <button class="export-btn btn-foto" id="btn-foto" onclick="salvaFoto()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    💾 Salva come foto (PNG)
+  <button class="export-btn btn-schermo" onclick="apriSchermo()">
+    📸 Fai screenshot
   </button>
   <button class="export-btn btn-pptx" onclick="exportPPTX()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Scarica per Canva (.pptx)
   </button>
   <button class="export-btn btn-png" onclick="window.print()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     Stampa / PDF
   </button>
+</div>
+
+<!-- Modalità screenshot a schermo intero -->
+<div id="fullscreen-mode">
+  <div id="fs-flyer-wrap"></div>
+  <div id="fs-banner">
+    <p>📸 <span>Fai ora lo screenshot</span> del dispositivo — poi chiudi</p>
+    <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px;">
+      iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: tasto accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
+    </p>
+    <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi e torna all'editor</button>
+  </div>
 </div>
 
 <!-- ── Flyer ── -->
@@ -666,6 +728,28 @@ async function salvaFoto() {
   btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 💾 Salva come foto (PNG)`;
   btn.style.opacity = '1';
   btn.style.pointerEvents = '';
+}
+
+function apriSchermo() {
+  const flyer = document.getElementById('flyer');
+  const wrap = document.getElementById('fs-flyer-wrap');
+  wrap.innerHTML = '';
+  const clone = flyer.cloneNode(true);
+  clone.style.cssText = flyer.style.cssText;
+  clone.style.transform = 'none';
+  clone.style.margin = '0 auto';
+  clone.style.borderRadius = '24px';
+  clone.style.maxWidth = '700px';
+  clone.style.width = '100%';
+  wrap.appendChild(clone);
+  document.getElementById('fullscreen-mode').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function chiudiSchermo() {
+  document.getElementById('fullscreen-mode').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('fs-flyer-wrap').innerHTML = '';
 }
 </script>
 
