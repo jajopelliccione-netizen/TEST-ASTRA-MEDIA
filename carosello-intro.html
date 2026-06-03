@@ -86,17 +86,17 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      /* top padding = logo height (≈48px) + 18px gap */
-      padding: 68px 28px 46px;
+      /* logo = 120px, top = 14px → logo ends at 134px + 16px gap = 150px */
+      padding: 150px 34px 48px;
     }
 
     /* Logo template – injected via JS, same absolute position on every slide */
     .slide-logo-img {
       position: absolute;
-      top: 10px;
+      top: 14px;
       left: 50%;
       transform: translateX(-50%);
-      width: 80px;
+      width: 120px;
       height: auto;
       pointer-events: none;
       z-index: 25;
@@ -115,47 +115,46 @@
     .orb-c { width: 160px; height: 160px; background: rgba(0,245,255,0.10); top: 40%; left: 50%; transform: translateX(-50%); }
     .slide > *:not(.orb):not(.slide-logo-img) { position: relative; z-index: 1; }
 
-    /* ── Content atoms – unified sizing ── */
+    /* ── Content atoms ── */
     .s-label {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      margin-bottom: 10px;
+      color: rgba(255,255,255,0.38);
+      margin-bottom: 12px;
       text-align: center;
     }
     .s-badge {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       border: 1px solid rgba(0,245,255,0.5);
       border-radius: 50px;
-      padding: 5px 14px;
-      font-size: 10px;
+      padding: 6px 16px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.14em;
       color: #00F5FF;
       text-transform: uppercase;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .s-badge-dot {
-      width: 6px; height: 6px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: #00F5FF;
-      box-shadow: 0 0 7px #00F5FF;
+      box-shadow: 0 0 8px #00F5FF;
     }
     .s-title {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
       color: #fff;
       text-align: center;
-      line-height: 1.15;
-      margin-bottom: 10px;
-      /* same size on every slide */
-      font-size: clamp(22px, 5.5vw, 30px);
+      line-height: 1.18;
+      margin-bottom: 12px;
+      font-size: 26px;
     }
-    .s-title.cover { font-size: clamp(26px, 6.5vw, 36px); }
+    .s-title.cover { font-size: 32px; }
     .s-grad {
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
       -webkit-background-clip: text;
@@ -169,23 +168,23 @@
       background-clip: text;
     }
     .s-divider {
-      width: 40px; height: 2px;
+      width: 44px; height: 2px;
       background: linear-gradient(90deg, #7B5CF0, #FF2D78);
       border-radius: 2px;
-      margin: 10px auto;
+      margin: 12px auto;
     }
     .s-body {
-      font-size: clamp(12px, 3vw, 14px);
-      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      color: rgba(255,255,255,0.62);
       text-align: center;
       line-height: 1.6;
-      max-width: 320px;
+      max-width: 330px;
     }
     .s-icon-box {
-      width: 58px; height: 58px;
+      width: 62px; height: 62px;
       border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       border: 1px solid;
     }
     .s-pill {
@@ -195,28 +194,28 @@
       background: rgba(123,92,240,0.15);
       border: 1px solid rgba(123,92,240,0.3);
       border-radius: 50px;
-      padding: 7px 14px;
+      padding: 7px 15px;
       font-size: 12px;
       font-weight: 600;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.82);
       margin: 4px;
     }
     .s-cta {
       display: inline-block;
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
       border-radius: 50px;
-      padding: 12px 28px;
-      font-size: 14px;
+      padding: 13px 30px;
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
       text-align: center;
-      margin-top: 16px;
-      box-shadow: 0 0 24px rgba(123,92,240,0.45);
+      margin-top: 18px;
+      box-shadow: 0 0 26px rgba(123,92,240,0.45);
     }
     /* handle pinned at bottom of every slide */
     .s-handle {
       position: absolute;
-      bottom: 12px;
+      bottom: 13px;
       left: 50%;
       transform: translateX(-50%);
       font-size: 11px;
@@ -569,8 +568,8 @@
   let current = 0;
 
   // ── Inject logo.png as template element into every slide ──
-  const LOGO_W = 80; // px in viewer
-  const LOGO_TOP = 10; // px in viewer
+  const LOGO_W   = 120; // px in viewer (logo ends at 14+120=134px, content at 150px)
+  const LOGO_TOP =  14; // px in viewer
   document.querySelectorAll('.slide').forEach(slide => {
     const img = document.createElement('img');
     img.src = 'logo.png';
@@ -649,52 +648,37 @@
     clone.style.cssText = `
       min-width:${side}px; width:${side}px; height:${side}px;
       border-radius:0; flex:none; position:relative; overflow:hidden;
-      padding:${68*ratio}px ${28*ratio}px ${46*ratio}px;
+      background:#07060F; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:${150*ratio}px ${34*ratio}px ${48*ratio}px;
     `;
 
-    // Scale logo proportionally
-    const cloneLogo = clone.querySelector('.slide-logo-img');
-    if (cloneLogo) {
-      cloneLogo.style.width = (LOGO_W * ratio) + 'px';
-      cloneLogo.style.top   = (LOGO_TOP * ratio) + 'px';
-    }
+    // Scale every element proportionally to ratio
+    const sc = (base) => (base * ratio).toFixed(1) + 'px';
+    const scM = (v, h) => `${sc(v)} auto`;
 
-    // Scale text proportionally
-    clone.querySelectorAll('.s-title').forEach(el => {
-      const base = el.classList.contains('cover') ? 30 : 26;
-      el.style.fontSize = (base * ratio) + 'px';
-    });
-    clone.querySelectorAll('.s-body').forEach(el => {
-      el.style.fontSize = (13 * ratio) + 'px';
-    });
-    clone.querySelectorAll('.s-label').forEach(el => {
-      el.style.fontSize = (10 * ratio) + 'px';
-    });
+    clone.querySelector('.slide-logo-img').style.cssText +=
+      `width:${sc(LOGO_W)};top:${sc(LOGO_TOP)};`;
+
+    clone.querySelectorAll('.s-title').forEach(el =>
+      el.style.fontSize = sc(el.classList.contains('cover') ? 32 : 26));
+    clone.querySelectorAll('.s-body')  .forEach(el => el.style.fontSize = sc(14));
+    clone.querySelectorAll('.s-label') .forEach(el => { el.style.fontSize = sc(11); el.style.marginBottom = sc(12); });
+    clone.querySelectorAll('.s-badge') .forEach(el => { el.style.fontSize = sc(11); el.style.padding = `${sc(6)} ${sc(16)}`; el.style.marginBottom = sc(16); });
+    clone.querySelectorAll('.s-divider').forEach(el => el.style.margin = `${sc(12)} auto`);
     clone.querySelectorAll('.s-icon-box').forEach(el => {
-      el.style.width = (58 * ratio) + 'px';
-      el.style.height = (58 * ratio) + 'px';
-      el.style.marginBottom = (12 * ratio) + 'px';
-    });
-    clone.querySelectorAll('.s-divider').forEach(el => {
-      el.style.margin = (10 * ratio) + 'px auto';
+      el.style.width = sc(62); el.style.height = sc(62);
+      el.style.marginBottom = sc(14); el.style.borderRadius = sc(18);
     });
     clone.querySelectorAll('.s-handle').forEach(el => {
-      el.style.bottom = (12 * ratio) + 'px';
-      el.style.fontSize = (11 * ratio) + 'px';
+      el.style.bottom = sc(13); el.style.fontSize = sc(11);
     });
     clone.querySelectorAll('.s-pill').forEach(el => {
-      el.style.fontSize = (12 * ratio) + 'px';
-      el.style.padding = `${7*ratio}px ${14*ratio}px`;
+      el.style.fontSize = sc(12); el.style.padding = `${sc(7)} ${sc(15)}`;
     });
     clone.querySelectorAll('.s-cta').forEach(el => {
-      el.style.fontSize = (14 * ratio) + 'px';
-      el.style.padding = `${12*ratio}px ${28*ratio}px`;
-      el.style.marginTop = (16 * ratio) + 'px';
-    });
-    clone.querySelectorAll('.s-badge').forEach(el => {
-      el.style.fontSize = (10 * ratio) + 'px';
-      el.style.padding = `${5*ratio}px ${14*ratio}px`;
-      el.style.marginBottom = (14 * ratio) + 'px';
+      el.style.fontSize = sc(15); el.style.padding = `${sc(13)} ${sc(30)}`;
+      el.style.marginTop = sc(18);
     });
 
     wrap.appendChild(clone);
