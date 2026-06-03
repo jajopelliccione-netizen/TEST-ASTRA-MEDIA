@@ -21,32 +21,32 @@
       font-family: 'Space Grotesk', sans-serif;
     }
 
-    /* ── Viewer ── */
+    /* ── Slide viewer ── */
     .viewer {
       width: 100%;
       max-width: 540px;
+      position: relative;
     }
 
     /* Dots */
     .dots {
       display: flex;
       justify-content: center;
-      gap: 7px;
+      gap: 6px;
       margin-bottom: 14px;
     }
     .dot {
       width: 7px; height: 7px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.15);
-      cursor: pointer;
+      background: rgba(255,255,255,0.18);
       transition: background .25s, transform .25s;
     }
     .dot.active {
       background: #7B5CF0;
-      transform: scale(1.35);
+      transform: scale(1.3);
     }
 
-    /* Track */
+    /* Slide track */
     .track-wrap {
       width: 100%;
       aspect-ratio: 1/1;
@@ -55,27 +55,25 @@
       position: relative;
       touch-action: pan-y;
       cursor: zoom-in;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
     }
     .expand-hint {
       position: absolute;
-      bottom: 10px; right: 10px;
-      width: 28px; height: 28px;
-      background: rgba(0,0,0,0.4);
-      border-radius: 7px;
+      top: 10px; right: 12px;
+      width: 30px; height: 30px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
       pointer-events: none;
-      z-index: 30;
-      opacity: 0.55;
+      z-index: 10;
+      opacity: 0.5;
     }
+    .expand-hint svg { display: block; }
     .track {
       display: flex;
       width: 100%;
       height: 100%;
       transition: transform .38s cubic-bezier(.4,0,.2,1);
     }
-
-    /* Slide */
     .slide {
       min-width: 100%;
       height: 100%;
@@ -86,23 +84,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      /* logo = 150px, top = 28px → logo ends at 178px + 22px gap = 200px */
-      padding: 200px 34px 48px;
+      padding: 36px 32px;
     }
 
-    /* Logo template – injected via JS, same absolute position on every slide */
-    .slide-logo-img {
-      position: absolute;
-      top: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 150px;
-      height: auto;
-      pointer-events: none;
-      z-index: 25;
-    }
-
-    /* Orbs */
+    /* orbs */
     .orb {
       position: absolute;
       border-radius: 50%;
@@ -113,16 +98,46 @@
     .orb-v { width: 260px; height: 260px; background: rgba(123,92,240,0.22); bottom: -80px; left: -60px; }
     .orb-p { width: 200px; height: 200px; background: rgba(255,45,120,0.16); top: -50px; right: -50px; }
     .orb-c { width: 160px; height: 160px; background: rgba(0,245,255,0.10); top: 40%; left: 50%; transform: translateX(-50%); }
-    .slide > *:not(.orb):not(.slide-logo-img) { position: relative; z-index: 1; }
 
-    /* ── Content atoms ── */
+    .slide > * { position: relative; z-index: 1; }
+
+    /* ── Navigation arrows ── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .nav-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(123,92,240,0.35);
+      background: rgba(123,92,240,0.12);
+      color: #fff;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background .15s;
+    }
+    .nav-btn:active { background: rgba(123,92,240,0.35); }
+    .nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+    .nav-counter {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Slide content atoms ── */
     .s-label {
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.38);
-      margin-bottom: 12px;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 14px;
       text-align: center;
     }
     .s-badge {
@@ -134,10 +149,10 @@
       padding: 6px 16px;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.16em;
       color: #00F5FF;
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 22px;
     }
     .s-badge-dot {
       width: 7px; height: 7px;
@@ -145,16 +160,25 @@
       background: #00F5FF;
       box-shadow: 0 0 8px #00F5FF;
     }
+    .s-logo-wrap {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, rgba(123,92,240,0.2), rgba(255,45,120,0.12));
+      border: 1px solid rgba(123,92,240,0.35);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
     .s-title {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
       color: #fff;
       text-align: center;
-      line-height: 1.18;
-      margin-bottom: 12px;
-      font-size: 26px;
+      line-height: 1.15;
+      margin-bottom: 14px;
     }
-    .s-title.cover { font-size: 32px; }
+    .s-title.xl { font-size: clamp(28px, 7vw, 40px); }
+    .s-title.lg { font-size: clamp(24px, 6vw, 34px); }
+    .s-title.md { font-size: clamp(20px, 5vw, 28px); }
     .s-grad {
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
       -webkit-background-clip: text;
@@ -167,98 +191,88 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .s-body {
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      line-height: 1.65;
+      max-width: 340px;
+    }
     .s-divider {
-      width: 44px; height: 2px;
+      width: 48px; height: 2px;
       background: linear-gradient(90deg, #7B5CF0, #FF2D78);
       border-radius: 2px;
-      margin: 12px auto;
-    }
-    .s-body {
-      font-size: 14px;
-      color: rgba(255,255,255,0.62);
-      text-align: center;
-      line-height: 1.6;
-      max-width: 330px;
+      margin: 18px auto;
     }
     .s-icon-box {
-      width: 62px; height: 62px;
-      border-radius: 18px;
+      width: 72px; height: 72px;
+      border-radius: 22px;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
       border: 1px solid;
+    }
+    .s-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(36px, 10vw, 52px);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .s-tag {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 600;
+      text-align: center;
     }
     .s-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: rgba(123,92,240,0.15);
       border: 1px solid rgba(123,92,240,0.3);
       border-radius: 50px;
-      padding: 7px 15px;
-      font-size: 12px;
+      padding: 8px 18px;
+      font-size: 13px;
       font-weight: 600;
-      color: rgba(255,255,255,0.82);
-      margin: 4px;
+      color: rgba(255,255,255,0.8);
+      margin: 5px;
     }
     .s-cta {
       display: inline-block;
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
       border-radius: 50px;
-      padding: 13px 30px;
+      padding: 14px 32px;
       font-size: 15px;
       font-weight: 700;
       color: #fff;
       text-align: center;
-      margin-top: 18px;
-      box-shadow: 0 0 26px rgba(123,92,240,0.45);
+      margin-top: 22px;
+      box-shadow: 0 0 28px rgba(123,92,240,0.45);
     }
-    /* handle pinned at bottom of every slide */
     .s-handle {
-      position: absolute;
-      bottom: 13px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 11px;
-      color: rgba(255,255,255,0.28);
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
       letter-spacing: 0.08em;
-      text-align: center;
-      line-height: 1.6;
-      z-index: 2;
+      margin-top: 18px;
     }
-
-    /* ── Nav ── */
-    .nav {
+    .s-stats-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 14px;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
-    .nav-btn {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      border: 1px solid rgba(123,92,240,0.4);
-      background: rgba(123,92,240,0.08);
-      color: #333;
-      font-size: 18px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: background .15s;
-    }
-    .nav-btn:active { background: rgba(123,92,240,0.2); }
-    .nav-btn:disabled { opacity: 0.2; pointer-events: none; }
-    .nav-counter {
-      font-size: 13px;
-      color: rgba(0,0,0,0.35);
-      font-weight: 600;
-      letter-spacing: 0.08em;
+    .s-stat {
+      text-align: center;
+      flex: 1;
+      min-width: 80px;
     }
 
     /* ── FAB ── */
     #fab-wrap {
       position: fixed;
-      bottom: 24px; right: 20px;
+      bottom: 24px;
+      right: 20px;
       z-index: 999;
       display: flex;
       flex-direction: column-reverse;
@@ -299,17 +313,16 @@
     .fab-item:active { background: rgba(123,92,240,0.25); }
     #fab-wrap.open .fab-item { display: flex; }
 
-    /* ── Fullscreen ── */
+    /* ── Fullscreen screenshot mode ── */
     #fullscreen-mode {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 9999;
       background: #07060F;
-      align-items: center;
-      justify-content: center;
+      overflow: hidden;
     }
-    #fullscreen-mode.active { display: flex; }
+    #fullscreen-mode.active { display: flex; align-items: center; justify-content: center; }
     #fs-slide-wrap {
       width: 100%;
       height: 100%;
@@ -317,6 +330,12 @@
       align-items: center;
       justify-content: center;
     }
+    #fs-slide-wrap .slide {
+      width: min(100vw, 100vh);
+      height: min(100vw, 100vh);
+      border-radius: 0;
+    }
+
     #fs-banner {
       display: none;
       position: fixed;
@@ -329,31 +348,16 @@
       z-index: 10001;
     }
     #fs-banner.active { display: block; }
-    #fs-banner p { font-size: 14px; color: #fff; margin-bottom: 8px; }
-    #fs-banner span { color: #00F5FF; font-weight: 700; }
-    #fs-close {
-      display: inline-block;
-      padding: 10px 28px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      color: #fff;
-      font-size: 14px;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer;
-      font-weight: 700;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    #fs-close:active { background: rgba(255,255,255,0.25); }
+
     #fs-nav {
       display: none;
       position: fixed;
-      top: 50%; left: 0; right: 0;
+      top: 50%;
+      left: 0; right: 0;
       transform: translateY(-50%);
       pointer-events: none;
       z-index: 10001;
-      padding: 0 10px;
+      padding: 0 12px;
       justify-content: space-between;
     }
     #fs-nav.active { display: flex; }
@@ -371,9 +375,12 @@
       touch-action: manipulation;
     }
     .fs-nav-btn:disabled { opacity: 0.2; pointer-events: none; }
+
     #fs-counter {
+      display: none;
       position: fixed;
-      top: 14px; left: 50%;
+      top: 16px;
+      left: 50%;
       transform: translateX(-50%);
       background: rgba(7,6,15,0.85);
       border: 1px solid rgba(123,92,240,0.3);
@@ -381,21 +388,40 @@
       padding: 5px 16px;
       font-size: 13px;
       font-weight: 700;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.6);
       z-index: 10001;
       font-family: 'Space Grotesk', sans-serif;
-      display: none;
     }
+    #fs-counter.active { display: block; }
+
+    #fs-banner p { font-size: 14px; color: #fff; margin-bottom: 8px; }
+    #fs-banner span { color: #00F5FF; font-weight: 700; }
+    #fs-close {
+      display: inline-block;
+      padding: 10px 28px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fs-close:active { background: rgba(255,255,255,0.25); }
   </style>
 </head>
 <body>
 
+<!-- ── Slide viewer ── -->
 <div class="viewer">
   <div class="dots" id="dots"></div>
 
   <div class="track-wrap" id="track-wrap">
     <div class="expand-hint">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
         <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
         <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
       </svg>
@@ -407,8 +433,19 @@
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <div class="orb orb-c"></div>
+        <div class="s-logo-wrap">
+          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7B5CF0"/>
+                <stop offset="100%" stop-color="#FF2D78"/>
+              </linearGradient>
+            </defs>
+            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g1)"/>
+          </svg>
+        </div>
         <div class="s-badge"><span class="s-badge-dot"></span>Social Media Agency</div>
-        <h1 class="s-title cover">
+        <h1 class="s-title xl">
           Portiamo il tuo<br/><span class="s-grad">brand</span> tra le stelle
         </h1>
         <div class="s-divider"></div>
@@ -421,7 +458,7 @@
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <p class="s-label">Chi siamo</p>
-        <h2 class="s-title">Siamo il team che fa<br/>la <span class="s-grad">differenza</span></h2>
+        <h2 class="s-title lg">Siamo il team che fa<br/>la <span class="s-grad">differenza</span></h2>
         <div class="s-divider"></div>
         <p class="s-body">
           Astra Agency è una social media agency specializzata nel trasformare brand in protagonisti digitali. Creiamo contenuti che parlano, strategie che convertono.
@@ -435,16 +472,18 @@
         <div class="orb orb-p"></div>
         <p class="s-label">Servizio 1 di 4</p>
         <div class="s-icon-box" style="background:rgba(123,92,240,0.15);border-color:rgba(123,92,240,0.4);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="3" width="7" height="7" rx="1.5" fill="#7B5CF0"/>
             <rect x="15" y="3" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".6"/>
             <rect x="2" y="14" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".6"/>
             <rect x="15" y="14" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".3"/>
           </svg>
         </div>
-        <h2 class="s-title"><span class="s-grad-c">Gestione</span><br/>Social Media</h2>
+        <h2 class="s-title md"><span class="s-grad-c">Gestione</span><br/>Social Media</h2>
         <div class="s-divider"></div>
-        <p class="s-body">Gestiamo Instagram, TikTok e tutti i tuoi canali. Dalla pianificazione alla pubblicazione, ci occupiamo di tutto.</p>
+        <p class="s-body">
+          Gestiamo Instagram, TikTok e tutti i tuoi canali. Dalla pianificazione alla pubblicazione, ci occupiamo di tutto.
+        </p>
         <p class="s-handle">@astragency.it</p>
       </div>
 
@@ -454,15 +493,17 @@
         <div class="orb orb-p"></div>
         <p class="s-label">Servizio 2 di 4</p>
         <div class="s-icon-box" style="background:rgba(255,45,120,0.15);border-color:rgba(255,45,120,0.4);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="5" width="20" height="14" rx="2" stroke="#FF2D78" stroke-width="2"/>
             <circle cx="12" cy="12" r="3" fill="#FF2D78" opacity=".6"/>
             <circle cx="12" cy="12" r="1.5" fill="#FF2D78"/>
           </svg>
         </div>
-        <h2 class="s-title"><span style="background:linear-gradient(135deg,#FF2D78,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Foto</span><br/>& Video</h2>
+        <h2 class="s-title md"><span style="background:linear-gradient(135deg,#FF2D78,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Foto</span><br/>& Video</h2>
         <div class="s-divider"></div>
-        <p class="s-body">Contenuti visivi professionali per il tuo brand. Reels, stories, shooting — tutto pensato per convertire.</p>
+        <p class="s-body">
+          Contenuti visivi professionali per il tuo brand. Reels, stories, shooting fotografici — tutto pensato per convertire.
+        </p>
         <p class="s-handle">@astragency.it</p>
       </div>
 
@@ -472,14 +513,16 @@
         <div class="orb orb-p"></div>
         <p class="s-label">Servizio 3 di 4</p>
         <div class="s-icon-box" style="background:rgba(0,245,255,0.10);border-color:rgba(0,245,255,0.35);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <polyline points="17 6 23 6 23 12" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h2 class="s-title"><span class="s-grad-c">Strategia</span><br/>di Crescita</h2>
+        <h2 class="s-title md"><span class="s-grad-c">Strategia</span><br/>di Crescita</h2>
         <div class="s-divider"></div>
-        <p class="s-body">Analisi dei dati, ottimizzazione continua e strategie su misura per far crescere la tua community mese dopo mese.</p>
+        <p class="s-body">
+          Analisi dei dati, ottimizzazione continua e strategie su misura per far crescere la tua community mese dopo mese.
+        </p>
         <p class="s-handle">@astragency.it</p>
       </div>
 
@@ -489,15 +532,17 @@
         <div class="orb orb-p"></div>
         <p class="s-label">Servizio 4 di 4</p>
         <div class="s-icon-box" style="background:rgba(0,245,180,0.10);border-color:rgba(0,245,180,0.35);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="3" width="20" height="14" rx="2" stroke="#00F5B4" stroke-width="2"/>
             <path d="M8 21h8M12 17v4" stroke="#00F5B4" stroke-width="2" stroke-linecap="round"/>
             <path d="M7 8h.5M7 11h10" stroke="#00F5B4" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </div>
-        <h2 class="s-title"><span style="background:linear-gradient(135deg,#00F5B4,#00F5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Creazione</span><br/>Siti Web</h2>
+        <h2 class="s-title md"><span style="background:linear-gradient(135deg,#00F5B4,#00F5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Creazione</span><br/>Siti Web</h2>
         <div class="s-divider"></div>
-        <p class="s-body">Siti web moderni, veloci e ottimizzati. Dal design alla pubblicazione, realizziamo la tua presenza online professionale.</p>
+        <p class="s-body">
+          Siti web moderni, veloci e ottimizzati per convertire. Dal design alla pubblicazione, realizziamo la tua presenza online professionale.
+        </p>
         <p class="s-handle">@astragency.it</p>
       </div>
 
@@ -506,33 +551,45 @@
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <p class="s-label">Perché sceglierci</p>
-        <h2 class="s-title">Risultati<br/><span class="s-grad">concreti</span></h2>
+        <h2 class="s-title lg">Risultati<br/><span class="s-grad">concreti</span></h2>
         <div class="s-divider"></div>
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:6px;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px;">
           <div class="s-pill">✦ Strategia personalizzata</div>
           <div class="s-pill">✦ Team dedicato</div>
           <div class="s-pill">✦ Report mensili</div>
           <div class="s-pill">✦ Risposta in 24h</div>
           <div class="s-pill">✦ Contratto flessibile</div>
         </div>
-        <p class="s-handle">@astragency.it</p>
+        <p class="s-handle" style="margin-top:20px;">@astragency.it</p>
       </div>
 
-      <!-- SLIDE 8 — CTA -->
+      <!-- SLIDE 7 — CTA -->
       <div class="slide">
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <div class="orb orb-c"></div>
-        <h2 class="s-title cover">Pronto a<br/><span class="s-grad">decollare?</span></h2>
+        <div class="s-logo-wrap">
+          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7B5CF0"/>
+                <stop offset="100%" stop-color="#FF2D78"/>
+              </linearGradient>
+            </defs>
+            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g2)"/>
+          </svg>
+        </div>
+        <h2 class="s-title lg">Pronto a<br/><span class="s-grad">decollare?</span></h2>
         <div class="s-divider"></div>
         <p class="s-body">La prima consulenza è <strong style="color:#fff;">gratuita e senza impegno.</strong><br/>Parliamo del tuo progetto.</p>
         <div class="s-cta">✦ Prenota ora</div>
-        <p class="s-handle">info@astragency.it<br/>@astragency.it</p>
+        <p class="s-handle">info@astragency.it · @astragency.it</p>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /track -->
+  </div><!-- /track-wrap -->
 
+  <!-- Navigation -->
   <div class="nav">
     <button class="nav-btn" id="prev-btn" onclick="goTo(current-1)" disabled>‹</button>
     <span class="nav-counter" id="nav-counter">1 / 8</span>
@@ -540,26 +597,29 @@
   </div>
 </div>
 
-<!-- FAB -->
+<!-- ── FAB ── -->
 <div id="fab-wrap">
   <button id="fab-main" onclick="toggleFab()">⚡</button>
   <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Screenshot questa slide</button>
-  <button class="fab-item" onclick="apriSchermo('all'); closeFab()">🎞️ Scorri tutte le slide</button>
+  <button class="fab-item" onclick="apriSchermo('all'); closeFab()">🎞️ Vedi tutte le slide</button>
 </div>
 
-<!-- Fullscreen -->
+<!-- ── Fullscreen mode ── -->
 <div id="fullscreen-mode">
   <div id="fs-slide-wrap"></div>
 </div>
-<div id="fs-counter">1 / 8</div>
+
+<div id="fs-counter" class="active" style="display:none;">1 / 8</div>
+
 <div id="fs-nav">
   <button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)" disabled>‹</button>
   <button class="fs-nav-btn" id="fs-next" onclick="fsNav(1)">›</button>
 </div>
+
 <div id="fs-banner">
-  <p>📸 <span>Fai lo screenshot</span> — poi tocca la freccia per la prossima slide</p>
+  <p>📸 <span>Fai lo screenshot</span> di questa slide — poi naviga alla prossima</p>
   <p style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:10px;">
-    iPhone/iPad: tasto laterale + volume su · Android: accensione + volume giù · PC: Win+Shift+S
+    iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
   </p>
   <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi</button>
 </div>
@@ -568,18 +628,7 @@
   const TOTAL = 8;
   let current = 0;
 
-  // ── Inject logo.png as template element into every slide ──
-  const LOGO_W   = 150; // px in viewer (logo ends at 28+150=178px, content at 200px)
-  const LOGO_TOP =  28; // px in viewer
-  document.querySelectorAll('.slide').forEach(slide => {
-    const img = document.createElement('img');
-    img.src = 'logo.png';
-    img.alt = 'Astra Agency';
-    img.className = 'slide-logo-img';
-    slide.appendChild(img);
-  });
-
-  // Dots
+  // Init dots
   const dotsEl = document.getElementById('dots');
   for (let i = 0; i < TOTAL; i++) {
     const d = document.createElement('div');
@@ -598,7 +647,7 @@
     document.getElementById('next-btn').disabled = n === TOTAL - 1;
   }
 
-  // Swipe/tap
+  // Touch/swipe on viewer — tap opens fullscreen, swipe navigates
   let touchStartX = 0;
   let wasSwiped = false;
   const trackWrap = document.getElementById('track-wrap');
@@ -619,10 +668,14 @@
   });
 
   // FAB
-  function toggleFab() { document.getElementById('fab-wrap').classList.toggle('open'); }
-  function closeFab()  { document.getElementById('fab-wrap').classList.remove('open'); }
+  function toggleFab() {
+    document.getElementById('fab-wrap').classList.toggle('open');
+  }
+  function closeFab() {
+    document.getElementById('fab-wrap').classList.remove('open');
+  }
 
-  // ── Fullscreen ──
+  // ── Fullscreen screenshot mode ──
   let fsCurrent = 0;
   const slides = document.querySelectorAll('.slide');
 
@@ -640,48 +693,11 @@
   function renderFsSlide() {
     const wrap = document.getElementById('fs-slide-wrap');
     wrap.innerHTML = '';
-
-    const side = Math.min(window.innerWidth, window.innerHeight);
-    const viewerW = trackWrap.offsetWidth || 400;
-    const ratio = side / viewerW;
-
     const clone = slides[fsCurrent].cloneNode(true);
-    clone.style.cssText = `
-      min-width:${side}px; width:${side}px; height:${side}px;
-      border-radius:0; flex:none; position:relative; overflow:hidden;
-      background:#07060F; display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      padding:${200*ratio}px ${34*ratio}px ${48*ratio}px;
-    `;
-
-    // Scale every element proportionally to ratio
-    const sc = (base) => (base * ratio).toFixed(1) + 'px';
-    const scM = (v, h) => `${sc(v)} auto`;
-
-    clone.querySelector('.slide-logo-img').style.cssText +=
-      `width:${sc(LOGO_W)};top:${sc(LOGO_TOP)};`;
-
-    clone.querySelectorAll('.s-title').forEach(el =>
-      el.style.fontSize = sc(el.classList.contains('cover') ? 32 : 26));
-    clone.querySelectorAll('.s-body')  .forEach(el => el.style.fontSize = sc(14));
-    clone.querySelectorAll('.s-label') .forEach(el => { el.style.fontSize = sc(11); el.style.marginBottom = sc(12); });
-    clone.querySelectorAll('.s-badge') .forEach(el => { el.style.fontSize = sc(11); el.style.padding = `${sc(6)} ${sc(16)}`; el.style.marginBottom = sc(16); });
-    clone.querySelectorAll('.s-divider').forEach(el => el.style.margin = `${sc(12)} auto`);
-    clone.querySelectorAll('.s-icon-box').forEach(el => {
-      el.style.width = sc(62); el.style.height = sc(62);
-      el.style.marginBottom = sc(14); el.style.borderRadius = sc(18);
-    });
-    clone.querySelectorAll('.s-handle').forEach(el => {
-      el.style.bottom = sc(13); el.style.fontSize = sc(11);
-    });
-    clone.querySelectorAll('.s-pill').forEach(el => {
-      el.style.fontSize = sc(12); el.style.padding = `${sc(7)} ${sc(15)}`;
-    });
-    clone.querySelectorAll('.s-cta').forEach(el => {
-      el.style.fontSize = sc(15); el.style.padding = `${sc(13)} ${sc(30)}`;
-      el.style.marginTop = sc(18);
-    });
-
+    clone.style.width = 'min(100vw, 100vh)';
+    clone.style.height = 'min(100vw, 100vh)';
+    clone.style.borderRadius = '0';
+    clone.style.flex = 'none';
     wrap.appendChild(clone);
     document.getElementById('fs-counter').textContent = `${fsCurrent + 1} / ${TOTAL}`;
   }
@@ -697,10 +713,13 @@
   function updateFsNav() {
     document.getElementById('fs-prev').disabled = fsCurrent === 0;
     document.getElementById('fs-next').disabled = fsCurrent === TOTAL - 1;
-    const msg = fsCurrent === TOTAL - 1
-      ? '✅ Hai tutte le <span>8 slide</span>! Premi Chiudi per tornare.'
-      : '📸 <span>Fai lo screenshot</span> — poi tocca la freccia per la prossima slide';
-    document.querySelector('#fs-banner p').innerHTML = msg;
+    if (fsCurrent === TOTAL - 1) {
+      document.querySelector('#fs-banner p').innerHTML =
+        '✅ Hai tutte le <span>8 slide</span>! Premi Chiudi per tornare.';
+    } else {
+      document.querySelector('#fs-banner p').innerHTML =
+        `📸 <span>Fai lo screenshot</span> di questa slide — poi naviga alla prossima`;
+    }
   }
 
   function chiudiSchermo() {
