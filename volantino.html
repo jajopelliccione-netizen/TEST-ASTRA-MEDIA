@@ -19,55 +19,59 @@
       justify-content: flex-start;
       align-items: center;
       min-height: 100vh;
-      padding: 32px 20px 60px;
+      padding: 20px 20px 80px;
       font-family: 'Space Grotesk', sans-serif;
     }
 
-    /* ── Export bar ── */
-    .export-bar {
+    /* ── FAB menu (floating action button) ── */
+    #fab-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 999;
       display: flex;
-      gap: 12px;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      gap: 10px;
     }
-    .export-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 11px 22px;
-      border-radius: 10px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13.5px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: opacity .2s, transform .15s;
-    }
-    .export-btn:hover { opacity: .85; transform: translateY(-1px); }
-    .export-btn:active { transform: translateY(0); }
-    .btn-pptx {
+    #fab-main {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(123,92,240,0.5);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fab-main:active { transform: scale(0.92); }
+    .fab-item {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(20,16,40,0.97);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
       color: #fff;
-      box-shadow: 0 0 20px rgba(123,92,240,0.4);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background .15s;
     }
-    .btn-png {
-      background: rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.75);
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .btn-foto {
-      background: linear-gradient(135deg, #00c853, #00897b);
-      color: #fff;
-      box-shadow: 0 0 18px rgba(0,200,83,0.35);
-    }
-    .btn-schermo {
-      background: linear-gradient(135deg, #7B5CF0, #00F5FF);
-      color: #fff;
-      box-shadow: 0 0 18px rgba(0,245,255,0.3);
-      font-size: 15px;
-      padding: 13px 28px;
-    }
+    .fab-item:active { background: rgba(123,92,240,0.25); }
+    #fab-wrap.open .fab-item { display: flex; }
+    .export-btn { display: none; } /* legacy, non usato */
 
     /* ── Modalità schermo intero ── */
     #fullscreen-mode {
@@ -362,18 +366,15 @@
 </head>
 <body>
 
-<!-- ── Export bar ── -->
-<div class="export-bar">
-  <button class="export-btn btn-schermo" onclick="apriSchermo()">
-    📸 Fai screenshot
-  </button>
-  <button class="export-btn btn-pptx" onclick="exportPPTX()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+<!-- ── FAB menu ── -->
+<div id="fab-wrap">
+  <button id="fab-main" onclick="toggleFab()" title="Esporta">⚡</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Fai screenshot</button>
+  <button class="fab-item" onclick="exportPPTX(); closeFab()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Scarica per Canva (.pptx)
   </button>
-  <button class="export-btn btn-png" onclick="window.print()">
-    Stampa / PDF
-  </button>
+  <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
 </div>
 
 <!-- Modalità screenshot a schermo intero -->
@@ -729,6 +730,13 @@ async function salvaFoto() {
   btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 💾 Salva come foto (PNG)`;
   btn.style.opacity = '1';
   btn.style.pointerEvents = '';
+}
+
+function toggleFab() {
+  document.getElementById('fab-wrap').classList.toggle('open');
+}
+function closeFab() {
+  document.getElementById('fab-wrap').classList.remove('open');
 }
 
 function apriSchermo() {
