@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banner Facebook – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px 120px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ── Banner – proporzioni Facebook 820×312 ── */
+    .banner {
+      width: 820px;
+      height: 312px;
+      background: #07060F;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      /* left ~170px riservato per foto profilo su mobile */
+    }
+
+    /* Orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb-1 { width: 380px; height: 380px; background: rgba(123,92,240,0.28); bottom: -140px; left: -60px; }
+    .orb-2 { width: 260px; height: 260px; background: rgba(255,45,120,0.18); top: -80px; right: 120px; }
+    .orb-3 { width: 180px; height: 180px; background: rgba(0,245,255,0.10); top: 30px; left: 320px; }
+
+    /* Linea verticale decorativa */
+    .v-line {
+      position: absolute;
+      left: 200px;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgba(123,92,240,0.4) 30%, rgba(123,92,240,0.4) 70%, transparent);
+    }
+
+    /* Zona sinistra – area logo profilo (lasciata libera in basso) */
+    .left-zone {
+      width: 200px;
+      min-width: 200px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .banner-logo {
+      width: 90px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+
+    .agency-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 17px;
+      color: #fff;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    /* Zona destra – contenuto principale */
+    .right-zone {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 28px 40px 28px 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .banner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid rgba(0,245,255,0.45);
+      border-radius: 50px;
+      padding: 4px 14px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: #00F5FF;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #00F5FF;
+      box-shadow: 0 0 7px #00F5FF;
+    }
+
+    .banner-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 32px;
+      line-height: 1.12;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .banner-title .grad {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .banner-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+      margin-bottom: 18px;
+      max-width: 360px;
+    }
+
+    .pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.75);
+      background: rgba(123,92,240,0.15);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 50px;
+      padding: 4px 12px;
+    }
+
+    .banner-url {
+      font-size: 13px;
+      font-weight: 700;
+      color: #7B5CF0;
+      letter-spacing: 0.04em;
+    }
+
+    /* Stelle decorative */
+    .star {
+      position: absolute;
+      color: rgba(123,92,240,0.35);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* Nota dimensioni */
+    .size-note {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #bbb;
+      text-align: center;
+    }
+
+    /* ── FAB ── */
+    #fab-wrap {
+      position: fixed;
+      bottom: 24px; right: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    #fab-main {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(123,92,240,0.5);
+      font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fab-main:active { transform: scale(0.92); }
+    .fab-item {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(20,16,40,0.97);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .fab-item:active { background: rgba(123,92,240,0.25); }
+    #fab-wrap.open .fab-item { display: flex; }
+
+    /* ── Fullscreen screenshot ── */
+    #fullscreen-mode {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07060F;
+      align-items: center;
+      justify-content: center;
+    }
+    #fullscreen-mode.active { display: flex; }
+    #fs-banner-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #fs-ui {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(7,6,15,0.97);
+      border-top: 1px solid rgba(123,92,240,0.3);
+      padding: 14px 20px;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      z-index: 10001;
+    }
+    #fs-ui.active { display: block; }
+    #fs-ui p { font-size: 14px; color: #fff; margin-bottom: 8px; }
+    #fs-ui span { color: #00F5FF; font-weight: 700; }
+    #fs-close {
+      display: inline-block;
+      padding: 10px 28px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fs-close:active { background: rgba(255,255,255,0.25); }
+  </style>
+</head>
+<body>
+
+<p class="info-label">Banner Facebook — 820 × 312 px</p>
+
+<!-- ── Banner ── -->
+<div class="banner" id="banner">
+
+  <!-- Sfondo -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="v-line"></div>
+
+  <!-- Stelle decorative -->
+  <span class="star" style="top:22px;left:230px;">✦</span>
+  <span class="star" style="top:60px;right:50px;font-size:8px;color:rgba(255,45,120,0.4);">✦</span>
+  <span class="star" style="bottom:30px;left:240px;font-size:10px;">✦</span>
+  <span class="star" style="top:18px;right:200px;font-size:18px;color:rgba(123,92,240,0.2);">✦</span>
+
+  <!-- Sinistra: logo -->
+  <div class="left-zone">
+    <img src="logo.png" class="banner-logo" alt="Astra Agency" />
+    <p class="agency-name">ASTRA AGENCY</p>
+  </div>
+
+  <!-- Destra: testo -->
+  <div class="right-zone">
+    <div class="banner-badge"><span class="badge-dot"></span>Social Media Agency</div>
+    <h1 class="banner-title">
+      Portiamo il tuo <span class="grad">brand</span><br/>tra le stelle
+    </h1>
+    <p class="banner-sub">Gestione social, contenuti, siti web e strategie di crescita<br/>su misura per la tua attività.</p>
+    <div class="pills">
+      <span class="pill">✦ Social Media</span>
+      <span class="pill">✦ Foto & Video</span>
+      <span class="pill">✦ Siti Web</span>
+      <span class="pill">✦ Strategia</span>
+    </div>
+    <p class="banner-url">astragency.it</p>
+  </div>
+
+</div>
+
+<p class="size-note">Tocca ⚡ in basso a destra → Screenshot per salvarlo</p>
+
+<!-- FAB -->
+<div id="fab-wrap">
+  <button id="fab-main" onclick="toggleFab()">⚡</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Fai screenshot</button>
+  <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
+</div>
+
+<!-- Fullscreen -->
+<div id="fullscreen-mode">
+  <div id="fs-banner-wrap"></div>
+</div>
+<div id="fs-ui">
+  <p>📸 <span>Fai lo screenshot</span> del dispositivo — poi chiudi</p>
+  <p style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:10px;">
+    iPhone/iPad: tasto laterale + volume su · Android: accensione + volume giù · PC: Win+Shift+S
+  </p>
+  <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi</button>
+</div>
+
+<script>
+  function toggleFab() { document.getElementById('fab-wrap').classList.toggle('open'); }
+  function closeFab()  { document.getElementById('fab-wrap').classList.remove('open'); }
+
+  function apriSchermo() {
+    const banner = document.getElementById('banner');
+    const wrap   = document.getElementById('fs-banner-wrap');
+    wrap.innerHTML = '';
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Scala il banner per riempire lo schermo mantenendo proporzioni 820:312
+    const ratio = 820 / 312;
+    let w, h;
+    if (vw / vh > ratio) {
+      // schermo più largo: adatta all'altezza
+      h = vh;
+      w = h * ratio;
+    } else {
+      // schermo più stretto: adatta alla larghezza
+      w = vw;
+      h = w / ratio;
+    }
+
+    const clone = banner.cloneNode(true);
+    clone.style.cssText = `
+      width: 820px;
+      height: 312px;
+      transform: scale(${w / 820});
+      transform-origin: top left;
+      position: absolute;
+      top: ${(vh - h) / 2}px;
+      left: ${(vw - w) / 2}px;
+      border-radius: 0;
+    `;
+    wrap.style.position = 'relative';
+    wrap.style.width = vw + 'px';
+    wrap.style.height = vh + 'px';
+    wrap.appendChild(clone);
+
+    document.getElementById('fullscreen-mode').classList.add('active');
+    document.getElementById('fs-ui').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function chiudiSchermo() {
+    document.getElementById('fullscreen-mode').classList.remove('active');
+    document.getElementById('fs-ui').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('fs-banner-wrap').innerHTML = '';
+  }
+</script>
+</body>
+</html>
