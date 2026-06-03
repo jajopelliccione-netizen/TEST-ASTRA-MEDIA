@@ -51,47 +51,9 @@
     }
     .orb-1 { width: 380px; height: 380px; background: rgba(123,92,240,0.28); bottom: -140px; left: -60px; }
     .orb-2 { width: 260px; height: 260px; background: rgba(255,45,120,0.18); top: -80px; right: 120px; }
-    .orb-3 { width: 180px; height: 180px; background: rgba(0,245,255,0.10); top: 30px; left: 320px; }
+    .orb-3 { width: 180px; height: 180px; background: rgba(0,245,255,0.10); top: 30px; left: 180px; }
 
-    /* Linea verticale decorativa */
-    .v-line {
-      position: absolute;
-      left: 200px;
-      top: 0; bottom: 0;
-      width: 1px;
-      background: linear-gradient(180deg, transparent, rgba(123,92,240,0.4) 30%, rgba(123,92,240,0.4) 70%, transparent);
-    }
-
-    /* Zona sinistra – area logo profilo (lasciata libera in basso) */
-    .left-zone {
-      width: 200px;
-      min-width: 200px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .banner-logo {
-      width: 90px;
-      height: auto;
-      margin-bottom: 10px;
-    }
-
-    .agency-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 17px;
-      color: #fff;
-      letter-spacing: 0.1em;
-      text-align: center;
-    }
-
-    /* Zona destra – contenuto principale */
+    /* Zona contenuto – full width */
     .right-zone {
       flex: 1;
       height: 100%;
@@ -99,7 +61,7 @@
       flex-direction: column;
       align-items: flex-start;
       justify-content: center;
-      padding: 28px 40px 28px 32px;
+      padding: 32px 70px;
       position: relative;
       z-index: 2;
     }
@@ -128,8 +90,8 @@
     .banner-title {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 32px;
-      line-height: 1.12;
+      font-size: 38px;
+      line-height: 1.1;
       color: #fff;
       margin-bottom: 10px;
     }
@@ -145,7 +107,7 @@
       color: rgba(255,255,255,0.55);
       line-height: 1.5;
       margin-bottom: 18px;
-      max-width: 360px;
+      max-width: 500px;
     }
 
     .pills {
@@ -291,21 +253,14 @@
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
-  <div class="v-line"></div>
 
   <!-- Stelle decorative -->
-  <span class="star" style="top:22px;left:230px;">✦</span>
+  <span class="star" style="top:22px;left:60px;">✦</span>
   <span class="star" style="top:60px;right:50px;font-size:8px;color:rgba(255,45,120,0.4);">✦</span>
-  <span class="star" style="bottom:30px;left:240px;font-size:10px;">✦</span>
+  <span class="star" style="bottom:30px;left:70px;font-size:10px;">✦</span>
   <span class="star" style="top:18px;right:200px;font-size:18px;color:rgba(123,92,240,0.2);">✦</span>
 
-  <!-- Sinistra: logo -->
-  <div class="left-zone">
-    <img src="logo.png" class="banner-logo" alt="Astra Agency" />
-    <p class="agency-name">ASTRA AGENCY</p>
-  </div>
-
-  <!-- Destra: testo -->
+  <!-- Contenuto -->
   <div class="right-zone">
     <div class="banner-badge"><span class="badge-dot"></span>Social Media Agency</div>
     <h1 class="banner-title">
