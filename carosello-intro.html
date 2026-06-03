@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carosello Intro – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #030208;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 100px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ── Slide viewer ── */
+    .viewer {
+      width: 100%;
+      max-width: 540px;
+      position: relative;
+    }
+
+    /* Dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      transition: background .25s, transform .25s;
+    }
+    .dot.active {
+      background: #7B5CF0;
+      transform: scale(1.3);
+    }
+
+    /* Slide track */
+    .track-wrap {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      touch-action: pan-y;
+    }
+    .track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform .38s cubic-bezier(.4,0,.2,1);
+    }
+    .slide {
+      min-width: 100%;
+      height: 100%;
+      background: #07060F;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 32px;
+    }
+
+    /* orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-v { width: 260px; height: 260px; background: rgba(123,92,240,0.22); bottom: -80px; left: -60px; }
+    .orb-p { width: 200px; height: 200px; background: rgba(255,45,120,0.16); top: -50px; right: -50px; }
+    .orb-c { width: 160px; height: 160px; background: rgba(0,245,255,0.10); top: 40%; left: 50%; transform: translateX(-50%); }
+
+    .slide > * { position: relative; z-index: 1; }
+
+    /* ── Navigation arrows ── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .nav-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(123,92,240,0.35);
+      background: rgba(123,92,240,0.12);
+      color: #fff;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background .15s;
+    }
+    .nav-btn:active { background: rgba(123,92,240,0.35); }
+    .nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+    .nav-counter {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Slide content atoms ── */
+    .s-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .s-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(0,245,255,0.5);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: #00F5FF;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+    .s-badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #00F5FF;
+      box-shadow: 0 0 8px #00F5FF;
+    }
+    .s-logo-wrap {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, rgba(123,92,240,0.2), rgba(255,45,120,0.12));
+      border: 1px solid rgba(123,92,240,0.35);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .s-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .s-title.xl { font-size: clamp(28px, 7vw, 40px); }
+    .s-title.lg { font-size: clamp(24px, 6vw, 34px); }
+    .s-title.md { font-size: clamp(20px, 5vw, 28px); }
+    .s-grad {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .s-grad-c {
+      background: linear-gradient(135deg, #7B5CF0, #00F5FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .s-body {
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      line-height: 1.65;
+      max-width: 340px;
+    }
+    .s-divider {
+      width: 48px; height: 2px;
+      background: linear-gradient(90deg, #7B5CF0, #FF2D78);
+      border-radius: 2px;
+      margin: 18px auto;
+    }
+    .s-icon-box {
+      width: 72px; height: 72px;
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      border: 1px solid;
+    }
+    .s-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(36px, 10vw, 52px);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .s-tag {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 600;
+      text-align: center;
+    }
+    .s-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(123,92,240,0.15);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      margin: 5px;
+    }
+    .s-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 50px;
+      padding: 14px 32px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-top: 22px;
+      box-shadow: 0 0 28px rgba(123,92,240,0.45);
+    }
+    .s-handle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+      margin-top: 18px;
+    }
+    .s-stats-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .s-stat {
+      text-align: center;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    /* ── FAB ── */
+    #fab-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    #fab-main {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(123,92,240,0.5);
+      font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fab-main:active { transform: scale(0.92); }
+    .fab-item {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(20,16,40,0.97);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .fab-item:active { background: rgba(123,92,240,0.25); }
+    #fab-wrap.open .fab-item { display: flex; }
+
+    /* ── Fullscreen screenshot mode ── */
+    #fullscreen-mode {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07060F;
+      overflow: hidden;
+    }
+    #fullscreen-mode.active { display: flex; align-items: center; justify-content: center; }
+    #fs-slide-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #fs-slide-wrap .slide {
+      width: min(100vw, 100vh);
+      height: min(100vw, 100vh);
+      border-radius: 0;
+    }
+
+    #fs-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(7,6,15,0.97);
+      border-top: 1px solid rgba(123,92,240,0.3);
+      padding: 14px 20px;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      z-index: 10001;
+    }
+    #fs-banner.active { display: block; }
+
+    #fs-nav {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 0; right: 0;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 10001;
+      padding: 0 12px;
+      justify-content: space-between;
+    }
+    #fs-nav.active { display: flex; }
+    .fs-nav-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(7,6,15,0.8);
+      border: 1px solid rgba(123,92,240,0.4);
+      color: #fff;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      pointer-events: all;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .fs-nav-btn:disabled { opacity: 0.2; pointer-events: none; }
+
+    #fs-counter {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(7,6,15,0.85);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      z-index: 10001;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    #fs-counter.active { display: block; }
+
+    #fs-banner p { font-size: 14px; color: #fff; margin-bottom: 8px; }
+    #fs-banner span { color: #00F5FF; font-weight: 700; }
+    #fs-close {
+      display: inline-block;
+      padding: 10px 28px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fs-close:active { background: rgba(255,255,255,0.25); }
+  </style>
+</head>
+<body>
+
+<!-- ── Slide viewer ── -->
+<div class="viewer">
+  <div class="dots" id="dots"></div>
+
+  <div class="track-wrap" id="track-wrap">
+    <div class="track" id="track">
+
+      <!-- SLIDE 1 — Cover -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <div class="orb orb-c"></div>
+        <div class="s-logo-wrap">
+          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7B5CF0"/>
+                <stop offset="100%" stop-color="#FF2D78"/>
+              </linearGradient>
+            </defs>
+            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g1)"/>
+          </svg>
+        </div>
+        <div class="s-badge"><span class="s-badge-dot"></span>Social Media Agency</div>
+        <h1 class="s-title xl">
+          Portiamo il tuo<br/><span class="s-grad">brand</span> tra le stelle
+        </h1>
+        <div class="s-divider"></div>
+        <p class="s-body">Strategia · Contenuti · Crescita</p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 2 — Chi siamo -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Chi siamo</p>
+        <h2 class="s-title lg">Siamo il team che fa<br/>la <span class="s-grad">differenza</span></h2>
+        <div class="s-divider"></div>
+        <p class="s-body">
+          Astra Agency è una social media agency specializzata nel trasformare brand in protagonisti digitali. Creiamo contenuti che parlano, strategie che convertono.
+        </p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 3 — Gestione Social -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Servizio 1 di 3</p>
+        <div class="s-icon-box" style="background:rgba(123,92,240,0.15);border-color:rgba(123,92,240,0.4);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="7" height="7" rx="1.5" fill="#7B5CF0"/>
+            <rect x="15" y="3" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".6"/>
+            <rect x="2" y="14" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".6"/>
+            <rect x="15" y="14" width="7" height="7" rx="1.5" fill="#7B5CF0" opacity=".3"/>
+          </svg>
+        </div>
+        <h2 class="s-title md"><span class="s-grad-c">Gestione</span><br/>Social Media</h2>
+        <div class="s-divider"></div>
+        <p class="s-body">
+          Gestiamo Instagram, TikTok e tutti i tuoi canali. Dalla pianificazione alla pubblicazione, ci occupiamo di tutto.
+        </p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 4 — Foto & Video -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Servizio 2 di 3</p>
+        <div class="s-icon-box" style="background:rgba(255,45,120,0.15);border-color:rgba(255,45,120,0.4);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="5" width="20" height="14" rx="2" stroke="#FF2D78" stroke-width="2"/>
+            <circle cx="12" cy="12" r="3" fill="#FF2D78" opacity=".6"/>
+            <circle cx="12" cy="12" r="1.5" fill="#FF2D78"/>
+          </svg>
+        </div>
+        <h2 class="s-title md"><span style="background:linear-gradient(135deg,#FF2D78,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Foto</span><br/>& Video</h2>
+        <div class="s-divider"></div>
+        <p class="s-body">
+          Contenuti visivi professionali per il tuo brand. Reels, stories, shooting fotografici — tutto pensato per convertire.
+        </p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 5 — Strategia -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Servizio 3 di 3</p>
+        <div class="s-icon-box" style="background:rgba(0,245,255,0.10);border-color:rgba(0,245,255,0.35);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="17 6 23 6 23 12" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="s-title md"><span class="s-grad-c">Strategia</span><br/>di Crescita</h2>
+        <div class="s-divider"></div>
+        <p class="s-body">
+          Analisi dei dati, ottimizzazione continua e strategie su misura per far crescere la tua community mese dopo mese.
+        </p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 6 — Perché noi -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Perché sceglierci</p>
+        <h2 class="s-title lg">Risultati<br/><span class="s-grad">concreti</span></h2>
+        <div class="s-divider"></div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px;">
+          <div class="s-pill">✦ Strategia personalizzata</div>
+          <div class="s-pill">✦ Team dedicato</div>
+          <div class="s-pill">✦ Report mensili</div>
+          <div class="s-pill">✦ Risposta in 24h</div>
+          <div class="s-pill">✦ Contratto flessibile</div>
+        </div>
+        <p class="s-handle" style="margin-top:20px;">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 7 — CTA -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <div class="orb orb-c"></div>
+        <div class="s-logo-wrap">
+          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7B5CF0"/>
+                <stop offset="100%" stop-color="#FF2D78"/>
+              </linearGradient>
+            </defs>
+            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g2)"/>
+          </svg>
+        </div>
+        <h2 class="s-title lg">Pronto a<br/><span class="s-grad">decollare?</span></h2>
+        <div class="s-divider"></div>
+        <p class="s-body">La prima consulenza è <strong style="color:#fff;">gratuita e senza impegno.</strong><br/>Parliamo del tuo progetto.</p>
+        <div class="s-cta">✦ Prenota ora</div>
+        <p class="s-handle">info@astragency.it · @astragency.it</p>
+      </div>
+
+    </div><!-- /track -->
+  </div><!-- /track-wrap -->
+
+  <!-- Navigation -->
+  <div class="nav">
+    <button class="nav-btn" id="prev-btn" onclick="goTo(current-1)" disabled>‹</button>
+    <span class="nav-counter" id="nav-counter">1 / 7</span>
+    <button class="nav-btn" id="next-btn" onclick="goTo(current+1)">›</button>
+  </div>
+</div>
+
+<!-- ── FAB ── -->
+<div id="fab-wrap">
+  <button id="fab-main" onclick="toggleFab()">⚡</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Screenshot questa slide</button>
+  <button class="fab-item" onclick="apriSchermo('all'); closeFab()">🎞️ Vedi tutte le slide</button>
+</div>
+
+<!-- ── Fullscreen mode ── -->
+<div id="fullscreen-mode">
+  <div id="fs-slide-wrap"></div>
+</div>
+
+<div id="fs-counter" class="active" style="display:none;">1 / 7</div>
+
+<div id="fs-nav">
+  <button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)" disabled>‹</button>
+  <button class="fs-nav-btn" id="fs-next" onclick="fsNav(1)">›</button>
+</div>
+
+<div id="fs-banner">
+  <p>📸 <span>Fai lo screenshot</span> di questa slide — poi naviga alla prossima</p>
+  <p style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:10px;">
+    iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
+  </p>
+  <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi</button>
+</div>
+
+<script>
+  const TOTAL = 7;
+  let current = 0;
+
+  // Init dots
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    if (n < 0 || n >= TOTAL) return;
+    current = n;
+    document.getElementById('track').style.transform = `translateX(-${n * 100}%)`;
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n));
+    document.getElementById('nav-counter').textContent = `${n + 1} / ${TOTAL}`;
+    document.getElementById('prev-btn').disabled = n === 0;
+    document.getElementById('next-btn').disabled = n === TOTAL - 1;
+  }
+
+  // Touch/swipe on viewer
+  let touchStartX = 0;
+  const trackWrap = document.getElementById('track-wrap');
+  trackWrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  trackWrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+  });
+
+  // FAB
+  function toggleFab() {
+    document.getElementById('fab-wrap').classList.toggle('open');
+  }
+  function closeFab() {
+    document.getElementById('fab-wrap').classList.remove('open');
+  }
+
+  // ── Fullscreen screenshot mode ──
+  let fsCurrent = 0;
+  const slides = document.querySelectorAll('.slide');
+
+  function apriSchermo(mode) {
+    fsCurrent = (mode === 'all') ? 0 : current;
+    renderFsSlide();
+    document.getElementById('fullscreen-mode').classList.add('active');
+    document.getElementById('fs-banner').classList.add('active');
+    document.getElementById('fs-nav').classList.add('active');
+    document.getElementById('fs-counter').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    updateFsNav();
+  }
+
+  function renderFsSlide() {
+    const wrap = document.getElementById('fs-slide-wrap');
+    wrap.innerHTML = '';
+    const clone = slides[fsCurrent].cloneNode(true);
+    clone.style.width = 'min(100vw, 100vh)';
+    clone.style.height = 'min(100vw, 100vh)';
+    clone.style.borderRadius = '0';
+    clone.style.flex = 'none';
+    wrap.appendChild(clone);
+    document.getElementById('fs-counter').textContent = `${fsCurrent + 1} / ${TOTAL}`;
+  }
+
+  function fsNav(dir) {
+    const n = fsCurrent + dir;
+    if (n < 0 || n >= TOTAL) return;
+    fsCurrent = n;
+    renderFsSlide();
+    updateFsNav();
+  }
+
+  function updateFsNav() {
+    document.getElementById('fs-prev').disabled = fsCurrent === 0;
+    document.getElementById('fs-next').disabled = fsCurrent === TOTAL - 1;
+    if (fsCurrent === TOTAL - 1) {
+      document.querySelector('#fs-banner p').innerHTML =
+        '✅ Hai tutte le <span>7 slide</span>! Premi Chiudi per tornare.';
+    } else {
+      document.querySelector('#fs-banner p').innerHTML =
+        `📸 <span>Fai lo screenshot</span> di questa slide — poi naviga alla prossima`;
+    }
+  }
+
+  function chiudiSchermo() {
+    document.getElementById('fullscreen-mode').classList.remove('active');
+    document.getElementById('fs-banner').classList.remove('active');
+    document.getElementById('fs-nav').classList.remove('active');
+    document.getElementById('fs-counter').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('fs-slide-wrap').innerHTML = '';
+  }
+</script>
+</body>
+</html>
