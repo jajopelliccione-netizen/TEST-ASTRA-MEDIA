@@ -77,42 +77,43 @@
       z-index: 9999;
       background: #07060F;
       overflow-y: auto;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 0;
+      -webkit-overflow-scrolling: touch;
     }
-    #fullscreen-mode.active { display: flex; }
-    #fullscreen-mode .flyer {
-      border-radius: 0;
-      width: 100%;
-      max-width: 700px;
-      min-height: 100vh;
-      border: none;
+    #fullscreen-mode.active { display: block; }
+    #fs-flyer-wrap {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 130px;
     }
     #fs-banner {
+      display: none;
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      background: rgba(7,6,15,0.95);
+      background: rgba(7,6,15,0.97);
       border-top: 1px solid rgba(123,92,240,0.3);
       padding: 16px 20px;
       text-align: center;
       font-family: 'Space Grotesk', sans-serif;
-      z-index: 10000;
+      z-index: 10001;
     }
+    #fs-banner.active { display: block; }
     #fs-banner p { font-size: 15px; color: #fff; margin-bottom: 10px; }
     #fs-banner span { color: #00F5FF; font-weight: 700; }
     #fs-close {
       display: inline-block;
-      padding: 8px 22px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      color: rgba(255,255,255,0.6);
-      font-size: 13px;
+      padding: 12px 32px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
       font-family: 'Space Grotesk', sans-serif;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
+    #fs-close:active { background: rgba(255,255,255,0.25); }
 
     /* ── Flyer card ── */
     .flyer {
@@ -378,13 +379,13 @@
 <!-- Modalità screenshot a schermo intero -->
 <div id="fullscreen-mode">
   <div id="fs-flyer-wrap"></div>
-  <div id="fs-banner">
-    <p>📸 <span>Fai ora lo screenshot</span> del dispositivo — poi chiudi</p>
-    <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px;">
-      iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: tasto accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
-    </p>
-    <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi e torna all'editor</button>
-  </div>
+</div>
+<div id="fs-banner">
+  <p>📸 <span>Fai ora lo screenshot</span> del dispositivo — poi chiudi</p>
+  <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px;">
+    iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: tasto accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
+  </p>
+  <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi e torna all'editor</button>
 </div>
 
 <!-- ── Flyer ── -->
@@ -735,19 +736,20 @@ function apriSchermo() {
   const wrap = document.getElementById('fs-flyer-wrap');
   wrap.innerHTML = '';
   const clone = flyer.cloneNode(true);
-  clone.style.cssText = flyer.style.cssText;
   clone.style.transform = 'none';
   clone.style.margin = '0 auto';
-  clone.style.borderRadius = '24px';
+  clone.style.borderRadius = '0';
   clone.style.maxWidth = '700px';
   clone.style.width = '100%';
   wrap.appendChild(clone);
   document.getElementById('fullscreen-mode').classList.add('active');
+  document.getElementById('fs-banner').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 function chiudiSchermo() {
   document.getElementById('fullscreen-mode').classList.remove('active');
+  document.getElementById('fs-banner').classList.remove('active');
   document.body.style.overflow = '';
   document.getElementById('fs-flyer-wrap').innerHTML = '';
 }
