@@ -11,7 +11,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #030208;
+      background: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -451,7 +451,7 @@
       <div class="slide">
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
-        <p class="s-label">Servizio 1 di 3</p>
+        <p class="s-label">Servizio 1 di 4</p>
         <div class="s-icon-box" style="background:rgba(123,92,240,0.15);border-color:rgba(123,92,240,0.4);">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="3" width="7" height="7" rx="1.5" fill="#7B5CF0"/>
@@ -472,7 +472,7 @@
       <div class="slide">
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
-        <p class="s-label">Servizio 2 di 3</p>
+        <p class="s-label">Servizio 2 di 4</p>
         <div class="s-icon-box" style="background:rgba(255,45,120,0.15);border-color:rgba(255,45,120,0.4);">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="5" width="20" height="14" rx="2" stroke="#FF2D78" stroke-width="2"/>
@@ -492,7 +492,7 @@
       <div class="slide">
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
-        <p class="s-label">Servizio 3 di 3</p>
+        <p class="s-label">Servizio 3 di 4</p>
         <div class="s-icon-box" style="background:rgba(0,245,255,0.10);border-color:rgba(0,245,255,0.35);">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -507,7 +507,27 @@
         <p class="s-handle">@astragency.it</p>
       </div>
 
-      <!-- SLIDE 6 — Perché noi -->
+      <!-- SLIDE 6 — Creazione Siti Web -->
+      <div class="slide">
+        <div class="orb orb-v"></div>
+        <div class="orb orb-p"></div>
+        <p class="s-label">Servizio 4 di 4</p>
+        <div class="s-icon-box" style="background:rgba(0,245,180,0.10);border-color:rgba(0,245,180,0.35);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="#00F5B4" stroke-width="2"/>
+            <path d="M8 21h8M12 17v4" stroke="#00F5B4" stroke-width="2" stroke-linecap="round"/>
+            <path d="M7 8h.5M7 11h10" stroke="#00F5B4" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2 class="s-title md"><span style="background:linear-gradient(135deg,#00F5B4,#00F5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Creazione</span><br/>Siti Web</h2>
+        <div class="s-divider"></div>
+        <p class="s-body">
+          Siti web moderni, veloci e ottimizzati per convertire. Dal design alla pubblicazione, realizziamo la tua presenza online professionale.
+        </p>
+        <p class="s-handle">@astragency.it</p>
+      </div>
+
+      <!-- SLIDE 7 — Perché noi -->
       <div class="slide">
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
@@ -553,7 +573,7 @@
   <!-- Navigation -->
   <div class="nav">
     <button class="nav-btn" id="prev-btn" onclick="goTo(current-1)" disabled>‹</button>
-    <span class="nav-counter" id="nav-counter">1 / 7</span>
+    <span class="nav-counter" id="nav-counter">1 / 8</span>
     <button class="nav-btn" id="next-btn" onclick="goTo(current+1)">›</button>
   </div>
 </div>
@@ -570,7 +590,7 @@
   <div id="fs-slide-wrap"></div>
 </div>
 
-<div id="fs-counter" class="active" style="display:none;">1 / 7</div>
+<div id="fs-counter" class="active" style="display:none;">1 / 8</div>
 
 <div id="fs-nav">
   <button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)" disabled>‹</button>
@@ -586,7 +606,7 @@
 </div>
 
 <script>
-  const TOTAL = 7;
+  const TOTAL = 8;
   let current = 0;
 
   // Init dots
@@ -665,7 +685,7 @@
     document.getElementById('fs-next').disabled = fsCurrent === TOTAL - 1;
     if (fsCurrent === TOTAL - 1) {
       document.querySelector('#fs-banner p').innerHTML =
-        '✅ Hai tutte le <span>7 slide</span>! Premi Chiudi per tornare.';
+        '✅ Hai tutte le <span>8 slide</span>! Premi Chiudi per tornare.';
     } else {
       document.querySelector('#fs-banner p').innerHTML =
         `📸 <span>Fai lo screenshot</span> di questa slide — poi naviga alla prossima`;

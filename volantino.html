@@ -13,7 +13,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #030208;
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -245,22 +245,23 @@
     /* ── Services ── */
     .services {
       display: flex;
-      gap: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
       width: 100%;
       margin-bottom: 42px;
       position: relative;
       z-index: 2;
     }
     .service-card {
-      flex: 1;
+      flex: 1 1 calc(50% - 6px);
       background: rgba(123,92,240,0.07);
       border: 1px solid rgba(123,92,240,0.22);
       border-radius: 16px;
-      padding: 22px 14px;
+      padding: 20px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 11px;
+      gap: 10px;
       text-align: center;
     }
     .service-icon-wrap {
@@ -453,6 +454,16 @@
         </svg>
       </div>
       <span class="service-name">Strategia<br/>di Crescita</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(0,245,180,0.15),rgba(0,200,100,0.12));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="3" width="20" height="14" rx="2" stroke="#00F5B4" stroke-width="2"/>
+          <path d="M8 21h8M12 17v4" stroke="#00F5B4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 8h.5M7 11h10" stroke="#00F5B4" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="service-name">Creazione<br/>Siti Web</span>
     </div>
   </div>
 
