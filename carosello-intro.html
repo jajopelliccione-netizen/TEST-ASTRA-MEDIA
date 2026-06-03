@@ -68,6 +68,18 @@
       opacity: 0.5;
     }
     .expand-hint svg { display: block; }
+    /* ── Logo overlay fisso su ogni slide ── */
+    .slide-logo {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 88px;
+      height: auto;
+      pointer-events: none;
+      z-index: 20;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
     .track {
       display: flex;
       width: 100%;
@@ -84,7 +96,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 36px 32px;
+      padding: 70px 32px 36px;
     }
 
     /* orbs */
@@ -426,6 +438,8 @@
         <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
       </svg>
     </div>
+    <!-- Logo fisso su tutte le slide -->
+    <img src="assets/logo.svg" class="slide-logo" id="viewer-logo" alt="Astra Agency" />
     <div class="track" id="track">
 
       <!-- SLIDE 1 — Cover -->
@@ -433,17 +447,6 @@
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <div class="orb orb-c"></div>
-        <div class="s-logo-wrap">
-          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#7B5CF0"/>
-                <stop offset="100%" stop-color="#FF2D78"/>
-              </linearGradient>
-            </defs>
-            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g1)"/>
-          </svg>
-        </div>
         <div class="s-badge"><span class="s-badge-dot"></span>Social Media Agency</div>
         <h1 class="s-title xl">
           Portiamo il tuo<br/><span class="s-grad">brand</span> tra le stelle
@@ -568,17 +571,6 @@
         <div class="orb orb-v"></div>
         <div class="orb orb-p"></div>
         <div class="orb orb-c"></div>
-        <div class="s-logo-wrap">
-          <svg width="32" height="32" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#7B5CF0"/>
-                <stop offset="100%" stop-color="#FF2D78"/>
-              </linearGradient>
-            </defs>
-            <polygon points="150,10 165,130 290,150 165,170 150,290 135,170 10,150 135,130" fill="url(#g2)"/>
-          </svg>
-        </div>
         <h2 class="s-title lg">Pronto a<br/><span class="s-grad">decollare?</span></h2>
         <div class="s-divider"></div>
         <p class="s-body">La prima consulenza è <strong style="color:#fff;">gratuita e senza impegno.</strong><br/>Parliamo del tuo progetto.</p>
@@ -694,10 +686,28 @@
     const wrap = document.getElementById('fs-slide-wrap');
     wrap.innerHTML = '';
     const clone = slides[fsCurrent].cloneNode(true);
-    clone.style.width = 'min(100vw, 100vh)';
-    clone.style.height = 'min(100vw, 100vh)';
+    const side = Math.min(window.innerWidth, window.innerHeight);
+    clone.style.width = side + 'px';
+    clone.style.height = side + 'px';
     clone.style.borderRadius = '0';
     clone.style.flex = 'none';
+    clone.style.position = 'relative';
+    // Logo overlay fisso nella fullscreen
+    const logoImg = document.createElement('img');
+    logoImg.src = 'assets/logo.svg';
+    logoImg.alt = 'Astra Agency';
+    logoImg.style.cssText = `
+      position:absolute;
+      top:${side * 0.026}px;
+      left:50%;
+      transform:translateX(-50%);
+      width:${side * 0.165}px;
+      height:auto;
+      pointer-events:none;
+      z-index:20;
+      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    `;
+    clone.appendChild(logoImg);
     wrap.appendChild(clone);
     document.getElementById('fs-counter').textContent = `${fsCurrent + 1} / ${TOTAL}`;
   }
