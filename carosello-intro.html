@@ -86,17 +86,17 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      /* logo = 120px, top = 14px → logo ends at 134px + 16px gap = 150px */
-      padding: 150px 34px 48px;
+      /* logo = 150px, top = 28px → logo ends at 178px + 22px gap = 200px */
+      padding: 200px 34px 48px;
     }
 
     /* Logo template – injected via JS, same absolute position on every slide */
     .slide-logo-img {
       position: absolute;
-      top: 14px;
+      top: 28px;
       left: 50%;
       transform: translateX(-50%);
-      width: 120px;
+      width: 150px;
       height: auto;
       pointer-events: none;
       z-index: 25;
@@ -221,7 +221,8 @@
       font-size: 11px;
       color: rgba(255,255,255,0.28);
       letter-spacing: 0.08em;
-      white-space: nowrap;
+      text-align: center;
+      line-height: 1.6;
       z-index: 2;
     }
 
@@ -526,7 +527,7 @@
         <div class="s-divider"></div>
         <p class="s-body">La prima consulenza è <strong style="color:#fff;">gratuita e senza impegno.</strong><br/>Parliamo del tuo progetto.</p>
         <div class="s-cta">✦ Prenota ora</div>
-        <p class="s-handle">info@astragency.it · @astragency.it</p>
+        <p class="s-handle">info@astragency.it<br/>@astragency.it</p>
       </div>
 
     </div>
@@ -568,8 +569,8 @@
   let current = 0;
 
   // ── Inject logo.png as template element into every slide ──
-  const LOGO_W   = 120; // px in viewer (logo ends at 14+120=134px, content at 150px)
-  const LOGO_TOP =  14; // px in viewer
+  const LOGO_W   = 150; // px in viewer (logo ends at 28+150=178px, content at 200px)
+  const LOGO_TOP =  28; // px in viewer
   document.querySelectorAll('.slide').forEach(slide => {
     const img = document.createElement('img');
     img.src = 'logo.png';
@@ -650,7 +651,7 @@
       border-radius:0; flex:none; position:relative; overflow:hidden;
       background:#07060F; display:flex; flex-direction:column;
       align-items:center; justify-content:center;
-      padding:${150*ratio}px ${34*ratio}px ${48*ratio}px;
+      padding:${200*ratio}px ${34*ratio}px ${48*ratio}px;
     `;
 
     // Scale every element proportionally to ratio
