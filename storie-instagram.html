@@ -39,26 +39,6 @@
       cursor: zoom-in;
     }
 
-    /* Progress bar */
-    #prog-bar {
-      position: absolute;
-      top: 14px;
-      left: 14px; right: 14px;
-      display: flex;
-      gap: 5px;
-      z-index: 20;
-      pointer-events: none;
-    }
-    .p-seg {
-      flex: 1;
-      height: 2px;
-      border-radius: 2px;
-      background: rgba(255,255,255,0.22);
-      transition: background .25s;
-    }
-    .p-seg.done   { background: rgba(255,255,255,0.55); }
-    .p-seg.active { background: rgba(255,255,255,0.92); }
-
     /* Track */
     .track {
       display: flex;
@@ -337,18 +317,6 @@
 <!-- ── Viewer ── -->
 <div class="track-wrap" id="trackWrap">
 
-  <!-- Progress bar (outside track so it floats above all) -->
-  <div id="prog-bar">
-    <div class="p-seg" id="ps0"></div>
-    <div class="p-seg" id="ps1"></div>
-    <div class="p-seg" id="ps2"></div>
-    <div class="p-seg" id="ps3"></div>
-    <div class="p-seg" id="ps4"></div>
-    <div class="p-seg" id="ps5"></div>
-    <div class="p-seg" id="ps6"></div>
-    <div class="p-seg" id="ps7"></div>
-  </div>
-
   <div class="track" id="track">
 
     <!-- ──────────── Storia 1 — GENERALE ──────────── -->
@@ -599,14 +567,6 @@
     current = Math.max(0, Math.min(TOTAL - 1, n));
     track.style.transform = `translateX(${-current * 360}px)`;
     countEl.textContent = `${current + 1} / ${TOTAL}`;
-    updateProg();
-  }
-
-  function updateProg() {
-    for (let i = 0; i < TOTAL; i++) {
-      const seg = document.getElementById('ps' + i);
-      seg.className = 'p-seg' + (i < current ? ' done' : i === current ? ' active' : '');
-    }
   }
 
   /* Swipe */
