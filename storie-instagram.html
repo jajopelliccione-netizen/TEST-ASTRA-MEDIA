@@ -656,15 +656,6 @@
       border-radius: 0;
     `;
 
-    /* inject progress bar clone */
-    const pbClone = document.getElementById('prog-bar').cloneNode(true);
-    pbClone.removeAttribute('id');
-    for (let i = 0; i < TOTAL; i++) {
-      pbClone.children[i].className = 'p-seg' +
-        (i < current ? ' done' : i === current ? ' active' : '');
-    }
-    clone.appendChild(pbClone);
-
     wrap.style.cssText = `position:relative;width:${vw}px;height:${vh}px;`;
     wrap.appendChild(clone);
 
