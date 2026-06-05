@@ -245,7 +245,13 @@
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* Toast istruzione — sparisce dopo 2s */
+    /* Bordo bianco intorno alla storia (indica dove ritagliare) */
+    #fs-wrap .story {
+      outline: 2px solid rgba(255,255,255,0.7) !important;
+      outline-offset: 0px !important;
+    }
+
+    /* Toast + controlli — si nascondono con .ui-hidden */
     #fs-toast {
       display: none;
       position: fixed;
@@ -258,19 +264,20 @@
       font-size: 13px; font-weight: 600;
       color: #fff; white-space: nowrap;
       z-index: 10002;
-      transition: opacity 0.5s;
+      transition: opacity 0.4s;
+      pointer-events: none;
     }
     #fs-toast.active { display: block; opacity: 1; }
     #fs-toast.fade   { opacity: 0; }
 
-    /* X in alto a destra */
+    /* X in alto a destra — DENTRO fullscreen-mode */
     #fs-close-btn {
       display: none;
-      position: fixed;
-      top: 18px; right: 18px;
+      position: absolute;
+      top: 14px; right: 14px;
       z-index: 10003;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
       border-radius: 50%;
       width: 38px; height: 38px;
       color: #fff; font-size: 16px; font-weight: 700;
@@ -278,13 +285,14 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       align-items: center; justify-content: center;
+      transition: opacity 0.4s;
     }
-    #fs-close-btn:active { background: rgba(255,255,255,0.3); }
-    #fullscreen-mode.active ~ #fs-close-btn { display: flex; }
+    #fs-close-btn:active { background: rgba(255,255,255,0.35); }
+    #fullscreen-mode.active #fs-close-btn { display: flex; }
 
-    /* FS prev/next */
+    /* Frecce prev/next — DENTRO fullscreen-mode */
     .fs-nav-btn {
-      position: fixed; top: 50%; transform: translateY(-50%);
+      position: absolute; top: 50%; transform: translateY(-50%);
       z-index: 10002;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.15);
@@ -298,6 +306,14 @@
     #fs-prev { left: 10px; }
     #fs-next { right: 10px; }
     #fullscreen-mode.active .fs-nav-btn { display: flex; }
+
+    /* Nasconde tutta la UI per lo screenshot */
+    #fullscreen-mode.ui-hidden .fs-nav-btn,
+    #fullscreen-mode.ui-hidden #fs-close-btn,
+    #fullscreen-mode.ui-hidden #fs-toast {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body>
@@ -523,19 +539,16 @@
   <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
 </div>
 
-<!-- Fullscreen -->
+<!-- Fullscreen — tutto dentro, così si nasconde insieme -->
 <div id="fullscreen-mode">
   <div id="fs-wrap"></div>
+  <button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)">‹</button>
+  <button class="fs-nav-btn" id="fs-next" onclick="fsNav(1)">›</button>
+  <button id="fs-close-btn" onclick="chiudiSchermo()">✕</button>
+  <div id="fs-toast"></div>
 </div>
-<button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)">‹</button>
-<button class="fs-nav-btn" id="fs-next" onclick="fsNav(1)">›</button>
 
 <!-- Toast istruzione (sparisce da solo) -->
-<div id="fs-toast">📸 Fai lo screenshot ora — poi chiudi</div>
-
-<!-- Close button fisso in alto a destra -->
-<button id="fs-close-btn" onclick="chiudiSchermo()">✕</button>
-
 <script>
   const TOTAL = 9;
   let current = 0;
@@ -572,7 +585,8 @@
   function closeFab()  { document.getElementById('fab-wrap').classList.remove('open'); }
 
   /* Fullscreen */
-  let toastTimer;
+  let uiTimer;
+
   function apriSchermo() {
     const stories = track.querySelectorAll('.story');
     const slide   = stories[current];
@@ -588,8 +602,7 @@
 
     const clone = slide.cloneNode(true);
     clone.style.cssText = `
-      width: 360px;
-      height: 640px;
+      width: 360px; height: 640px;
       transform: scale(${w / 360});
       transform-origin: top left;
       position: absolute;
@@ -597,32 +610,50 @@
       left: ${(vw - w) / 2}px;
       border-radius: 0;
     `;
-
     wrap.style.cssText = `position:relative;width:${vw}px;height:${vh}px;`;
     wrap.appendChild(clone);
 
-    document.getElementById('fullscreen-mode').classList.add('active');
+    const fsMode = document.getElementById('fullscreen-mode');
+    fsMode.classList.add('active');
+    fsMode.classList.remove('ui-hidden');
     document.body.style.overflow = 'hidden';
     updateFsNav();
 
-    /* Mostra toast, poi lo fa sparire dopo 2s */
+    /* Toast: "Fai screenshot" poi tutto sparisce dopo 2.5s */
     const toast = document.getElementById('fs-toast');
-    toast.classList.add('active');
-    toast.classList.remove('fade');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      toast.classList.add('fade');
-      setTimeout(() => toast.classList.remove('active', 'fade'), 500);
-    }, 2000);
+    toast.textContent = '📸 Fai lo screenshot — poi tocca per chiudere';
+    toast.style.opacity = '1';
+    clearTimeout(uiTimer);
+    uiTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => fsMode.classList.add('ui-hidden'), 400);
+    }, 2500);
+
+    /* Tap sull'area nera (fuori storia) → mostra UI / chiudi */
+    fsMode.onclick = (e) => {
+      if (e.target.id === 'fs-close-btn') return;
+      if (e.target.classList.contains('fs-nav-btn')) return;
+      if (fsMode.classList.contains('ui-hidden')) {
+        /* mostra UI brevemente */
+        fsMode.classList.remove('ui-hidden');
+        toast.textContent = '✕ Tocca × per chiudere';
+        toast.style.opacity = '1';
+        clearTimeout(uiTimer);
+        uiTimer = setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => fsMode.classList.add('ui-hidden'), 400);
+        }, 2500);
+      }
+    };
   }
 
   function chiudiSchermo() {
-    document.getElementById('fullscreen-mode').classList.remove('active');
+    const fsMode = document.getElementById('fullscreen-mode');
+    fsMode.classList.remove('active', 'ui-hidden');
+    fsMode.onclick = null;
     document.body.style.overflow = '';
     document.getElementById('fs-wrap').innerHTML = '';
-    const toast = document.getElementById('fs-toast');
-    toast.classList.remove('active', 'fade');
-    clearTimeout(toastTimer);
+    clearTimeout(uiTimer);
   }
 
   function fsNav(dir) {
