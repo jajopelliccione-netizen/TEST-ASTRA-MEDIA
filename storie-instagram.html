@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -508,7 +509,8 @@
 <!-- FAB -->
 <div id="fab-wrap">
   <button id="fab-main" onclick="toggleFab()">⚡</button>
-  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Screenshot storia</button>
+  <button class="fab-item" onclick="salvaImmagine()">💾 Salva in galleria</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Screenshot manuale</button>
   <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
 </div>
 
@@ -611,6 +613,49 @@
   function updateFsNav() {
     document.getElementById('fs-prev').style.display = current === 0 ? 'none' : 'flex';
     document.getElementById('fs-next').style.display = current === TOTAL - 1 ? 'none' : 'flex';
+  }
+
+  /* Salva immagine 1080×1920 in galleria */
+  async function salvaImmagine() {
+    closeFab();
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(7,6,15,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;font-family:Space Grotesk,sans-serif;color:#fff;gap:12px;';
+    overlay.innerHTML = '<div style="font-size:28px;">⏳</div><div style="font-size:15px;font-weight:600;">Preparando immagine ad alta qualità…</div>';
+    document.body.appendChild(overlay);
+
+    try {
+      await document.fonts.ready;
+      const slide = track.querySelectorAll('.story')[current];
+      const opt = { pixelRatio: 3, cacheBust: true, skipAutoScale: false };
+
+      /* prima chiamata per caricare risorse, seconda per il risultato finale */
+      await htmlToImage.toPng(slide, opt);
+      const dataUrl = await htmlToImage.toPng(slide, opt);
+
+      document.body.removeChild(overlay);
+
+      const res   = await fetch(dataUrl);
+      const blob  = await res.blob();
+      const file  = new File([blob], `astra-storia-${current + 1}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Storia Astra Agency' });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = `astra-storia-${current + 1}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch (e) {
+      if (overlay.parentNode) document.body.removeChild(overlay);
+      alert('Salvataggio non riuscito — usa Screenshot manuale.');
+      console.error(e);
+    }
   }
 
   /* init */
