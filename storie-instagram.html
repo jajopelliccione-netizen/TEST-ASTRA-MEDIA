@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -245,32 +244,43 @@
       position: relative;
       display: flex; align-items: center; justify-content: center;
     }
-    #fs-ui {
-      display: none; position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: rgba(7,6,15,0.97);
-      border-top: 1px solid rgba(123,92,240,0.3);
-      padding: 14px 20px;
-      text-align: center;
+
+    /* Toast istruzione — sparisce dopo 2s */
+    #fs-toast {
+      display: none;
+      position: fixed;
+      bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: rgba(7,6,15,0.92);
+      border: 1px solid rgba(0,245,255,0.3);
+      border-radius: 50px;
+      padding: 10px 22px;
       font-family: 'Space Grotesk', sans-serif;
-      z-index: 10001;
+      font-size: 13px; font-weight: 600;
+      color: #fff; white-space: nowrap;
+      z-index: 10002;
+      transition: opacity 0.5s;
     }
-    #fs-ui.active { display: block; }
-    #fs-ui p { font-size: 13px; color: #fff; margin-bottom: 8px; }
-    #fs-ui span { color: #00F5FF; font-weight: 700; }
-    #fs-close {
-      display: inline-block;
-      padding: 10px 28px;
-      background: rgba(255,255,255,0.1);
+    #fs-toast.active { display: block; opacity: 1; }
+    #fs-toast.fade   { opacity: 0; }
+
+    /* X in alto a destra */
+    #fs-close-btn {
+      display: none;
+      position: fixed;
+      top: 18px; right: 18px;
+      z-index: 10003;
+      background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      color: #fff; font-size: 14px;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer; font-weight: 700;
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      color: #fff; font-size: 16px; font-weight: 700;
+      cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      align-items: center; justify-content: center;
     }
-    #fs-close:active { background: rgba(255,255,255,0.25); }
+    #fs-close-btn:active { background: rgba(255,255,255,0.3); }
+    #fullscreen-mode.active ~ #fs-close-btn { display: flex; }
 
     /* FS prev/next */
     .fs-nav-btn {
@@ -509,8 +519,7 @@
 <!-- FAB -->
 <div id="fab-wrap">
   <button id="fab-main" onclick="toggleFab()">⚡</button>
-  <button class="fab-item" onclick="salvaImmagine()">💾 Salva in galleria</button>
-  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Screenshot manuale</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Salva storia</button>
   <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
 </div>
 
@@ -520,13 +529,12 @@
 </div>
 <button class="fs-nav-btn" id="fs-prev" onclick="fsNav(-1)">‹</button>
 <button class="fs-nav-btn" id="fs-next" onclick="fsNav(1)">›</button>
-<div id="fs-ui">
-  <p>📸 <span>Fai lo screenshot</span> del dispositivo — poi chiudi</p>
-  <p style="font-size:11px;color:rgba(255,255,255,0.28);margin-bottom:10px;">
-    iPhone/iPad: laterale + volume su · Android: accensione + vol giù · PC: Win+Shift+S
-  </p>
-  <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi</button>
-</div>
+
+<!-- Toast istruzione (sparisce da solo) -->
+<div id="fs-toast">📸 Fai lo screenshot ora — poi chiudi</div>
+
+<!-- Close button fisso in alto a destra -->
+<button id="fs-close-btn" onclick="chiudiSchermo()">✕</button>
 
 <script>
   const TOTAL = 9;
@@ -564,6 +572,7 @@
   function closeFab()  { document.getElementById('fab-wrap').classList.remove('open'); }
 
   /* Fullscreen */
+  let toastTimer;
   function apriSchermo() {
     const stories = track.querySelectorAll('.story');
     const slide   = stories[current];
@@ -572,7 +581,7 @@
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const ratio = 9 / 16; // width/height
+    const ratio = 9 / 16;
     let w, h;
     if (vw / vh < ratio) { w = vw; h = w / ratio; }
     else                  { h = vh; w = h * ratio; }
@@ -593,16 +602,27 @@
     wrap.appendChild(clone);
 
     document.getElementById('fullscreen-mode').classList.add('active');
-    document.getElementById('fs-ui').classList.add('active');
     document.body.style.overflow = 'hidden';
     updateFsNav();
+
+    /* Mostra toast, poi lo fa sparire dopo 2s */
+    const toast = document.getElementById('fs-toast');
+    toast.classList.add('active');
+    toast.classList.remove('fade');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add('fade');
+      setTimeout(() => toast.classList.remove('active', 'fade'), 500);
+    }, 2000);
   }
 
   function chiudiSchermo() {
     document.getElementById('fullscreen-mode').classList.remove('active');
-    document.getElementById('fs-ui').classList.remove('active');
     document.body.style.overflow = '';
     document.getElementById('fs-wrap').innerHTML = '';
+    const toast = document.getElementById('fs-toast');
+    toast.classList.remove('active', 'fade');
+    clearTimeout(toastTimer);
   }
 
   function fsNav(dir) {
@@ -615,47 +635,12 @@
     document.getElementById('fs-next').style.display = current === TOTAL - 1 ? 'none' : 'flex';
   }
 
-  /* Salva immagine 1080×1920 in galleria */
-  async function salvaImmagine() {
-    closeFab();
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(7,6,15,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;font-family:Space Grotesk,sans-serif;color:#fff;gap:12px;';
-    overlay.innerHTML = '<div style="font-size:28px;">⏳</div><div style="font-size:15px;font-weight:600;">Preparando immagine ad alta qualità…</div>';
-    document.body.appendChild(overlay);
-
-    try {
-      await document.fonts.ready;
-      const slide = track.querySelectorAll('.story')[current];
-      const opt = { pixelRatio: 3, cacheBust: true, skipAutoScale: false };
-
-      /* prima chiamata per caricare risorse, seconda per il risultato finale */
-      await htmlToImage.toPng(slide, opt);
-      const dataUrl = await htmlToImage.toPng(slide, opt);
+  /* PLACEHOLDER — non usato, rimosso */
+  async function _unused() {
+    const dataUrl = '';
 
       document.body.removeChild(overlay);
 
-      const res   = await fetch(dataUrl);
-      const blob  = await res.blob();
-      const file  = new File([blob], `astra-storia-${current + 1}.png`, { type: 'image/png' });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Storia Astra Agency' });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a   = document.createElement('a');
-        a.href     = url;
-        a.download = `astra-storia-${current + 1}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
-    } catch (e) {
-      if (overlay.parentNode) document.body.removeChild(overlay);
-      alert('Salvataggio non riuscito — usa Screenshot manuale.');
-      console.error(e);
-    }
   }
 
   /* init */
