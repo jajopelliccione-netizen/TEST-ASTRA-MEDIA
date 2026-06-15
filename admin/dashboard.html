@@ -275,6 +275,7 @@
       </div>
       <form id="client-form">
         <input type="hidden" id="edit-uid" />
+        <input type="hidden" id="edit-original-email" />
         <div class="grid-2">
           <div class="form-group">
             <label class="form-label">Nome completo</label>
@@ -1163,10 +1164,11 @@
       const c = allClients.find(x => x.uid === uid);
       if (!c) return;
       document.getElementById('modal-title').textContent = 'Modifica Cliente';
-      document.getElementById('edit-uid').value        = uid;
-      document.getElementById('f-name').value          = c.displayName || '';
-      document.getElementById('f-company').value       = c.company || '';
-      document.getElementById('f-email').value         = c.email || '';
+      document.getElementById('edit-uid').value           = uid;
+      document.getElementById('edit-original-email').value = c.email || '';
+      document.getElementById('f-name').value             = c.displayName || '';
+      document.getElementById('f-company').value          = c.company || '';
+      document.getElementById('f-email').value            = c.email || '';
       document.getElementById('f-package').value       = c.package || 'Gestione Social Media';
 
       document.getElementById('f-draft-url').value     = c.websiteDraft?.url || '';
@@ -1208,6 +1210,24 @@
       try {
         if (editUid) {
           await setDoc(doc(db, 'clients', editUid), data, { merge: true });
+
+          // Aggiorna le credenziali Firebase Auth se email o password sono cambiate
+          const originalEmail = document.getElementById('edit-original-email').value;
+          const newPassword   = document.getElementById('f-password').value;
+          const emailChanged  = data.email && data.email !== originalEmail;
+          if (emailChanged || newPassword) {
+            const payload = { uid: editUid };
+            if (emailChanged)  payload.newEmail    = data.email;
+            if (newPassword)   payload.newPassword = newPassword;
+            const wResp = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/update-client-credentials', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            const wData = await wResp.json();
+            if (!wData.ok) throw new Error('Aggiornamento credenziali: ' + (wData.error || 'Errore sconosciuto'));
+          }
+
           showToast('Cliente aggiornato!');
         } else {
           const pass = document.getElementById('f-password').value;

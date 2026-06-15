@@ -40,6 +40,10 @@ export default {
       return handleDeleteCollabAuth(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/update-client-credentials')) {
+      return handleUpdateClientCredentials(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
       return handleDebug(env);
     }
@@ -517,6 +521,37 @@ async function handleTikTokToken(request, env) {
         headers: { Authorization: `Bearer ${svcToken}` },
       }),
     ]);
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── POST /api/update-client-credentials ──────────────────────────────────
+async function handleUpdateClientCredentials(request, env) {
+  try {
+    const { uid, newEmail, newPassword } = await request.json();
+    if (!uid) return json({ ok: false, error: 'uid richiesto' });
+    if (!newEmail && !newPassword) return json({ ok: false, error: 'newEmail o newPassword richiesti' });
+    if (newPassword && newPassword.length < 6) return json({ ok: false, error: 'Password minimo 6 caratteri' });
+
+    const projectId  = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+
+    const payload = { localId: uid };
+    if (newEmail) payload.email = newEmail;
+    if (newPassword) payload.password = newPassword;
+
+    const resp = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:update`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+    const data = await resp.json();
+    if (!resp.ok) return json({ ok: false, error: data.error?.message || 'Errore Firebase' });
     return json({ ok: true });
   } catch (err) {
     return json({ ok: false, error: err.message });
