@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /client/
+Disallow: /js/
+Disallow: /ads/
+
+Sitemap: https://astragency.it/sitemap.xml
