@@ -167,7 +167,10 @@
         <div class="card" style="margin-bottom:16px;">
           <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di scadenza</p>
           <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner sparisce automaticamente alla scadenza.</p>
-          <input type="datetime-local" id="promo-end-date" class="form-input" style="max-width:280px;" />
+          <div style="display:flex;gap:10px;max-width:300px;">
+            <input type="date" id="promo-end-date-d" class="form-input" style="flex:1;" />
+            <input type="time" id="promo-end-date-t" class="form-input" style="width:110px;" />
+          </div>
           <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;" id="promo-countdown-admin"></p>
         </div>
 
@@ -2341,7 +2344,11 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
         if (snap.exists()) {
           const d = snap.data();
           _promoEnabled = !!d.enabled;
-          if (d.endDate) document.getElementById('promo-end-date').value = d.endDate;
+          if (d.endDate) {
+            const [dp, tp] = d.endDate.split('T');
+            if (dp) document.getElementById('promo-end-date-d').value = dp;
+            if (tp) document.getElementById('promo-end-date-t').value = tp.slice(0,5);
+          }
         }
         renderPromoToggle();
         startPromoCountdownAdmin();
@@ -2364,11 +2371,17 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       renderPromoToggle();
     };
 
+    function getPromoEndVal() {
+      const d = document.getElementById('promo-end-date-d').value;
+      const t = document.getElementById('promo-end-date-t').value || '23:59';
+      return d ? `${d}T${t}` : '';
+    }
+
     function startPromoCountdownAdmin() {
       const el = document.getElementById('promo-countdown-admin');
       if (!el) return;
       function tick() {
-        const val = document.getElementById('promo-end-date').value;
+        const val = getPromoEndVal();
         if (!val) { el.textContent = ''; return; }
         const diff = new Date(val) - new Date();
         if (diff <= 0) { el.textContent = '⏰ Offerta scaduta'; el.style.color = 'var(--pink)'; return; }
@@ -2384,7 +2397,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
     }
 
     window.savePromo = async () => {
-      const endDate = document.getElementById('promo-end-date').value;
+      const endDate = getPromoEndVal();
       const result  = document.getElementById('promo-save-result');
       if (!endDate) { result.textContent = '⚠ Imposta prima una data di scadenza'; result.style.color = 'var(--pink)'; return; }
       try {
