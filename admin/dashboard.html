@@ -471,7 +471,7 @@
   <!-- MODAL: Social Media Config -->
   <div class="modal-overlay" id="social-modal">
     <div class="modal-box" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2;border-radius:16px 16px 0 0;">
         <h2 class="modal-title" style="margin:0;font-size:.95rem;">
           Social Media — <span id="social-modal-name" style="color:var(--purple);"></span>
         </h2>
@@ -558,7 +558,7 @@
               </div>
             </div>
             <div id="tt-post-select" style="display:none;">
-              <div id="tt-connect-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;border-radius:8px;background:var(--surface);">
+              <div id="tt-connect-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;border-radius:8px;background:var(--bg2);">
               <span id="tt-connect-status" style="font-size:.8rem;flex:1;color:var(--text-muted);">Non connesso</span>
               <button type="button" onclick="connectTikTok()" id="tt-connect-btn" class="btn" style="font-size:.75rem;padding:4px 12px;background:#000;border-color:#444;">Connetti TikTok</button>
             </div>
@@ -578,7 +578,7 @@
   <!-- MODAL: Configura Sito — visualizza risposte questionario + genera prompt Claude -->
   <div class="modal-overlay" id="siteconfig-modal">
     <div class="modal-box" style="max-width:640px;max-height:90vh;overflow-y:auto;padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2;border-radius:16px 16px 0 0;">
         <h2 class="modal-title" style="margin:0;font-size:.95rem;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px;vertical-align:middle;"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
           Brief Sito — <span id="siteconfig-modal-name" style="color:var(--purple);"></span>
@@ -628,6 +628,18 @@
     .cc-detail-item { display:flex;flex-direction:column;gap:2px; }
     .cc-detail-label { font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600; }
     .cc-detail-item span:last-child { font-size:.82rem; }
+
+    @media (max-width: 1024px) {
+      /* cc-quick: solo icone, niente testo */
+      .cc-quick .act-btn { font-size:0 !important; padding:7px 9px; }
+      .cc-quick .act-btn svg { display:inline-block; }
+      /* Pulsanti azione nel body: più grandi e facili da toccare */
+      .act-btn { padding:9px 12px; font-size:.82rem; }
+      /* Social posts grid: 3 colonne invece di 5 */
+      #ig-posts-grid, #tt-posts-grid { grid-template-columns:repeat(3,1fr) !important; }
+      /* Social modal: padding ridotto */
+      .modal-box > div:not([style*="sticky"]) { padding:14px 16px 20px !important; }
+    }
   </style>
 
   <script type="module">
@@ -1830,7 +1842,7 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
           return `<div data-ts="${ts}" data-idx="${i}" onclick="showPostDetail('${p}',${i})"
             style="cursor:pointer;position:relative;border-radius:7px;overflow:hidden;aspect-ratio:${ar};background:var(--bg);
               outline:2px solid ${isSelected ? 'var(--purple)' : 'transparent'};outline-offset:-1px;transition:outline-color .15s;">
-              ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'" />` : '<div style="width:100%;height:100%;background:var(--surface);"></div>'}
+              ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'" />` : '<div style="width:100%;height:100%;background:var(--bg2);"></div>'}
               ${isSelected ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(124,58,237,.85));padding:5px 0 3px;text-align:center;pointer-events:none;">
                 <span style="font-size:.5rem;font-weight:800;color:#fff;letter-spacing:.04em;">DA QUI</span>
               </div>` : ''}
@@ -1892,7 +1904,7 @@ Dopo aver aggiunto entrambi, assicurati che il sito sia deployato/pubblicato e v
       detail.innerHTML = `
         <div style="display:flex;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;align-items:flex-start;">
           <div style="width:72px;flex-shrink:0;">
-            <div style="aspect-ratio:${platform==='instagram'?'1':'9/16'};border-radius:7px;overflow:hidden;background:var(--surface);">
+            <div style="aspect-ratio:${platform==='instagram'?'1':'9/16'};border-radius:7px;overflow:hidden;background:var(--bg2);">
               ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" />` : ''}
             </div>
           </div>
