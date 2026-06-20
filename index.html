@@ -192,7 +192,7 @@
           Affidaci la gestione dei social della tua attività e ti costruiamo il sito web <strong style="color:rgba(255,255,255,.85);">senza nessun costo aggiuntivo</strong>.
         </p>
         <!-- Countdown -->
-        <div style="display:flex;justify-content:center;align-items:flex-start;gap:10px;margin-bottom:36px;flex-wrap:wrap;">
+        <div id="promo-cd-wrap" style="display:flex;justify-content:center;align-items:flex-start;gap:10px;margin-bottom:36px;flex-wrap:wrap;">
           <div style="background:rgba(123,92,240,.12);border:1px solid rgba(123,92,240,.28);border-radius:14px;padding:18px 22px;text-align:center;min-width:76px;">
             <div id="cd-days" style="font-size:2.2rem;font-weight:800;font-family:monospace;color:#fff;line-height:1;">00</div>
             <div style="font-size:.58rem;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:.1em;margin-top:5px;">Giorni</div>
@@ -906,16 +906,24 @@
       try {
         const snap = await getDoc(doc(db, 'config', 'promo'));
         if (!snap.exists()) return;
-        const { enabled, startDate, endDate } = snap.data();
-        if (!enabled || !endDate) return;
+        const { enabled, startDate, endDate, noExpiry } = snap.data();
+        if (!enabled) return;
         const now = new Date();
-        const end = new Date(endDate);
-        if (end <= now) return;
-        if (startDate && new Date(startDate) > now) return;
+        if (!noExpiry) {
+          if (!endDate) return;
+          const end = new Date(endDate);
+          if (end <= now) return;
+          if (startDate && new Date(startDate) > now) return;
+        }
         document.getElementById('promo-section').style.display = '';
         document.body.classList.add('promo-active');
         const svc = document.getElementById('service');
         if (svc) { svc.value = 'social'; document.getElementById('service-group').style.display = 'none'; }
+        if (noExpiry) {
+          document.getElementById('promo-cd-wrap').style.display = 'none';
+          return;
+        }
+        const end = new Date(endDate);
         const tick = () => {
           const diff = end - new Date();
           if (diff <= 0) { document.getElementById('promo-section').style.display = 'none'; document.body.classList.remove('promo-active'); document.getElementById('service-group').style.display = ''; return; }
