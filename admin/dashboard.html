@@ -630,15 +630,20 @@
     .cc-detail-item span:last-child { font-size:.82rem; }
 
     @media (max-width: 1024px) {
+      /* cc-head: assicura che info e quick non sfondino */
+      .cc-head { gap:8px; padding:12px 12px; }
+      .cc-info { min-width:0; overflow:hidden; }
       /* cc-quick: solo icone, niente testo */
-      .cc-quick .act-btn { font-size:0 !important; padding:7px 9px; }
-      .cc-quick .act-btn svg { display:inline-block; }
+      .cc-quick { gap:4px; flex-shrink:0; }
+      .cc-quick .act-btn { font-size:0 !important; padding:7px 8px; }
+      .cc-quick .act-btn svg { display:inline-block; width:13px; height:13px; }
       /* Pulsanti azione nel body: più grandi e facili da toccare */
-      .act-btn { padding:9px 12px; font-size:.82rem; }
+      .cc-body { padding:10px 12px 12px; }
+      .act-btn { padding:9px 12px; font-size:.8rem; }
       /* Social posts grid: 3 colonne invece di 5 */
       #ig-posts-grid, #tt-posts-grid { grid-template-columns:repeat(3,1fr) !important; }
-      /* Social modal: padding ridotto */
-      .modal-box > div:not([style*="sticky"]) { padding:14px 16px 20px !important; }
+      /* Modal interni: meno padding laterale su mobile */
+      .modal-box > div { min-width:0; box-sizing:border-box; }
     }
   </style>
 
