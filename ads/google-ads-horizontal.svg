@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 628" width="1200" height="628">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap');
+    </style>
+    <radialGradient id="h1" cx="20%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#7B5CF0" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#07060F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="h2" cx="85%" cy="75%" r="45%">
+      <stop offset="0%" stop-color="#FF2D78" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#07060F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="h3" cx="90%" cy="15%" r="35%">
+      <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#07060F" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="btnH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7B5CF0"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7B5CF0"/>
+      <stop offset="100%" stop-color="#FF2D78"/>
+    </linearGradient>
+    <filter id="starGlow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="628" fill="#07060F"/>
+  <rect width="1200" height="628" fill="url(#h1)"/>
+  <rect width="1200" height="628" fill="url(#h2)"/>
+  <rect width="1200" height="628" fill="url(#h3)"/>
+
+  <!-- Decorative rings left -->
+  <circle cx="0" cy="314" r="260" fill="none" stroke="#7B5CF0" stroke-width="1" opacity="0.1"/>
+  <circle cx="0" cy="314" r="400" fill="none" stroke="#7B5CF0" stroke-width="0.5" opacity="0.06"/>
+
+  <!-- Decorative rings right -->
+  <circle cx="1200" cy="628" r="280" fill="none" stroke="#FF2D78" stroke-width="1" opacity="0.12"/>
+
+  <!-- Vertical separator line -->
+  <line x1="580" y1="80" x2="580" y2="548" stroke="#7B5CF0" stroke-width="1" opacity="0.2"/>
+
+  <!-- ===== LEFT SIDE: Logo + Headline ===== -->
+
+  <!-- 4-pointed star at (100, 110) R=32 r=12 -->
+  <path d="M 100,78 L 112,98 L 132,110 L 112,122 L 100,142 L 88,122 L 68,110 L 88,98 Z"
+        fill="#7B5CF0" filter="url(#starGlow)"/>
+
+  <!-- ASTRA -->
+  <text x="148" y="126"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="52"
+        fill="white"
+        letter-spacing="5">ASTRA</text>
+
+  <!-- AGENCY -->
+  <text x="150" y="155"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-weight="600"
+        font-size="15"
+        fill="#7B5CF0"
+        letter-spacing="10">AGENCY</text>
+
+  <!-- Headline left -->
+  <text x="72" y="270"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="68"
+        fill="white">Fai crescere</text>
+
+  <text x="72" y="350"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="68"
+        fill="white">la tua attività</text>
+
+  <text x="72" y="430"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="68"
+        fill="url(#pinkGrad)">online.</text>
+
+  <!-- Sub left -->
+  <text x="72" y="496"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-size="22"
+        fill="rgba(255,255,255,0.45)">Risultati reali. Niente promesse.</text>
+
+  <!-- ===== RIGHT SIDE: Services + CTA ===== -->
+
+  <!-- Service card 1 -->
+  <rect x="640" y="90" width="510" height="108" rx="18" fill="rgba(123,92,240,0.1)" stroke="#7B5CF0" stroke-width="1" stroke-opacity="0.3"/>
+  <!-- Icon dot -->
+  <circle cx="678" cy="144" r="20" fill="rgba(123,92,240,0.25)"/>
+  <text x="678" y="151" text-anchor="middle" font-size="18">📱</text>
+  <text x="716" y="136"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="22"
+        fill="white">Gestione Social Media</text>
+  <text x="716" y="164"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-size="17"
+        fill="rgba(255,255,255,0.5)">Instagram · TikTok · Contenuti · Grafica</text>
+
+  <!-- Service card 2 -->
+  <rect x="640" y="216" width="510" height="108" rx="18" fill="rgba(255,45,120,0.08)" stroke="#FF2D78" stroke-width="1" stroke-opacity="0.3"/>
+  <circle cx="678" cy="270" r="20" fill="rgba(255,45,120,0.2)"/>
+  <text x="678" y="277" text-anchor="middle" font-size="18">🌐</text>
+  <text x="716" y="262"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="22"
+        fill="white">Creazione Siti Web</text>
+  <text x="716" y="290"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-size="17"
+        fill="rgba(255,255,255,0.5)">Design su misura · Veloce · Professionale</text>
+
+  <!-- Service card 3 -->
+  <rect x="640" y="342" width="510" height="108" rx="18" fill="rgba(0,245,255,0.06)" stroke="#00F5FF" stroke-width="1" stroke-opacity="0.25"/>
+  <circle cx="678" cy="396" r="20" fill="rgba(0,245,255,0.15)"/>
+  <text x="678" y="403" text-anchor="middle" font-size="18">✦</text>
+  <text x="716" y="388"
+        font-family="Syne, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="22"
+        fill="white">Pacchetti Completi</text>
+  <text x="716" y="416"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-size="17"
+        fill="rgba(255,255,255,0.5)">Social + Sito Web · Tutto incluso</text>
+
+  <!-- CTA Button right -->
+  <rect x="640" y="482" width="300" height="66" rx="33" fill="url(#btnH)"/>
+  <text x="790" y="523"
+        text-anchor="middle"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-weight="700"
+        font-size="24"
+        fill="white">Contattaci ora →</text>
+
+  <!-- URL bottom right -->
+  <text x="1145" y="523"
+        text-anchor="end"
+        font-family="'Space Grotesk', Arial, sans-serif"
+        font-size="18"
+        fill="rgba(255,255,255,0.25)"
+        letter-spacing="1">astragency.it</text>
+</svg>
