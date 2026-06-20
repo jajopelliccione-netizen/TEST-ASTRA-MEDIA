@@ -163,6 +163,16 @@
           </div>
         </div>
 
+        <!-- Avvio -->
+        <div class="card" style="margin-bottom:16px;">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di avvio</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner appare da questa data in poi.</p>
+          <div style="display:flex;gap:10px;max-width:300px;">
+            <input type="date" id="promo-start-date-d" class="form-input" style="flex:1;" />
+            <input type="time" id="promo-start-date-t" class="form-input" style="width:110px;" />
+          </div>
+        </div>
+
         <!-- Scadenza -->
         <div class="card" style="margin-bottom:16px;">
           <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di scadenza</p>
@@ -2344,6 +2354,11 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
         if (snap.exists()) {
           const d = snap.data();
           _promoEnabled = !!d.enabled;
+          if (d.startDate) {
+            const [dp, tp] = d.startDate.split('T');
+            if (dp) document.getElementById('promo-start-date-d').value = dp;
+            if (tp) document.getElementById('promo-start-date-t').value = tp.slice(0,5);
+          }
           if (d.endDate) {
             const [dp, tp] = d.endDate.split('T');
             if (dp) document.getElementById('promo-end-date-d').value = dp;
@@ -2371,6 +2386,12 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       renderPromoToggle();
     };
 
+    function getPromoStartVal() {
+      const d = document.getElementById('promo-start-date-d').value;
+      const t = document.getElementById('promo-start-date-t').value || '00:00';
+      return d ? `${d}T${t}` : '';
+    }
+
     function getPromoEndVal() {
       const d = document.getElementById('promo-end-date-d').value;
       const t = document.getElementById('promo-end-date-t').value || '23:59';
@@ -2397,11 +2418,12 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
     }
 
     window.savePromo = async () => {
-      const endDate = getPromoEndVal();
-      const result  = document.getElementById('promo-save-result');
+      const startDate = getPromoStartVal();
+      const endDate   = getPromoEndVal();
+      const result    = document.getElementById('promo-save-result');
       if (!endDate) { result.textContent = '⚠ Imposta prima una data di scadenza'; result.style.color = 'var(--pink)'; return; }
       try {
-        await setDoc(doc(db, 'config', 'promo'), { enabled: _promoEnabled, endDate }, { merge: true });
+        await setDoc(doc(db, 'config', 'promo'), { enabled: _promoEnabled, startDate, endDate }, { merge: true });
         result.textContent = '✓ Salvato!';
         result.style.color = 'var(--green, #22c55e)';
         setTimeout(() => result.textContent = '', 3000);
