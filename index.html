@@ -896,10 +896,12 @@
       try {
         const snap = await getDoc(doc(db, 'config', 'promo'));
         if (!snap.exists()) return;
-        const { enabled, endDate } = snap.data();
+        const { enabled, startDate, endDate } = snap.data();
         if (!enabled || !endDate) return;
+        const now = new Date();
         const end = new Date(endDate);
-        if (end <= new Date()) return;
+        if (end <= now) return;
+        if (startDate && new Date(startDate) > now) return;
         document.getElementById('promo-section').style.display = '';
         const tick = () => {
           const diff = end - new Date();
