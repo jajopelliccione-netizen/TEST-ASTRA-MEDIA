@@ -163,25 +163,44 @@
           </div>
         </div>
 
-        <!-- Avvio -->
+        <!-- Senza scadenza -->
         <div class="card" style="margin-bottom:16px;">
-          <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di avvio</p>
-          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner appare da questa data in poi.</p>
-          <div style="display:flex;gap:10px;max-width:300px;">
-            <input type="date" id="promo-start-date-d" class="form-input" style="flex:1;" />
-            <input type="time" id="promo-start-date-t" class="form-input" style="width:110px;" />
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Senza data di scadenza</p>
+              <p style="font-size:.82rem;color:var(--text-muted);">Attiva l'offerta a tempo indeterminato, senza countdown.</p>
+            </div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <span style="font-size:.85rem;color:var(--text-muted);" id="promo-noexpiry-label">No</span>
+              <div onclick="toggleNoExpiry()" id="promo-noexpiry-toggle" style="width:48px;height:26px;border-radius:13px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;">
+                <div id="promo-noexpiry-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;"></div>
+              </div>
+            </label>
           </div>
         </div>
 
-        <!-- Scadenza -->
-        <div class="card" style="margin-bottom:16px;">
-          <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di scadenza</p>
-          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner sparisce automaticamente alla scadenza.</p>
-          <div style="display:flex;gap:10px;max-width:300px;">
-            <input type="date" id="promo-end-date-d" class="form-input" style="flex:1;" />
-            <input type="time" id="promo-end-date-t" class="form-input" style="width:110px;" />
+        <!-- Date (nascoste quando noExpiry) -->
+        <div id="promo-dates-section">
+          <!-- Avvio -->
+          <div class="card" style="margin-bottom:16px;">
+            <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di avvio</p>
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner appare da questa data in poi.</p>
+            <div style="display:flex;gap:10px;max-width:300px;">
+              <input type="date" id="promo-start-date-d" class="form-input" style="flex:1;" />
+              <input type="time" id="promo-start-date-t" class="form-input" style="width:110px;" />
+            </div>
           </div>
-          <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;" id="promo-countdown-admin"></p>
+
+          <!-- Scadenza -->
+          <div class="card" style="margin-bottom:16px;">
+            <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di scadenza</p>
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner sparisce automaticamente alla scadenza.</p>
+            <div style="display:flex;gap:10px;max-width:300px;">
+              <input type="date" id="promo-end-date-d" class="form-input" style="flex:1;" />
+              <input type="time" id="promo-end-date-t" class="form-input" style="width:110px;" />
+            </div>
+            <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;" id="promo-countdown-admin"></p>
+          </div>
         </div>
 
         <!-- Anteprima -->
@@ -2347,6 +2366,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
 
     // ── OFFERTA DI LANCIO (PROMO) ──────────────────────────────────
     let _promoEnabled = false;
+    let _noExpiry = false;
 
     window.loadPromo = async function() {
       try {
@@ -2354,6 +2374,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
         if (snap.exists()) {
           const d = snap.data();
           _promoEnabled = !!d.enabled;
+          _noExpiry = !!d.noExpiry;
           if (d.startDate) {
             const [dp, tp] = d.startDate.split('T');
             if (dp) document.getElementById('promo-start-date-d').value = dp;
@@ -2366,6 +2387,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
           }
         }
         renderPromoToggle();
+        renderNoExpiryToggle();
         startPromoCountdownAdmin();
       } catch(e) { console.error('loadPromo', e); }
     };
@@ -2381,10 +2403,21 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       label.style.color       = _promoEnabled ? 'var(--purple)' : 'var(--text-muted)';
     }
 
-    window.togglePromo = () => {
-      _promoEnabled = !_promoEnabled;
-      renderPromoToggle();
-    };
+    window.togglePromo = () => { _promoEnabled = !_promoEnabled; renderPromoToggle(); };
+
+    function renderNoExpiryToggle() {
+      const toggle = document.getElementById('promo-noexpiry-toggle');
+      const knob   = document.getElementById('promo-noexpiry-knob');
+      const label  = document.getElementById('promo-noexpiry-label');
+      const dates  = document.getElementById('promo-dates-section');
+      if (!toggle) return;
+      toggle.style.background = _noExpiry ? 'var(--purple)' : 'var(--border)';
+      knob.style.transform    = _noExpiry ? 'translateX(22px)' : 'translateX(0)';
+      label.textContent       = _noExpiry ? 'Sì' : 'No';
+      label.style.color       = _noExpiry ? 'var(--purple)' : 'var(--text-muted)';
+      if (dates) dates.style.display = _noExpiry ? 'none' : '';
+    }
+    window.toggleNoExpiry = () => { _noExpiry = !_noExpiry; renderNoExpiryToggle(); };
 
     function getPromoStartVal() {
       const d = document.getElementById('promo-start-date-d').value;
@@ -2421,9 +2454,9 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       const startDate = getPromoStartVal();
       const endDate   = getPromoEndVal();
       const result    = document.getElementById('promo-save-result');
-      if (!endDate) { result.textContent = '⚠ Imposta prima una data di scadenza'; result.style.color = 'var(--pink)'; return; }
+      if (!_noExpiry && !endDate) { result.textContent = '⚠ Imposta una data di scadenza o attiva "Senza scadenza"'; result.style.color = 'var(--pink)'; return; }
       try {
-        await setDoc(doc(db, 'config', 'promo'), { enabled: _promoEnabled, startDate, endDate }, { merge: true });
+        await setDoc(doc(db, 'config', 'promo'), { enabled: _promoEnabled, noExpiry: _noExpiry, startDate: _noExpiry ? '' : startDate, endDate: _noExpiry ? '' : endDate }, { merge: true });
         result.textContent = '✓ Salvato!';
         result.style.color = 'var(--green, #22c55e)';
         setTimeout(() => result.textContent = '', 3000);
