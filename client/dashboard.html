@@ -103,7 +103,7 @@
     </div>
 
     <!-- REPORT SOCIAL -->
-    <div class="card" style="margin-bottom:20px;">
+    <div class="card" id="reports-card" style="margin-bottom:20px;">
       <div class="card-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Report Social Media
@@ -243,28 +243,49 @@
       // Stats
       const statsRow = document.getElementById('stats-row');
       const latestReport = data.reports && data.reports.length ? data.reports[data.reports.length - 1] : null;
-      statsRow.innerHTML = `
-        <div class="stat-card">
-          <span class="label">Pacchetto</span>
-          <span class="value" style="font-size:1.1rem;margin-top:4px;">${data.package || '—'}</span>
-          <span class="badge badge-purple" style="margin-top:8px;">${data.packageStatus || 'Attivo'}</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Follower Totali</span>
-          <span class="value" style="color:var(--purple);">${latestReport ? latestReport.followers.toLocaleString('it') : '—'}</span>
-          ${latestReport ? `<span class="trend">↑ Aggiornato ${latestReport.month}</span>` : ''}
-        </div>
-        <div class="stat-card">
-          <span class="label">Reach Mensile</span>
-          <span class="value" style="color:var(--pink);">${latestReport ? latestReport.reach.toLocaleString('it') : '—'}</span>
-          ${latestReport ? `<span class="trend">${latestReport.month}</span>` : ''}
-        </div>
-        <div class="stat-card">
-          <span class="label">Engagement Rate</span>
-          <span class="value" style="color:var(--cyan);">${latestReport ? latestReport.engagement + '%' : '—'}</span>
-          ${latestReport ? `<span class="trend">${latestReport.posts} post</span>` : ''}
-        </div>
-      `;
+      const hasSocial = !!(latestReport || data.social?.instagram?.enabled || data.social?.tiktok?.enabled);
+
+      if (hasSocial) {
+        statsRow.innerHTML = `
+          <div class="stat-card">
+            <span class="label">Pacchetto</span>
+            <span class="value" style="font-size:1.1rem;margin-top:4px;">${data.package || '—'}</span>
+            <span class="badge badge-purple" style="margin-top:8px;">${data.packageStatus || 'Attivo'}</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Follower Totali</span>
+            <span class="value" style="color:var(--purple);">${latestReport ? latestReport.followers.toLocaleString('it') : '—'}</span>
+            ${latestReport ? `<span class="trend">↑ Aggiornato ${latestReport.month}</span>` : ''}
+          </div>
+          <div class="stat-card">
+            <span class="label">Reach Mensile</span>
+            <span class="value" style="color:var(--pink);">${latestReport ? latestReport.reach.toLocaleString('it') : '—'}</span>
+            ${latestReport ? `<span class="trend">${latestReport.month}</span>` : ''}
+          </div>
+          <div class="stat-card">
+            <span class="label">Engagement Rate</span>
+            <span class="value" style="color:var(--cyan);">${latestReport ? latestReport.engagement + '%' : '—'}</span>
+            ${latestReport ? `<span class="trend">${latestReport.posts} post</span>` : ''}
+          </div>
+        `;
+      } else {
+        const draftStatusMap = { in_revisione: 'In revisione', approvato: 'Approvato ✓', completato: 'Completato', in_lavorazione: 'In lavorazione', da_rivedere: 'Revisione richiesta' };
+        const draftSt = data.websiteDraft?.status;
+        const draftLabel = draftSt ? (draftStatusMap[draftSt] || draftSt) : 'In preparazione';
+        statsRow.innerHTML = `
+          <div class="stat-card">
+            <span class="label">Pacchetto</span>
+            <span class="value" style="font-size:1.1rem;margin-top:4px;">${data.package || '—'}</span>
+            <span class="badge badge-purple" style="margin-top:8px;">${data.packageStatus || 'Attivo'}</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Bozza Sito Web</span>
+            <span class="value" style="font-size:1rem;margin-top:4px;">${draftLabel}</span>
+            ${data.websiteDraft?.url ? `<a href="${data.websiteDraft.url}" target="_blank" rel="noopener" style="margin-top:8px;font-size:.75rem;color:var(--purple);text-decoration:none;">Visualizza ↗</a>` : ''}
+          </div>
+        `;
+        document.getElementById('reports-card').style.display = 'none';
+      }
 
       // Draft
       if (data.websiteDraft && data.websiteDraft.url) {
