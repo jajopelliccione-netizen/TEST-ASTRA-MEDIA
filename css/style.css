@@ -604,7 +604,7 @@ img, svg { display: block; }
   align-items: center;
   position: relative;
   overflow: hidden;
-  padding: 120px 24px 0;
+  padding: 100px 24px 80px;
 }
 
 /* animated mesh gradient bg */
@@ -2089,7 +2089,7 @@ footer {
   .partner-apply-inner { grid-template-columns: 1fr; gap: 36px; }
 
   /* Hero fits in one screen on tablet portrait */
-  #hero { padding: 76px 24px 24px; }
+  #hero { padding: 76px 24px 60px; }
   .hero-title {
     font-size: clamp(1.85rem, 3.8vw, 2.8rem);
     line-height: 1.06;
@@ -2097,21 +2097,16 @@ footer {
   }
   .hero-sub { margin-bottom: 18px; font-size: .88rem; }
   .hero-actions { gap: 12px; }
-  .hero-stats { padding: 12px 20px; margin-bottom: 28px; }
-  .stat-num { font-size: 1.55rem; }
-  .stat { padding: 0 12px; }
 }
 
 /* Landscape tablet / short viewport */
 @media (max-height: 820px) and (min-width: 600px) {
-  #hero { padding: 68px 24px 20px; }
+  #hero { padding: 68px 24px 40px; }
   .hero-title {
     font-size: clamp(1.7rem, 3.4vw, 2.5rem);
     margin-bottom: 10px;
   }
   .hero-sub { margin-bottom: 14px; }
-  .hero-stats { padding: 10px 16px; margin-bottom: 20px; }
-  .stat-num { font-size: 1.4rem; }
 }
 
 @media (max-width: 768px) {
@@ -2142,20 +2137,14 @@ footer {
     filter: drop-shadow(0 0 6px rgba(123,92,240,.9)) drop-shadow(0 0 14px rgba(255,45,120,.45)) !important;
   }
 
-  /* Hero: tutto il contenuto compatto e centrato insieme */
-  #hero { padding: 118px 24px 28px; justify-content: center; gap: 20px; }
-  .hero-content { flex: none; justify-content: flex-start; }
+  /* Hero: tutto il contenuto centrato verticalmente */
+  #hero { padding: 80px 24px 60px; justify-content: center; }
+  .hero-content { flex: 1; justify-content: center; }
 
   /* Titolo compatto su mobile — max 2-3 righe */
   .hero-title { font-size: 1.7rem; line-height: 1.1; margin-bottom: 14px; }
   .hero-badge { font-size: .7rem; padding: 6px 14px; margin-bottom: 18px; }
   .hero-sub { font-size: .82rem; line-height: 1.55; margin-bottom: 22px; }
-
-  /* Stats compatte subito dopo i bottoni */
-  .hero-stats { padding: 10px 12px; margin: 0 auto 72px; width: calc(100% - 32px); }
-  .stat { padding: 0 8px; }
-  .stat-num { font-size: 1.2rem; }
-  .stat-divider { display: block; }
 
   .services-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
