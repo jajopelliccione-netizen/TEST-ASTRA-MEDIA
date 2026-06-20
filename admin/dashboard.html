@@ -748,7 +748,7 @@
     }
 
     window.showSection = (name) => {
-      ['clients','partners','contacts','settings'].forEach(s => {
+      ['clients','partners','contacts','settings','promo'].forEach(s => {
         document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
       });
       document.querySelectorAll('[data-section]').forEach(l => {
