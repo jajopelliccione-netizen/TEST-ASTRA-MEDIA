@@ -167,6 +167,53 @@
     </div>
   </section>
 
+  <!-- ═══════════════════════════════════ PROMO BANNER ═══════════════════════════════════ -->
+  <section id="promo-section" style="display:none;">
+    <div class="container" style="max-width:860px;">
+      <div id="promo-banner" style="border-radius:24px;overflow:hidden;border:1px solid rgba(123,92,240,.35);background:linear-gradient(135deg,rgba(123,92,240,.18) 0%,rgba(255,45,120,.12) 100%);padding:40px 36px;text-align:center;position:relative;">
+        <!-- Glow bg -->
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 30% 40%,rgba(123,92,240,.2),transparent),radial-gradient(ellipse 50% 50% at 70% 60%,rgba(255,45,120,.15),transparent);pointer-events:none;"></div>
+        <div style="position:relative;z-index:1;">
+          <!-- Badge -->
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,45,120,.15);border:1px solid rgba(255,45,120,.4);border-radius:99px;padding:5px 16px;font-size:.73rem;font-weight:700;color:#FF2D78;letter-spacing:.07em;margin-bottom:18px;text-transform:uppercase;">⚡ Offerta di Lancio · Tempo Limitato</div>
+          <!-- Headline -->
+          <h2 style="font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;margin-bottom:10px;line-height:1.15;">
+            Gestione Social Media +<br/><span style="background:linear-gradient(90deg,#7B5CF0,#FF2D78);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Sito Web in omaggio</span>
+          </h2>
+          <p style="color:rgba(255,255,255,.6);font-size:.95rem;max-width:520px;margin:0 auto 24px;line-height:1.6;">
+            Acquista il pacchetto <strong style="color:#fff;">Gestione Social Media</strong> e ricevi la creazione del tuo sito web <strong style="color:#fff;">completamente gratis</strong>. Solo per questa settimana.
+          </p>
+          <!-- Countdown -->
+          <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
+            <div style="text-align:center;min-width:56px;">
+              <div id="cd-days" style="font-size:2.2rem;font-weight:800;font-family:monospace;line-height:1;color:#fff;">00</div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Giorni</div>
+            </div>
+            <div style="font-size:2rem;font-weight:800;color:rgba(255,255,255,.25);margin-bottom:12px;">:</div>
+            <div style="text-align:center;min-width:56px;">
+              <div id="cd-hours" style="font-size:2.2rem;font-weight:800;font-family:monospace;line-height:1;color:#fff;">00</div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Ore</div>
+            </div>
+            <div style="font-size:2rem;font-weight:800;color:rgba(255,255,255,.25);margin-bottom:12px;">:</div>
+            <div style="text-align:center;min-width:56px;">
+              <div id="cd-mins" style="font-size:2.2rem;font-weight:800;font-family:monospace;line-height:1;color:#fff;">00</div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Minuti</div>
+            </div>
+            <div style="font-size:2rem;font-weight:800;color:rgba(255,255,255,.25);margin-bottom:12px;">:</div>
+            <div style="text-align:center;min-width:56px;">
+              <div id="cd-secs" style="font-size:2.2rem;font-weight:800;font-family:monospace;line-height:1;color:var(--pink, #FF2D78);">00</div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Secondi</div>
+            </div>
+          </div>
+          <!-- CTA -->
+          <a href="#contact" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7B5CF0,#a855f7);color:#fff;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:99px;text-decoration:none;transition:opacity .2s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+            Approfitta ora →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══════════════════════════════════ ABOUT ═══════════════════════════════════ -->
   <section id="about">
     <div class="container">
@@ -842,7 +889,30 @@
 
   <script type="module">
     import { db } from './js/firebase-config.js';
-    import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { collection, addDoc, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // ── PROMO BANNER ──────────────────────────────────────────────
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'config', 'promo'));
+        if (!snap.exists()) return;
+        const { enabled, endDate } = snap.data();
+        if (!enabled || !endDate) return;
+        const end = new Date(endDate);
+        if (end <= new Date()) return;
+        document.getElementById('promo-section').style.display = '';
+        const tick = () => {
+          const diff = end - new Date();
+          if (diff <= 0) { document.getElementById('promo-section').style.display = 'none'; return; }
+          document.getElementById('cd-days').textContent  = String(Math.floor(diff / 86400000)).padStart(2,'0');
+          document.getElementById('cd-hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+          document.getElementById('cd-mins').textContent  = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+          document.getElementById('cd-secs').textContent  = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+        };
+        tick();
+        setInterval(tick, 1000);
+      } catch(e) { console.warn('promo', e); }
+    })();
 
     const pForm = document.getElementById('partner-form');
     const pBtn  = document.getElementById('partner-submit');

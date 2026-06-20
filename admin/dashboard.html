@@ -69,6 +69,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
         Vai al Sito
       </a>
+      <a class="sidebar-link" data-section="promo" onclick="showSection('promo')" style="cursor:pointer;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Offerta Lancio
+      </a>
       <div class="sidebar-section">App</div>
       <a class="sidebar-link" data-section="settings" onclick="showSection('settings')" style="cursor:pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -136,6 +140,67 @@
       </section>
 
       <!-- SECTION: IMPOSTAZIONI -->
+      <!-- ══════════════ PROMO ══════════════ -->
+      <section id="section-promo" style="display:none;">
+        <div style="margin-bottom:24px;">
+          <h1 class="section-heading">Offerta di Lancio</h1>
+          <p class="section-sub" style="margin-bottom:0;">Gestisci il pacchetto promozionale visibile sul sito.</p>
+        </div>
+
+        <!-- Toggle attiva/disattiva -->
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Stato offerta</p>
+              <p style="font-size:.82rem;color:var(--text-muted);">Attiva o disattiva il banner promozionale sul sito.</p>
+            </div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <span style="font-size:.85rem;color:var(--text-muted);" id="promo-toggle-label">Disattiva</span>
+              <div onclick="togglePromo()" id="promo-toggle" style="width:48px;height:26px;border-radius:13px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;">
+                <div id="promo-toggle-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;"></div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Scadenza -->
+        <div class="card" style="margin-bottom:16px;">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Data e ora di scadenza</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Il banner sparisce automaticamente alla scadenza.</p>
+          <input type="datetime-local" id="promo-end-date" class="form-input" style="max-width:280px;" />
+          <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;" id="promo-countdown-admin"></p>
+        </div>
+
+        <!-- Anteprima -->
+        <div class="card" style="margin-bottom:16px;">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:14px;">Anteprima banner</p>
+          <div style="border-radius:16px;overflow:hidden;border:1px solid rgba(123,92,240,.3);background:linear-gradient(135deg,rgba(123,92,240,.15),rgba(255,45,120,.1));padding:24px;text-align:center;">
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,45,120,.15);border:1px solid rgba(255,45,120,.3);border-radius:99px;padding:4px 14px;font-size:.72rem;font-weight:700;color:var(--pink);letter-spacing:.06em;margin-bottom:12px;">⚡ OFFERTA DI LANCIO · TEMPO LIMITATO</div>
+            <h3 style="font-size:1.3rem;font-weight:800;margin-bottom:8px;">Gestione Social + Sito Web <span style="color:var(--pink);">in omaggio</span></h3>
+            <p style="font-size:.85rem;color:rgba(255,255,255,.65);margin-bottom:16px;">Acquista il pacchetto Gestione Social Media e ricevi la creazione del tuo sito web <strong style="color:#fff;">completamente gratis</strong>.</p>
+            <div style="display:flex;justify-content:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+              <div style="text-align:center;"><div style="font-size:1.6rem;font-weight:800;font-family:monospace;">00</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em;">GIORNI</div></div>
+              <div style="font-size:1.6rem;font-weight:800;color:rgba(255,255,255,.3);">:</div>
+              <div style="text-align:center;"><div style="font-size:1.6rem;font-weight:800;font-family:monospace;">00</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em;">ORE</div></div>
+              <div style="font-size:1.6rem;font-weight:800;color:rgba(255,255,255,.3);">:</div>
+              <div style="text-align:center;"><div style="font-size:1.6rem;font-weight:800;font-family:monospace;">00</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em;">MIN</div></div>
+              <div style="font-size:1.6rem;font-weight:800;color:rgba(255,255,255,.3);">:</div>
+              <div style="text-align:center;"><div style="font-size:1.6rem;font-weight:800;font-family:monospace;">00</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em;">SEC</div></div>
+            </div>
+            <div style="display:inline-block;background:linear-gradient(135deg,var(--purple),#a855f7);color:#fff;font-weight:700;font-size:.9rem;padding:12px 28px;border-radius:99px;">Approfitta ora →</div>
+          </div>
+        </div>
+
+        <!-- Salva -->
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <button onclick="savePromo()" class="btn btn-primary" style="min-width:140px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salva modifiche
+          </button>
+          <span id="promo-save-result" style="font-size:.83rem;"></span>
+        </div>
+      </section>
+
       <section id="section-settings" style="display:none;">
         <div style="margin-bottom:24px;">
           <h1 class="section-heading">Impostazioni</h1>
@@ -258,6 +323,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span class="mob-badge" id="mob-contacts-badge" style="display:none;"></span>
         Messaggi
+      </button>
+      <button class="admin-mobile-tab" onclick="showSection('promo')" data-section="promo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Promo
       </button>
       <button class="admin-mobile-tab" onclick="showSection('settings')" data-section="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -2262,6 +2331,75 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       if (lbl && Notification.permission === 'granted') lbl.textContent = 'Attive ✓';
       if (lbl && Notification.permission === 'denied')  lbl.textContent = 'Bloccate dal browser';
     }
+
+    // ── OFFERTA DI LANCIO (PROMO) ──────────────────────────────────
+    let _promoEnabled = false;
+
+    async function loadPromo() {
+      try {
+        const snap = await getDoc(doc(db, 'config', 'promo'));
+        if (snap.exists()) {
+          const d = snap.data();
+          _promoEnabled = !!d.enabled;
+          if (d.endDate) document.getElementById('promo-end-date').value = d.endDate;
+        }
+        renderPromoToggle();
+        startPromoCountdownAdmin();
+      } catch(e) { console.error('loadPromo', e); }
+    }
+
+    function renderPromoToggle() {
+      const toggle = document.getElementById('promo-toggle');
+      const knob   = document.getElementById('promo-toggle-knob');
+      const label  = document.getElementById('promo-toggle-label');
+      toggle.style.background = _promoEnabled ? 'var(--purple)' : 'var(--border)';
+      knob.style.transform    = _promoEnabled ? 'translateX(22px)' : 'translateX(0)';
+      label.textContent       = _promoEnabled ? 'Attiva' : 'Disattiva';
+      label.style.color       = _promoEnabled ? 'var(--purple)' : 'var(--text-muted)';
+    }
+
+    window.togglePromo = () => {
+      _promoEnabled = !_promoEnabled;
+      renderPromoToggle();
+    };
+
+    function startPromoCountdownAdmin() {
+      const el = document.getElementById('promo-countdown-admin');
+      if (!el) return;
+      function tick() {
+        const val = document.getElementById('promo-end-date').value;
+        if (!val) { el.textContent = ''; return; }
+        const diff = new Date(val) - new Date();
+        if (diff <= 0) { el.textContent = '⏰ Offerta scaduta'; el.style.color = 'var(--pink)'; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `⏱ Scade tra: ${d}g ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.style.color = diff < 3600000 ? 'var(--pink)' : 'var(--text-muted)';
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    window.savePromo = async () => {
+      const endDate = document.getElementById('promo-end-date').value;
+      const result  = document.getElementById('promo-save-result');
+      if (!endDate) { result.textContent = '⚠ Imposta prima una data di scadenza'; result.style.color = 'var(--pink)'; return; }
+      try {
+        await setDoc(doc(db, 'config', 'promo'), { enabled: _promoEnabled, endDate }, { merge: true });
+        result.textContent = '✓ Salvato!';
+        result.style.color = 'var(--green, #22c55e)';
+        setTimeout(() => result.textContent = '', 3000);
+      } catch(e) { result.textContent = 'Errore: ' + e.message; result.style.color = 'var(--pink)'; }
+    };
+
+    // Carica promo quando si apre la sezione
+    const _origShowSection = window.showSection;
+    window.showSection = (name) => {
+      _origShowSection(name);
+      if (name === 'promo') loadPromo();
+    };
   </script>
 </body>
 </html>
