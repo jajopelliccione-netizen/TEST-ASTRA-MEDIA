@@ -2335,7 +2335,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
     // ── OFFERTA DI LANCIO (PROMO) ──────────────────────────────────
     let _promoEnabled = false;
 
-    async function loadPromo() {
+    window.loadPromo = async function() {
       try {
         const snap = await getDoc(doc(db, 'config', 'promo'));
         if (snap.exists()) {
@@ -2346,7 +2346,7 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
         renderPromoToggle();
         startPromoCountdownAdmin();
       } catch(e) { console.error('loadPromo', e); }
-    }
+    };
 
     function renderPromoToggle() {
       const toggle = document.getElementById('promo-toggle');
