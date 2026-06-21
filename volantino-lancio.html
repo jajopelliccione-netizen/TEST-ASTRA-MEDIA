@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volantino Offerta – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.0/dist/dom-to-image-more.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 20px 80px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ── FAB menu ── */
+    #fab-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    #fab-main {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(123,92,240,0.5);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fab-main:active { transform: scale(0.92); }
+    .fab-item {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(20,16,40,0.97);
+      border: 1px solid rgba(123,92,240,0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background .15s;
+    }
+    .fab-item:active { background: rgba(123,92,240,0.25); }
+    #fab-wrap.open .fab-item { display: flex; }
+
+    /* ── Modalità schermo intero ── */
+    #fullscreen-mode {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07060F;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #fullscreen-mode.active { display: block; }
+    #fs-flyer-wrap {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 130px;
+    }
+    #fs-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(7,6,15,0.97);
+      border-top: 1px solid rgba(123,92,240,0.3);
+      padding: 16px 20px;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      z-index: 10001;
+    }
+    #fs-banner.active { display: block; }
+    #fs-banner p { font-size: 15px; color: #fff; margin-bottom: 10px; }
+    #fs-banner span { color: #FFB800; font-weight: 700; }
+    #fs-close {
+      display: inline-block;
+      padding: 12px 32px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #fs-close:active { background: rgba(255,255,255,0.25); }
+
+    /* ── Flyer card ── */
+    .flyer {
+      width: 700px;
+      min-height: 990px;
+      background: #07060F;
+      border-radius: 28px;
+      border: 1px solid rgba(123,92,240,0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 56px 52px;
+    }
+
+    /* Ambient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+    }
+    .orb-1 { width:460px;height:460px;background:rgba(123,92,240,0.3);bottom:-140px;left:-160px; }
+    .orb-2 { width:320px;height:320px;background:rgba(255,184,0,0.18);top:-90px;right:-110px; }
+    .orb-3 { width:220px;height:220px;background:rgba(255,140,0,0.07);top:42%;left:50%;transform:translateX(-50%); }
+
+    .dot {
+      position:absolute;border-radius:50%;
+      background:rgba(255,255,255,0.4);
+      pointer-events:none;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      height: 58px;
+      object-fit: contain;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 22px rgba(123,92,240,0.55));
+    }
+
+    /* ── Badge GOLD ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(40,28,0,0.95), rgba(30,18,0,0.92));
+      border: 1.5px solid rgba(255,184,0,0.7);
+      border-radius: 100px;
+      padding: 12px 32px;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+      box-shadow:
+        0 0 18px rgba(255,184,0,0.25),
+        0 0 40px rgba(255,184,0,0.1),
+        inset 0 0 22px rgba(255,184,0,0.06),
+        inset 0 1px 0 rgba(255,184,0,0.2);
+    }
+    .badge-dot {
+      width: 12px; height: 12px;
+      background: #FFB800;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px #FFB800, 0 0 18px rgba(255,184,0,0.7), 0 0 32px rgba(255,184,0,0.35);
+    }
+    .badge-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13.5px;
+      letter-spacing: 0.22em;
+      color: #FFB800;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,184,0,0.55);
+    }
+
+    /* ── Headline ── */
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 58px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-align: center;
+      width: 100%;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 40px rgba(123,92,240,0.22);
+    }
+    .gradient-word {
+      background: linear-gradient(135deg, #FFD700 0%, #FFB800 50%, #FF8C00 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Subline ── */
+    .subline {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.42);
+      letter-spacing: 0.16em;
+      text-align: center;
+      width: 100%;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── Offerta callout ── */
+    .offer-box {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,140,0,0.07));
+      border: 1.5px solid rgba(255,184,0,0.45);
+      border-radius: 18px;
+      padding: 22px 28px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .offer-box-icon {
+      font-size: 2.4rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .offer-box-text {}
+    .offer-box-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #FFB800;
+      margin-bottom: 6px;
+    }
+    .offer-box-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .offer-box-title .gold { color: #FFD700; }
+    .offer-box-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg,transparent,rgba(123,92,240,0.35),rgba(255,184,0,0.2),transparent);
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── Services ── */
+    .services {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 2;
+    }
+    .service-card {
+      flex: 1 1 calc(50% - 6px);
+      background: rgba(123,92,240,0.07);
+      border: 1px solid rgba(123,92,240,0.22);
+      border-radius: 16px;
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+    .service-icon-wrap {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .service-icon-wrap svg { width: 24px; height: 24px; }
+    .service-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.4;
+    }
+    .service-included {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #FFB800;
+      background: rgba(255,184,0,0.1);
+      border: 1px solid rgba(255,184,0,0.25);
+      border-radius: 50px;
+      padding: 2px 10px;
+    }
+
+    /* ── CTA ── */
+    .cta-wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 100px;
+      padding: 18px 52px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+      box-shadow: 0 0 32px rgba(123,92,240,0.5), 0 0 64px rgba(255,45,120,0.2);
+    }
+    .cta-sub {
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Contacts ── */
+    .contacts {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 2;
+    }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: 0.01em;
+    }
+    .contact-row svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* ── Social ── */
+    .social-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 12px;
+      padding: 13px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      min-width: 210px;
+    }
+    .social-btn.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+    .social-btn.tt {
+      background: linear-gradient(135deg,#1a1a2e,#16213e);
+      border: 1px solid rgba(0,245,255,0.35);
+      box-shadow: 0 0 18px rgba(0,245,255,0.14);
+    }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* ── Footer ── */
+    .footer-line {
+      margin-top: 30px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.05em;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── FAB menu ── -->
+<div id="fab-wrap">
+  <button id="fab-main" onclick="toggleFab()" title="Esporta">⚡</button>
+  <button class="fab-item" onclick="apriSchermo(); closeFab()">📸 Fai screenshot</button>
+  <button class="fab-item" onclick="exportPPTX(); closeFab()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Scarica per Canva (.pptx)
+  </button>
+  <button class="fab-item" onclick="window.print(); closeFab()">🖨️ Stampa / PDF</button>
+</div>
+
+<!-- Modalità screenshot a schermo intero -->
+<div id="fullscreen-mode">
+  <div id="fs-flyer-wrap"></div>
+</div>
+<div id="fs-banner">
+  <p>📸 <span>Fai ora lo screenshot</span> del dispositivo — poi chiudi</p>
+  <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px;">
+    iPhone/iPad: tasto laterale + volume su &nbsp;·&nbsp; Android: tasto accensione + volume giù &nbsp;·&nbsp; PC: Win+Shift+S
+  </p>
+  <button id="fs-close" onclick="chiudiSchermo()">✕ Chiudi e torna all'editor</button>
+</div>
+
+<!-- ── Flyer ── -->
+<div class="flyer" id="flyer">
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="dot" style="width:4px;height:4px;top:11%;left:9%;opacity:.5;"></div>
+  <div class="dot" style="width:3px;height:3px;top:21%;right:11%;opacity:.4;"></div>
+  <div class="dot" style="width:5px;height:5px;top:44%;left:5%;opacity:.3;"></div>
+  <div class="dot" style="width:3px;height:3px;bottom:28%;right:8%;opacity:.5;"></div>
+  <div class="dot" style="width:4px;height:4px;bottom:14%;left:15%;opacity:.35;"></div>
+
+  <!-- Logo -->
+  <img src="logo.png" class="logo" alt="Astra Agency" />
+
+  <!-- Badge GOLD -->
+  <div class="badge">
+    <div class="badge-dot"></div>
+    <span class="badge-text">⚡ Offerta di Lancio</span>
+  </div>
+
+  <!-- Headline -->
+  <h1 class="headline">
+    Sito Web<br/>
+    <span class="gradient-word">GRATIS</span><br/>
+    con Social Manager
+  </h1>
+
+  <!-- Subline -->
+  <p class="subline">Risparmio immediato di €800+ &nbsp;·&nbsp; Offerta a tempo limitato</p>
+
+  <!-- Offer box -->
+  <div class="offer-box">
+    <div class="offer-box-icon">🎁</div>
+    <div class="offer-box-text">
+      <div class="offer-box-tag">Cosa è incluso nell'offerta</div>
+      <div class="offer-box-title">Sito web professionale <span class="gold">incluso gratis</span></div>
+      <div class="offer-box-desc">Attivando il pacchetto Social Manager ricevi un sito web moderno, mobile-first e ottimizzato per Google — senza costi aggiuntivi.</div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Services -->
+  <div class="services">
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(123,92,240,0.25),rgba(180,79,216,0.2));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="9" height="9" rx="2" fill="#7B5CF0"/>
+          <rect x="13" y="2" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/>
+          <rect x="2" y="13" width="9" height="9" rx="2" fill="#B44FD8" opacity=".7"/>
+          <rect x="13" y="13" width="9" height="9" rx="2" fill="#7B5CF0" opacity=".5"/>
+        </svg>
+      </div>
+      <span class="service-name">Gestione<br/>Social Media</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(0,245,180,0.15),rgba(0,200,100,0.12));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="3" width="20" height="14" rx="2" stroke="#00F5B4" stroke-width="2"/>
+          <path d="M8 21h8M12 17v4" stroke="#00F5B4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 8h.5M7 11h10" stroke="#00F5B4" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="service-name">Creazione<br/>Sito Web</span>
+      <span class="service-included">✦ Incluso gratis</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(255,45,120,0.2),rgba(255,107,107,0.15));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="5" width="20" height="15" rx="2" stroke="#FF2D78" stroke-width="2"/>
+          <path d="M10 9l6 3-6 3V9z" fill="#FF2D78"/>
+        </svg>
+      </div>
+      <span class="service-name">Foto<br/>& Video</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,153,204,0.12));">
+        <svg viewBox="0 0 24 24" fill="none">
+          <polyline points="22,7 13.5,15.5 8.5,10.5 2,17" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="16,7 22,7 22,13" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="service-name">Strategia<br/>di Crescita</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <span class="cta-btn">📞 Prenota una chiamata GRATUITA ✦</span>
+    <p class="cta-sub">Nessun impegno · Nessun costo nascosto</p>
+  </div>
+
+  <!-- Contacts -->
+  <div class="contacts">
+    <div class="contact-row">
+      <svg viewBox="0 0 24 24" fill="#7B5CF0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      info@astragency.it
+    </div>
+    <div class="contact-row">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#00F5FF" stroke-width="2"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="#00F5FF" stroke-width="2"/></svg>
+      astragency.it
+    </div>
+  </div>
+
+  <!-- Social -->
+  <div class="social-row">
+    <a href="https://instagram.com/astragency.it" class="social-btn ig">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      @astragency.it
+    </a>
+    <a href="https://tiktok.com/@astragency.it" class="social-btn tt">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.26 8.26 0 0 0 4.84 1.56V6.79a4.85 4.85 0 0 1-1.07-.1z"/></svg>
+      @astragency.it
+    </a>
+  </div>
+
+  <p class="footer-line">© 2025 Astra Agency · Tutti i diritti riservati</p>
+
+</div>
+
+<script>
+async function exportPPTX() {
+  try {
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name: 'A4_V', width: 7.48, height: 10.58 });
+    pptx.layout = 'A4_V';
+
+    const slide = pptx.addSlide();
+    slide.background = { color: '07060F' };
+
+    // Orb viola (basso-sinistra)
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: -1.4, y: 7.5, w: 4.5, h: 4.5,
+      fill: { color: '7B5CF0', transparency: 72 },
+      line: { color: '7B5CF0', transparency: 100 }
+    });
+    // Orb gold (alto-destra)
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: 5.5, y: -0.8, w: 3.2, h: 3.2,
+      fill: { color: 'FFB800', transparency: 82 },
+      line: { color: 'FFB800', transparency: 100 }
+    });
+
+    // Logo
+    try {
+      const img = document.querySelector('.logo');
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      const logoH = 0.55;
+      const logoW = logoH * (img.naturalWidth / img.naturalHeight);
+      slide.addImage({ data: dataUrl, x: (7.48 - logoW) / 2, y: 0.5, w: logoW, h: logoH });
+    } catch(e) {
+      slide.addText('ASTRA AGENCY', { x: 0, y: 0.45, w: 7.48, h: 0.6, align: 'center', fontFace: 'Syne', fontSize: 22, bold: true, color: 'FFFFFF' });
+    }
+
+    // Badge gold
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 1.4, y: 1.35, w: 4.68, h: 0.48,
+      rectRadius: 0.24,
+      fill: { color: '28190A', transparency: 8 },
+      line: { color: 'FFB800', width: 1.5, transparency: 30 }
+    });
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: 1.82, y: 1.52, w: 0.14, h: 0.14,
+      fill: { color: 'FFB800' },
+      line: { color: 'FFB800', transparency: 100 }
+    });
+    slide.addText('⚡  OFFERTA DI LANCIO', {
+      x: 2.06, y: 1.37, w: 3.7, h: 0.46,
+      align: 'left', valign: 'middle',
+      fontFace: 'Syne', fontSize: 9, bold: true, color: 'FFB800', charSpacing: 4
+    });
+
+    // Headline
+    slide.addText([
+      { text: 'Sito Web\n', options: { color: 'FFFFFF' } },
+      { text: 'GRATIS\n', options: { color: 'FFD700' } },
+      { text: 'con Social Manager', options: { color: 'FFFFFF' } }
+    ], {
+      x: 0.3, y: 1.98, w: 6.88, h: 2.3,
+      align: 'center', fontFace: 'Syne', fontSize: 38, bold: true, lineSpacingMultiple: 1.1
+    });
+
+    // Subline
+    slide.addText('Risparmio immediato di €800+  ·  Offerta a tempo limitato', {
+      x: 0.5, y: 4.32, w: 6.48, h: 0.35,
+      align: 'center', fontFace: 'Space Grotesk', fontSize: 10, color: '666650', charSpacing: 2
+    });
+
+    // Offer box
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.3, y: 4.8, w: 6.88, h: 1.1,
+      rectRadius: 0.16,
+      fill: { color: 'FFB800', transparency: 90 },
+      line: { color: 'FFB800', width: 1.5, transparency: 55 }
+    });
+    slide.addText('🎁  INCLUSO NELL\'OFFERTA', {
+      x: 0.55, y: 4.85, w: 6.4, h: 0.25,
+      align: 'left', fontFace: 'Space Grotesk', fontSize: 8, bold: true, color: 'FFB800', charSpacing: 2.5
+    });
+    slide.addText('Sito web professionale incluso gratis col pacchetto Social Manager', {
+      x: 0.55, y: 5.12, w: 6.4, h: 0.65,
+      align: 'left', fontFace: 'Syne', fontSize: 14, bold: true, color: 'FFFFFF'
+    });
+
+    // Divider
+    slide.addShape(pptx.ShapeType.line, {
+      x: 0.5, y: 6.1, w: 6.48, h: 0,
+      line: { color: '7B5CF0', width: 0.5, transparency: 60 }
+    });
+
+    // Service cards
+    const services = [
+      { title: 'Gestione\nSocial Media', color: '7B5CF0', extra: '' },
+      { title: 'Creazione\nSito Web',    color: '00F5B4', extra: '✦ Incluso gratis' },
+      { title: 'Foto\n& Video',          color: 'FF2D78', extra: '' },
+      { title: 'Strategia\ndi Crescita', color: '00F5FF', extra: '' },
+    ];
+    services.forEach((s, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = 0.3 + col * 3.44;
+      const y = 6.28 + row * 0.98;
+      slide.addShape(pptx.ShapeType.roundRect, {
+        x, y, w: 3.24, h: 0.82,
+        rectRadius: 0.12,
+        fill: { color: '7B5CF0', transparency: 93 },
+        line: { color: '7B5CF0', width: 0.75, transparency: 78 }
+      });
+      slide.addText(s.title + (s.extra ? `\n${s.extra}` : ''), {
+        x, y: y + 0.1, w: 3.24, h: 0.65,
+        align: 'center', fontFace: 'Space Grotesk', fontSize: 10, bold: true, color: 'DDDDEE'
+      });
+    });
+
+    // CTA button
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.74, y: 8.44, w: 6.0, h: 0.58,
+      rectRadius: 0.29,
+      fill: { color: 'A040C0' },
+      line: { color: 'FF2D78', transparency: 100 }
+    });
+    slide.addText('📞  Prenota una chiamata GRATUITA  ✦', {
+      x: 0.74, y: 8.44, w: 6.0, h: 0.58,
+      align: 'center', valign: 'middle', fontFace: 'Syne', fontSize: 13, bold: true, color: 'FFFFFF'
+    });
+    slide.addText('Nessun impegno · Nessun costo nascosto', {
+      x: 0.74, y: 9.05, w: 6.0, h: 0.28,
+      align: 'center', fontFace: 'Space Grotesk', fontSize: 8.5, color: '555555'
+    });
+
+    // Contacts
+    slide.addText('info@astragency.it   ·   astragency.it', {
+      x: 0.5, y: 9.42, w: 6.48, h: 0.3,
+      align: 'center', fontFace: 'Space Grotesk', fontSize: 9.5, color: '666680', charSpacing: 0.5
+    });
+
+    // Social buttons
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 1.44, y: 9.82, w: 2.0, h: 0.42,
+      rectRadius: 0.1,
+      fill: { color: 'C0306A' },
+      line: { color: 'C0306A', transparency: 100 }
+    });
+    slide.addText('@astragency.it', {
+      x: 1.44, y: 9.82, w: 2.0, h: 0.42,
+      align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 9, bold: true, color: 'FFFFFF'
+    });
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 3.64, y: 9.82, w: 2.0, h: 0.42,
+      rectRadius: 0.1,
+      fill: { color: '111128' },
+      line: { color: '00F5FF', width: 1, transparency: 60 }
+    });
+    slide.addText('@astragency.it', {
+      x: 3.64, y: 9.82, w: 2.0, h: 0.42,
+      align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 9, bold: true, color: 'FFFFFF'
+    });
+
+    // Footer
+    slide.addText('© 2025 Astra Agency · Tutti i diritti riservati', {
+      x: 0.5, y: 10.38, w: 6.48, h: 0.18,
+      align: 'center', fontFace: 'Space Grotesk', fontSize: 7, color: '282828'
+    });
+
+    await pptx.writeFile({ fileName: 'Volantino-Offerta-AstraAgency.pptx' });
+
+  } catch(err) {
+    console.error(err);
+    alert('Errore generazione PPTX: ' + err.message);
+  }
+}
+
+function toggleFab() {
+  document.getElementById('fab-wrap').classList.toggle('open');
+}
+function closeFab() {
+  document.getElementById('fab-wrap').classList.remove('open');
+}
+
+function apriSchermo() {
+  const flyer = document.getElementById('flyer');
+  const wrap  = document.getElementById('fs-flyer-wrap');
+  wrap.innerHTML = '';
+  const clone = flyer.cloneNode(true);
+  clone.style.transform = 'none';
+  clone.style.margin = '0 auto';
+  clone.style.borderRadius = '0';
+  clone.style.maxWidth = '700px';
+  clone.style.width = '100%';
+  wrap.appendChild(clone);
+  document.getElementById('fullscreen-mode').classList.add('active');
+  document.getElementById('fs-banner').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function chiudiSchermo() {
+  document.getElementById('fullscreen-mode').classList.remove('active');
+  document.getElementById('fs-banner').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('fs-flyer-wrap').innerHTML = '';
+}
+</script>
+
+</body>
+</html>
