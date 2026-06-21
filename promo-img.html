@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Promo Image – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ── Immagine 1200×900 ── */
+    .img {
+      width: 1200px;
+      height: 900px;
+      background: #07060F;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(123,92,240,.35) 0%, transparent 65%);
+      bottom: -200px; left: -180px;
+    }
+    .orb-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,184,0,.22) 0%, transparent 65%);
+      top: -120px; right: -100px;
+    }
+    .orb-3 {
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, rgba(255,45,120,.14) 0%, transparent 65%);
+      top: 50%; left: 60%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Stars */
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+    }
+
+    /* Thin top border accent */
+    .top-accent {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #7B5CF0, #FF2D78, #FFB800, transparent);
+    }
+
+    /* Content */
+    .content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0;
+    }
+
+    /* Logo */
+    .logo {
+      height: 64px;
+      object-fit: contain;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 0 28px rgba(123,92,240,.6));
+    }
+
+    /* Eyebrow */
+    .eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      margin-bottom: 22px;
+    }
+
+    /* Big phrase */
+    .phrase {
+      font-family: 'Syne', sans-serif;
+      font-size: 88px;
+      font-weight: 800;
+      line-height: 1.0;
+      color: #fff;
+      letter-spacing: -.03em;
+      margin-bottom: 32px;
+    }
+    .phrase .line-gold {
+      background: linear-gradient(135deg, #FFD700, #FFB800, #FF8C00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .phrase .line-grad {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78, #00F5FF);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Sub */
+    .sub {
+      font-size: 20px;
+      font-weight: 500;
+      color: rgba(255,255,255,.38);
+      letter-spacing: .08em;
+      margin-bottom: 52px;
+    }
+
+    /* CTA pill */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(123,92,240,.14);
+      border: 1.5px solid rgba(123,92,240,.45);
+      border-radius: 100px;
+      padding: 16px 40px;
+    }
+    .pill-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #7B5CF0;
+      box-shadow: 0 0 12px rgba(123,92,240,.9);
+      flex-shrink: 0;
+    }
+    .pill-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: rgba(255,255,255,.75);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* Bottom URL */
+    .url {
+      position: absolute;
+      bottom: 36px;
+      left: 0; right: 0;
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(255,255,255,.2);
+      letter-spacing: .1em;
+      z-index: 2;
+    }
+
+    /* Hint */
+    .hint {
+      margin-top: 24px;
+      color: rgba(255,255,255,.3);
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      text-align: center;
+    }
+    .hint kbd {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+
+  <div class="img" id="img">
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="top-accent"></div>
+
+    <!-- Star dots -->
+    <div class="star" style="width:3px;height:3px;top:12%;left:8%;opacity:.5;"></div>
+    <div class="star" style="width:2px;height:2px;top:22%;right:12%;opacity:.4;"></div>
+    <div class="star" style="width:4px;height:4px;top:68%;left:6%;opacity:.3;"></div>
+    <div class="star" style="width:2px;height:2px;bottom:18%;right:9%;opacity:.45;"></div>
+    <div class="star" style="width:3px;height:3px;top:45%;left:92%;opacity:.35;"></div>
+    <div class="star" style="width:2px;height:2px;top:78%;left:18%;opacity:.4;"></div>
+
+    <div class="content">
+      <img src="logo.png" class="logo" alt="Astra Agency" />
+      <div class="eyebrow">Social Media Agency · astragency.it</div>
+      <div class="phrase">
+        Il tuo brand<br/>
+        <span class="line-grad">visibile.</span><br/>
+        <span class="line-gold">Adesso.</span>
+      </div>
+      <div class="sub">Chiamata gratuita &nbsp;·&nbsp; Senza impegno</div>
+      <div class="pill">
+        <div class="pill-dot"></div>
+        <span class="pill-text">Prenota su astragency.it</span>
+      </div>
+    </div>
+
+    <div class="url">astragency.it &nbsp;·&nbsp; info@astragency.it</div>
+
+  </div>
+
+  <p class="hint">
+    <kbd>Ctrl+P</kbd> → Salva come PDF &nbsp;·&nbsp; oppure screenshot della card
+  </p>
+
+</div>
+
+</body>
+</html>
