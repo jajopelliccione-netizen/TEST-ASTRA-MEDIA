@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flyer Social – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #05040e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      gap: 32px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ══════════════════════════════════
+       POST QUADRATO 1080×1080
+    ══════════════════════════════════ */
+    .post {
+      width: 600px;
+      height: 600px;
+      background: #0D0B1A;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(123,92,240,.25);
+      box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 80px rgba(123,92,240,.1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* bg glow orbs */
+    .post .orb1 {
+      position: absolute;
+      top: -100px; left: -100px;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(123,92,240,.25) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+    .post .orb2 {
+      position: absolute;
+      bottom: -80px; right: -80px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(255,45,120,.2) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+    .post .orb3 {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(0,245,255,.05) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .post-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 32px 36px;
+    }
+
+    /* BRAND */
+    .post-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .post-brand-star {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+    }
+    .post-brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 800;
+      color: rgba(240,238,255,.6);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    /* HEADLINE */
+    .post-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .post-headline .line2 {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .post-sub {
+      font-size: .82rem;
+      color: rgba(240,238,255,.45);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* OFFER PILL CENTER */
+    .post-offer {
+      background: linear-gradient(135deg, rgba(255,184,0,.15), rgba(255,140,0,.1));
+      border: 1px solid rgba(255,184,0,.4);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+    .post-offer-tag {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #FFB800;
+      margin-bottom: 6px;
+    }
+    .post-offer-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      line-height: 1.2;
+    }
+    .post-offer-text .gold {
+      background: linear-gradient(135deg, #FFD700, #FFB800);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .post-offer-note {
+      font-size: .73rem;
+      color: rgba(240,238,255,.45);
+      margin-top: 4px;
+    }
+
+    /* SERVICES PILLS */
+    .post-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: auto;
+    }
+    .pill {
+      background: rgba(123,92,240,.12);
+      border: 1px solid rgba(123,92,240,.25);
+      border-radius: 50px;
+      padding: 5px 12px;
+      font-size: .72rem;
+      font-weight: 600;
+      color: rgba(240,238,255,.65);
+    }
+    .pill.active {
+      background: rgba(123,92,240,.22);
+      border-color: rgba(123,92,240,.5);
+      color: #B8A8FF;
+    }
+
+    /* CTA FOOTER */
+    .post-cta {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .post-cta-left {}
+    .post-cta-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 2px;
+    }
+    .post-cta-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .post-cta-url {
+      font-family: 'Syne', sans-serif;
+      font-size: .88rem;
+      font-weight: 800;
+      color: rgba(255,255,255,.85);
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .post-cta-url::after {
+      content: '→';
+      font-size: 1rem;
+    }
+
+    /* ══════════════════════════════════
+       STORY 9:16
+    ══════════════════════════════════ */
+    .story {
+      width: 338px;
+      height: 600px;
+      background: #0D0B1A;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(123,92,240,.25);
+      box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 60px rgba(123,92,240,.1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .story-top {
+      background: linear-gradient(180deg, rgba(123,92,240,.35) 0%, transparent 100%);
+      padding: 28px 24px 24px;
+      position: relative;
+    }
+    .story-top::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(123,92,240,.12), rgba(255,45,120,.08));
+    }
+    .story-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .story-star {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+    }
+    .story-brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: .78rem;
+      font-weight: 800;
+      color: rgba(240,238,255,.65);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .story-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      line-height: 1.15;
+      position: relative;
+    }
+    .story-headline .grad {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78, #00F5FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .story-body {
+      flex: 1;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .story-services {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .story-svc {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(123,92,240,.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .story-svc-icon { font-size: 1.1rem; }
+    .story-svc-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: rgba(240,238,255,.75);
+    }
+
+    .story-offer {
+      background: linear-gradient(135deg, rgba(255,184,0,.15), rgba(255,140,0,.08));
+      border: 1px solid rgba(255,184,0,.35);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .story-offer-tag {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #FFB800;
+      margin-bottom: 5px;
+    }
+    .story-offer-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      line-height: 1.2;
+    }
+    .gold2 {
+      background: linear-gradient(135deg, #FFD700, #FFB800);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .story-cta {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .story-cta-top {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .story-cta-sub {
+      font-size: .72rem;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 10px;
+    }
+    .story-cta-url {
+      font-family: 'Syne', sans-serif;
+      font-size: .85rem;
+      font-weight: 800;
+      color: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.12);
+      padding: 6px 16px;
+      border-radius: 50px;
+      display: inline-block;
+    }
+
+    /* LABELS */
+    .format-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .72rem;
+      color: rgba(255,255,255,.25);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ROW */
+    .row {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+    }
+    .col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .print-hint {
+      text-align: center;
+      color: rgba(255,255,255,.25);
+      font-size: .75rem;
+    }
+    .print-hint kbd {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="row">
+
+    <!-- ── POST QUADRATO ── -->
+    <div class="col">
+      <span class="format-label">Post / Feed 1:1</span>
+      <div class="post">
+        <div class="orb1"></div>
+        <div class="orb2"></div>
+        <div class="orb3"></div>
+        <div class="post-inner">
+
+          <div class="post-brand">
+            <div class="post-brand-star">✦</div>
+            <div class="post-brand-name">Astra Agency</div>
+          </div>
+
+          <div class="post-headline">
+            Il tuo brand<br />
+            <span class="line2">merita di più.</span>
+          </div>
+          <div class="post-sub">
+            Social, contenuti e sito web gestiti da professionisti.<br />
+            Tu pensa al business, ci pensiamo noi.
+          </div>
+
+          <div class="post-offer">
+            <div class="post-offer-tag">⚡ Offerta lancio</div>
+            <div class="post-offer-text">Sito Web <span class="gold">GRATIS</span> col pacchetto Social</div>
+            <div class="post-offer-note">Risparmio €800+ · Offerta a tempo limitato</div>
+          </div>
+
+          <div class="post-pills">
+            <span class="pill active">📱 Social Media</span>
+            <span class="pill active">🌐 Siti Web</span>
+            <span class="pill">🎬 Contenuti</span>
+            <span class="pill">📊 Strategia</span>
+          </div>
+
+          <div class="post-cta">
+            <div class="post-cta-left">
+              <div class="post-cta-label">📞 Chiamata gratuita</div>
+              <div class="post-cta-text">Prenota ora, senza impegno</div>
+            </div>
+            <div class="post-cta-url">astragency.it</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STORY 9:16 ── -->
+    <div class="col">
+      <span class="format-label">Story / Reel 9:16</span>
+      <div class="story">
+
+        <div class="story-top">
+          <div class="story-brand">
+            <div class="story-star">✦</div>
+            <div class="story-brand-name">Astra Agency</div>
+          </div>
+          <div class="story-headline">
+            Fai crescere<br />
+            il tuo brand<br />
+            <span class="grad">online.</span>
+          </div>
+        </div>
+
+        <div class="story-body">
+
+          <div class="story-services">
+            <div class="story-svc">
+              <span class="story-svc-icon">📱</span>
+              <span class="story-svc-label">Gestione Social Media</span>
+            </div>
+            <div class="story-svc">
+              <span class="story-svc-icon">🌐</span>
+              <span class="story-svc-label">Siti Web Professionali</span>
+            </div>
+            <div class="story-svc">
+              <span class="story-svc-icon">🎬</span>
+              <span class="story-svc-label">Foto, Video & Contenuti</span>
+            </div>
+          </div>
+
+          <div class="story-offer">
+            <div class="story-offer-tag">⚡ Offerta lancio</div>
+            <div class="story-offer-text">
+              Sito Web <span class="gold2">GRATIS</span><br />
+              con Social Manager
+            </div>
+          </div>
+
+          <div class="story-cta">
+            <div class="story-cta-top">📞 Chiamata Gratuita</div>
+            <div class="story-cta-sub">Parlaci del tuo progetto — nessun impegno</div>
+            <div class="story-cta-url">astragency.it</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="print-hint">
+    Screenshot da browser per ottenere i file immagine · <kbd>Ctrl+P</kbd> per PDF
+  </p>
+
+</body>
+</html>

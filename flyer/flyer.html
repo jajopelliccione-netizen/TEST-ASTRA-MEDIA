@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flyer – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0814;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      gap: 48px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ── FLYER CARD ── */
+    .flyer {
+      width: 600px;
+      background: #0D0B1A;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(123,92,240,.3);
+      box-shadow:
+        0 0 0 1px rgba(123,92,240,.1),
+        0 40px 80px rgba(0,0,0,.6),
+        0 0 120px rgba(123,92,240,.12);
+      position: relative;
+    }
+
+    /* glow orbs */
+    .flyer::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: -80px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(123,92,240,.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .flyer::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(255,45,120,.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── TOP OFFER STRIP ── */
+    .offer-strip {
+      background: linear-gradient(90deg, #FFB800, #FF8C00);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: .78rem;
+      font-weight: 800;
+      color: #1a0800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .offer-strip .bolt { font-size: 1rem; }
+
+    /* ── HEADER ── */
+    .flyer-header {
+      padding: 36px 40px 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .brand-star {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 20px rgba(123,92,240,.5);
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .brand-dot {
+      color: #7B5CF0;
+    }
+
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.35rem;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #F0EEFF;
+      margin-bottom: 14px;
+    }
+    .headline .accent {
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78, #00F5FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sub-headline {
+      font-size: .92rem;
+      color: rgba(240,238,255,.55);
+      line-height: 1.6;
+      max-width: 440px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(123,92,240,.35), transparent);
+      margin: 0 40px;
+    }
+
+    /* ── SERVICES ── */
+    .services {
+      padding: 26px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .svc-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .svc-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .svc-icon.purple { background: rgba(123,92,240,.18); border: 1px solid rgba(123,92,240,.3); }
+    .svc-icon.pink   { background: rgba(255,45,120,.15);  border: 1px solid rgba(255,45,120,.25); }
+    .svc-icon.cyan   { background: rgba(0,245,255,.1);    border: 1px solid rgba(0,245,255,.2); }
+    .svc-icon.green  { background: rgba(0,229,160,.1);    border: 1px solid rgba(0,229,160,.2); }
+    .svc-label {
+      padding-top: 3px;
+    }
+    .svc-label strong {
+      display: block;
+      font-size: .88rem;
+      font-weight: 700;
+      color: #F0EEFF;
+      margin-bottom: 2px;
+    }
+    .svc-label span {
+      font-size: .75rem;
+      color: rgba(240,238,255,.45);
+      line-height: 1.4;
+    }
+
+    /* ── OFFER BOX ── */
+    .offer-box {
+      margin: 0 28px 28px;
+      background: linear-gradient(135deg, rgba(255,184,0,.12), rgba(255,140,0,.08));
+      border: 1px solid rgba(255,184,0,.35);
+      border-radius: 16px;
+      padding: 22px 28px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .offer-box::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(255,184,0,.2) 0%, transparent 70%);
+    }
+    .offer-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(90deg, #FFB800, #FF8C00);
+      color: #1a0800;
+      font-family: 'Syne', sans-serif;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 50px;
+      margin-bottom: 14px;
+    }
+    .offer-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .offer-title .gold {
+      background: linear-gradient(135deg, #FFD700, #FFB800);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .offer-desc {
+      font-size: .82rem;
+      color: rgba(240,238,255,.6);
+      line-height: 1.55;
+    }
+    .offer-items {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .offer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+      color: rgba(240,238,255,.8);
+    }
+    .offer-item .check {
+      color: #FFB800;
+      font-size: .9rem;
+    }
+
+    /* ── CTA ── */
+    .cta-block {
+      margin: 0 28px 28px;
+      background: linear-gradient(135deg, rgba(123,92,240,.2), rgba(255,45,120,.12));
+      border: 1px solid rgba(123,92,240,.4);
+      border-radius: 16px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-badge {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 24px rgba(123,92,240,.5);
+    }
+    .cta-text {
+      flex: 1;
+    }
+    .cta-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #F0EEFF;
+      margin-bottom: 4px;
+    }
+    .cta-title .free {
+      background: linear-gradient(135deg, #00F5FF, #7B5CF0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .cta-sub {
+      font-size: .8rem;
+      color: rgba(240,238,255,.5);
+      line-height: 1.45;
+    }
+    .cta-arrow {
+      font-size: 1.4rem;
+      color: rgba(123,92,240,.7);
+    }
+
+    /* ── FOOTER ── */
+    .flyer-footer {
+      padding: 18px 40px;
+      border-top: 1px solid rgba(123,92,240,.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+    .footer-url {
+      font-family: 'Syne', sans-serif;
+      font-size: .88rem;
+      font-weight: 800;
+      color: #7B5CF0;
+      letter-spacing: .04em;
+    }
+    .footer-email {
+      font-size: .76rem;
+      color: rgba(240,238,255,.4);
+    }
+    .footer-socials {
+      display: flex;
+      gap: 8px;
+    }
+    .footer-socials span {
+      background: rgba(123,92,240,.15);
+      border: 1px solid rgba(123,92,240,.25);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: .7rem;
+      color: rgba(240,238,255,.5);
+      font-weight: 600;
+    }
+
+    /* ── PRINT HINT ── */
+    .print-hint {
+      text-align: center;
+      color: rgba(255,255,255,.3);
+      font-size: .75rem;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .print-hint kbd {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: inherit;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .flyer {
+        width: 148mm;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+      }
+      .print-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="flyer">
+
+    <!-- Offer strip -->
+    <div class="offer-strip">
+      <span class="bolt">⚡</span>
+      OFFERTA LANCIO — DISPONIBILE PER POCO
+      <span class="bolt">⚡</span>
+    </div>
+
+    <!-- Header -->
+    <div class="flyer-header">
+      <div class="brand-row">
+        <div class="brand-star">✦</div>
+        <div class="brand-name">ASTRA AGENCY<span class="brand-dot">.</span></div>
+      </div>
+
+      <div class="headline">
+        Fai crescere<br />
+        la tua attività<br />
+        <span class="accent">online.</span>
+      </div>
+      <p class="sub-headline">
+        Gestiamo i tuoi social, creiamo contenuti e realizziamo siti web che convertono.
+        Tu pensa al business, ci pensiamo noi al resto.
+      </p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Services -->
+    <div class="services">
+      <div class="svc-item">
+        <div class="svc-icon purple">📱</div>
+        <div class="svc-label">
+          <strong>Social Media</strong>
+          <span>Instagram, TikTok, Facebook — gestiti per te ogni giorno</span>
+        </div>
+      </div>
+      <div class="svc-item">
+        <div class="svc-icon cyan">🌐</div>
+        <div class="svc-label">
+          <strong>Sito Web</strong>
+          <span>Professionale, mobile-first e ottimizzato per Google</span>
+        </div>
+      </div>
+      <div class="svc-item">
+        <div class="svc-icon pink">🎬</div>
+        <div class="svc-label">
+          <strong>Contenuti</strong>
+          <span>Foto, video e reel su misura per il tuo brand</span>
+        </div>
+      </div>
+      <div class="svc-item">
+        <div class="svc-icon green">📊</div>
+        <div class="svc-label">
+          <strong>Strategia</strong>
+          <span>Piano di crescita personalizzato + report mensili</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offer box -->
+    <div class="offer-box">
+      <div class="offer-tag">⚡ Offerta lancio</div>
+      <div class="offer-title">Sito Web <span class="gold">GRATIS</span><br />con Social Manager</div>
+      <div class="offer-items">
+        <div class="offer-item"><span class="check">✦</span> Risparmio immediato di €800+</div>
+        <div class="offer-item"><span class="check">✦</span> Sito web professionale incluso nel pacchetto</div>
+        <div class="offer-item"><span class="check">✦</span> Offerta disponibile solo per un periodo limitato</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-block">
+      <div class="cta-badge">📞</div>
+      <div class="cta-text">
+        <div class="cta-title">Chiamata <span class="free">100% Gratuita</span></div>
+        <div class="cta-sub">
+          Parlaci del tuo progetto in 15 minuti.<br />
+          Nessun impegno, nessun costo nascosto.
+        </div>
+      </div>
+      <div class="cta-arrow">→</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flyer-footer">
+      <div>
+        <div class="footer-url">astragency.it</div>
+        <div class="footer-email">info@astragency.it</div>
+      </div>
+      <div class="footer-socials">
+        <span>@astragency</span>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="print-hint">
+    Apri nel browser → <kbd>Ctrl+P</kbd> / <kbd>⌘P</kbd> per stampare o salvare come PDF
+  </p>
+
+</body>
+</html>
