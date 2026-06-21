@@ -1772,6 +1772,9 @@ footer {
   overflow: hidden;
   z-index: 6;
   pointer-events: none;
+  background: rgba(7,6,15,.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 body.promo-active .pkg-promo-cross { display: block; }
 body.promo-active .pkg-badge { z-index: 8; }
@@ -1779,15 +1782,7 @@ body.promo-active #pkg-sito {
   border-color: rgba(255,45,120,.45);
   box-shadow: 0 0 0 1px rgba(255,45,120,.25), 0 0 36px rgba(255,45,120,.15);
 }
-.pkg-promo-cross::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(7,6,15,.70);
-  border-radius: 28px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
+.pkg-promo-cross::before { display: none; }
 .pkg-promo-cross::after { display: none; }
 .pkg-promo-cross-label {
   position: absolute;
