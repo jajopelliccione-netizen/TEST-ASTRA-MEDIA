@@ -35,17 +35,13 @@
       gap: 10px;
     }
     #fab-main {
-      width: 52px;
-      height: 52px;
+      width: 52px; height: 52px;
       border-radius: 50%;
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
-      border: none;
-      cursor: pointer;
+      border: none; cursor: pointer;
       box-shadow: 0 4px 20px rgba(123,92,240,0.5);
       font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       transition: transform .2s;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
@@ -61,10 +57,8 @@
       padding: 10px 16px;
       color: #fff;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       transition: background .15s;
@@ -74,28 +68,18 @@
 
     /* ── Modalità schermo intero ── */
     #fullscreen-mode {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #07060F;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      display: none; position: fixed; inset: 0;
+      z-index: 9999; background: #07060F;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
     #fullscreen-mode.active { display: block; }
-    #fs-flyer-wrap {
-      display: flex;
-      justify-content: center;
-      padding-bottom: 130px;
-    }
+    #fs-flyer-wrap { display: flex; justify-content: center; padding-bottom: 130px; }
     #fs-banner {
-      display: none;
-      position: fixed;
+      display: none; position: fixed;
       bottom: 0; left: 0; right: 0;
       background: rgba(7,6,15,0.97);
       border-top: 1px solid rgba(123,92,240,0.3);
-      padding: 16px 20px;
-      text-align: center;
+      padding: 16px 20px; text-align: center;
       font-family: 'Space Grotesk', sans-serif;
       z-index: 10001;
     }
@@ -103,324 +87,219 @@
     #fs-banner p { font-size: 15px; color: #fff; margin-bottom: 10px; }
     #fs-banner span { color: #FFB800; font-weight: 700; }
     #fs-close {
-      display: inline-block;
-      padding: 12px 32px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      color: #fff;
-      font-size: 15px;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer;
-      font-weight: 700;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      display: inline-block; padding: 12px 32px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; color: #fff; font-size: 15px;
+      font-family: 'Space Grotesk', sans-serif; cursor: pointer; font-weight: 700;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
     #fs-close:active { background: rgba(255,255,255,0.25); }
 
-    /* ── Flyer card ── */
+    /* ═══════════════════════════════════
+       FLYER — A5 (560 × 794px)
+    ═══════════════════════════════════ */
     .flyer {
-      width: 700px;
-      min-height: 990px;
+      width: 560px;
+      height: 794px;
       background: #07060F;
-      border-radius: 28px;
-      border: 1px solid rgba(123,92,240,0.25);
+      border-radius: 0;
+      border: none;
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 64px 56px 52px;
+      padding: 36px 40px 28px;
     }
 
     /* Ambient orbs */
     .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(90px);
-      pointer-events: none;
+      position: absolute; border-radius: 50%;
+      filter: blur(70px); pointer-events: none;
     }
-    .orb-1 { width:460px;height:460px;background:rgba(123,92,240,0.3);bottom:-140px;left:-160px; }
-    .orb-2 { width:320px;height:320px;background:rgba(255,184,0,0.18);top:-90px;right:-110px; }
-    .orb-3 { width:220px;height:220px;background:rgba(255,140,0,0.07);top:42%;left:50%;transform:translateX(-50%); }
+    .orb-1 { width:360px;height:360px;background:rgba(123,92,240,0.3);bottom:-110px;left:-120px; }
+    .orb-2 { width:260px;height:260px;background:rgba(255,184,0,0.2);top:-70px;right:-90px; }
+    .orb-3 { width:180px;height:180px;background:rgba(255,140,0,0.06);top:40%;left:50%;transform:translateX(-50%); }
 
     .dot {
-      position:absolute;border-radius:50%;
-      background:rgba(255,255,255,0.4);
-      pointer-events:none;
+      position:absolute; border-radius:50%;
+      background:rgba(255,255,255,0.4); pointer-events:none;
     }
 
     /* ── Logo ── */
     .logo {
-      height: 58px;
-      object-fit: contain;
-      margin-bottom: 30px;
-      position: relative;
-      z-index: 2;
-      filter: drop-shadow(0 0 22px rgba(123,92,240,0.55));
+      height: 42px; object-fit: contain;
+      margin-bottom: 14px;
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 0 18px rgba(123,92,240,0.55));
     }
 
     /* ── Badge GOLD ── */
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
+      display: inline-flex; align-items: center; gap: 10px;
       background: linear-gradient(135deg, rgba(40,28,0,0.95), rgba(30,18,0,0.92));
       border: 1.5px solid rgba(255,184,0,0.7);
       border-radius: 100px;
-      padding: 12px 32px;
-      margin-bottom: 30px;
-      position: relative;
-      z-index: 2;
-      box-shadow:
-        0 0 18px rgba(255,184,0,0.25),
-        0 0 40px rgba(255,184,0,0.1),
-        inset 0 0 22px rgba(255,184,0,0.06),
-        inset 0 1px 0 rgba(255,184,0,0.2);
+      padding: 9px 26px;
+      margin-bottom: 16px;
+      position: relative; z-index: 2;
+      box-shadow: 0 0 16px rgba(255,184,0,0.22), inset 0 1px 0 rgba(255,184,0,0.18);
     }
     .badge-dot {
-      width: 12px; height: 12px;
-      background: #FFB800;
-      border-radius: 50%;
-      flex-shrink: 0;
-      box-shadow: 0 0 8px #FFB800, 0 0 18px rgba(255,184,0,0.7), 0 0 32px rgba(255,184,0,0.35);
+      width: 10px; height: 10px;
+      background: #FFB800; border-radius: 50%; flex-shrink: 0;
+      box-shadow: 0 0 8px #FFB800, 0 0 16px rgba(255,184,0,0.6);
     }
     .badge-text {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 13.5px;
-      letter-spacing: 0.22em;
-      color: #FFB800;
-      text-transform: uppercase;
-      text-shadow: 0 0 12px rgba(255,184,0,0.55);
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 12px; letter-spacing: 0.22em;
+      color: #FFB800; text-transform: uppercase;
     }
 
     /* ── Headline ── */
     .headline {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 58px;
-      line-height: 1.08;
-      letter-spacing: -0.02em;
-      color: #ffffff;
-      text-align: center;
-      width: 100%;
-      margin-bottom: 20px;
-      position: relative;
-      z-index: 2;
-      text-shadow: 0 2px 40px rgba(123,92,240,0.22);
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 46px; line-height: 1.08;
+      letter-spacing: -0.02em; color: #ffffff;
+      text-align: center; width: 100%;
+      margin-bottom: 10px;
+      position: relative; z-index: 2;
     }
     .gradient-word {
       background: linear-gradient(135deg, #FFD700 0%, #FFB800 50%, #FF8C00 100%);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
 
     /* ── Subline ── */
     .subline {
-      font-size: 15px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.42);
-      letter-spacing: 0.16em;
-      text-align: center;
-      width: 100%;
-      margin-bottom: 36px;
-      position: relative;
-      z-index: 2;
+      font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,0.38); letter-spacing: 0.14em;
+      text-align: center; width: 100%;
+      margin-bottom: 20px;
+      position: relative; z-index: 2;
     }
 
-    /* ── Offerta callout ── */
+    /* ── Offer box ── */
     .offer-box {
       width: 100%;
-      background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,140,0,0.07));
-      border: 1.5px solid rgba(255,184,0,0.45);
-      border-radius: 18px;
-      padding: 22px 28px;
-      margin-bottom: 32px;
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      gap: 20px;
+      background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,140,0,0.06));
+      border: 1.5px solid rgba(255,184,0,0.4);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      position: relative; z-index: 2;
+      display: flex; align-items: center; gap: 16px;
     }
-    .offer-box-icon {
-      font-size: 2.4rem;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-    .offer-box-text {}
+    .offer-box-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
     .offer-box-tag {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #FFB800;
-      margin-bottom: 6px;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: #FFB800; margin-bottom: 4px;
     }
     .offer-box-title {
       font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.2;
-      margin-bottom: 6px;
+      font-size: 17px; font-weight: 800;
+      color: #fff; line-height: 1.2;
     }
     .offer-box-title .gold { color: #FFD700; }
     .offer-box-desc {
-      font-size: 13px;
-      color: rgba(255,255,255,0.5);
-      line-height: 1.5;
+      font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 3px; line-height: 1.4;
     }
 
     /* ── Divider ── */
     .divider {
-      width: 100%;
-      height: 1px;
+      width: 100%; height: 1px;
       background: linear-gradient(90deg,transparent,rgba(123,92,240,0.35),rgba(255,184,0,0.2),transparent);
-      margin-bottom: 32px;
-      position: relative;
-      z-index: 2;
+      margin-bottom: 20px;
+      position: relative; z-index: 2;
     }
 
-    /* ── Services ── */
+    /* ── Services — 4 in riga ── */
     .services {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      width: 100%;
-      margin-bottom: 36px;
-      position: relative;
-      z-index: 2;
+      display: flex; flex-wrap: nowrap;
+      gap: 8px; width: 100%;
+      margin-bottom: 20px;
+      position: relative; z-index: 2;
     }
     .service-card {
-      flex: 1 1 calc(50% - 6px);
+      flex: 1;
       background: rgba(123,92,240,0.07);
       border: 1px solid rgba(123,92,240,0.22);
-      border-radius: 16px;
-      padding: 20px 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      text-align: center;
+      border-radius: 12px;
+      padding: 14px 8px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px; text-align: center;
     }
     .service-icon-wrap {
-      width: 46px; height: 46px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .service-icon-wrap svg { width: 24px; height: 24px; }
-    .service-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.85);
-      line-height: 1.4;
-    }
+    .service-icon-wrap svg { width: 18px; height: 18px; }
+    .service-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.82); line-height: 1.35; }
     .service-included {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #FFB800;
-      background: rgba(255,184,0,0.1);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #FFB800; background: rgba(255,184,0,0.1);
       border: 1px solid rgba(255,184,0,0.25);
-      border-radius: 50px;
-      padding: 2px 10px;
+      border-radius: 50px; padding: 2px 7px;
     }
 
     /* ── CTA ── */
     .cta-wrap {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      text-align: center;
-      margin-bottom: 36px;
+      position: relative; z-index: 2;
+      width: 100%; text-align: center;
+      margin-bottom: 18px;
     }
     .cta-btn {
       display: inline-block;
       background: linear-gradient(135deg, #7B5CF0, #FF2D78);
-      border-radius: 100px;
-      padding: 18px 52px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 16px;
-      color: #ffffff;
-      letter-spacing: 0.02em;
-      box-shadow: 0 0 32px rgba(123,92,240,0.5), 0 0 64px rgba(255,45,120,0.2);
+      border-radius: 100px; padding: 15px 44px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 15px; color: #ffffff; letter-spacing: 0.02em;
+      box-shadow: 0 0 28px rgba(123,92,240,0.5), 0 0 56px rgba(255,45,120,0.18);
     }
-    .cta-sub {
-      margin-top: 12px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.3);
-      letter-spacing: 0.08em;
-    }
+    .cta-sub { margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.28); letter-spacing: 0.06em; }
 
     /* ── Contacts ── */
     .contacts {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 36px;
-      position: relative;
-      z-index: 2;
+      width: 100%; display: flex;
+      flex-direction: row; justify-content: center;
+      gap: 32px; margin-bottom: 14px;
+      position: relative; z-index: 2;
     }
     .contact-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.72);
-      letter-spacing: 0.01em;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 600;
+      color: rgba(255,255,255,0.65); letter-spacing: 0.01em;
     }
-    .contact-row svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .contact-row svg { width: 15px; height: 15px; flex-shrink: 0; }
 
     /* ── Social ── */
     .social-row {
-      display: flex;
-      gap: 14px;
+      display: flex; gap: 10px;
       justify-content: center;
-      position: relative;
-      z-index: 2;
-      width: 100%;
+      position: relative; z-index: 2; width: 100%;
     }
     .social-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border-radius: 12px;
-      padding: 13px 28px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      text-decoration: none;
-      min-width: 210px;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; border-radius: 10px;
+      padding: 10px 20px; font-size: 13px; font-weight: 700;
+      color: #fff; text-decoration: none; min-width: 165px;
     }
     .social-btn.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
     .social-btn.tt {
       background: linear-gradient(135deg,#1a1a2e,#16213e);
       border: 1px solid rgba(0,245,255,0.35);
-      box-shadow: 0 0 18px rgba(0,245,255,0.14);
+      box-shadow: 0 0 14px rgba(0,245,255,0.12);
     }
-    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .social-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
     /* ── Footer ── */
     .footer-line {
-      margin-top: 30px;
-      font-size: 11px;
-      color: rgba(255,255,255,0.18);
-      letter-spacing: 0.05em;
-      text-align: center;
-      position: relative;
-      z-index: 2;
+      margin-top: 16px; font-size: 10px;
+      color: rgba(255,255,255,0.16); letter-spacing: 0.05em;
+      text-align: center; position: relative; z-index: 2;
     }
   </style>
 </head>
@@ -456,11 +335,11 @@
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
 
-  <div class="dot" style="width:4px;height:4px;top:11%;left:9%;opacity:.5;"></div>
-  <div class="dot" style="width:3px;height:3px;top:21%;right:11%;opacity:.4;"></div>
-  <div class="dot" style="width:5px;height:5px;top:44%;left:5%;opacity:.3;"></div>
-  <div class="dot" style="width:3px;height:3px;bottom:28%;right:8%;opacity:.5;"></div>
-  <div class="dot" style="width:4px;height:4px;bottom:14%;left:15%;opacity:.35;"></div>
+  <div class="dot" style="width:3px;height:3px;top:10%;left:8%;opacity:.5;"></div>
+  <div class="dot" style="width:2px;height:2px;top:20%;right:10%;opacity:.4;"></div>
+  <div class="dot" style="width:4px;height:4px;top:43%;left:4%;opacity:.3;"></div>
+  <div class="dot" style="width:2px;height:2px;bottom:26%;right:7%;opacity:.5;"></div>
+  <div class="dot" style="width:3px;height:3px;bottom:13%;left:14%;opacity:.35;"></div>
 
   <!-- Logo -->
   <img src="logo.png" class="logo" alt="Astra Agency" />
@@ -473,8 +352,7 @@
 
   <!-- Headline -->
   <h1 class="headline">
-    Sito Web<br/>
-    <span class="gradient-word">GRATIS</span><br/>
+    Sito Web <span class="gradient-word">GRATIS</span><br/>
     con Social Manager
   </h1>
 
@@ -484,17 +362,17 @@
   <!-- Offer box -->
   <div class="offer-box">
     <div class="offer-box-icon">🎁</div>
-    <div class="offer-box-text">
-      <div class="offer-box-tag">Cosa è incluso nell'offerta</div>
+    <div>
+      <div class="offer-box-tag">Cosa è incluso</div>
       <div class="offer-box-title">Sito web professionale <span class="gold">incluso gratis</span></div>
-      <div class="offer-box-desc">Attivando il pacchetto Social Manager ricevi un sito web moderno, mobile-first e ottimizzato per Google — senza costi aggiuntivi.</div>
+      <div class="offer-box-desc">Mobile-first, ottimizzato SEO — senza costi aggiuntivi</div>
     </div>
   </div>
 
   <!-- Divider -->
   <div class="divider"></div>
 
-  <!-- Services -->
+  <!-- Services — 4 in riga -->
   <div class="services">
     <div class="service-card">
       <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(123,92,240,0.25),rgba(180,79,216,0.2));">
@@ -512,11 +390,10 @@
         <svg viewBox="0 0 24 24" fill="none">
           <rect x="2" y="3" width="20" height="14" rx="2" stroke="#00F5B4" stroke-width="2"/>
           <path d="M8 21h8M12 17v4" stroke="#00F5B4" stroke-width="2" stroke-linecap="round"/>
-          <path d="M7 8h.5M7 11h10" stroke="#00F5B4" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
       <span class="service-name">Creazione<br/>Sito Web</span>
-      <span class="service-included">✦ Incluso gratis</span>
+      <span class="service-included">✦ Gratis</span>
     </div>
     <div class="service-card">
       <div class="service-icon-wrap" style="background:linear-gradient(135deg,rgba(255,45,120,0.2),rgba(255,107,107,0.15));">
@@ -576,184 +453,73 @@
 async function exportPPTX() {
   try {
     const pptx = new PptxGenJS();
-    pptx.defineLayout({ name: 'A4_V', width: 7.48, height: 10.58 });
-    pptx.layout = 'A4_V';
+    pptx.defineLayout({ name: 'A5_V', width: 5.83, height: 8.27 });
+    pptx.layout = 'A5_V';
 
     const slide = pptx.addSlide();
     slide.background = { color: '07060F' };
 
-    // Orb viola (basso-sinistra)
-    slide.addShape(pptx.ShapeType.ellipse, {
-      x: -1.4, y: 7.5, w: 4.5, h: 4.5,
-      fill: { color: '7B5CF0', transparency: 72 },
-      line: { color: '7B5CF0', transparency: 100 }
-    });
-    // Orb gold (alto-destra)
-    slide.addShape(pptx.ShapeType.ellipse, {
-      x: 5.5, y: -0.8, w: 3.2, h: 3.2,
-      fill: { color: 'FFB800', transparency: 82 },
-      line: { color: 'FFB800', transparency: 100 }
-    });
+    slide.addShape(pptx.ShapeType.ellipse, { x: -1.1, y: 5.8, w: 3.5, h: 3.5, fill: { color: '7B5CF0', transparency: 72 }, line: { color: '7B5CF0', transparency: 100 } });
+    slide.addShape(pptx.ShapeType.ellipse, { x: 4.3, y: -0.6, w: 2.5, h: 2.5, fill: { color: 'FFB800', transparency: 80 }, line: { color: 'FFB800', transparency: 100 } });
 
-    // Logo
     try {
       const img = document.querySelector('.logo');
       const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
       canvas.getContext('2d').drawImage(img, 0, 0);
-      const dataUrl = canvas.toDataURL('image/png');
-      const logoH = 0.55;
-      const logoW = logoH * (img.naturalWidth / img.naturalHeight);
-      slide.addImage({ data: dataUrl, x: (7.48 - logoW) / 2, y: 0.5, w: logoW, h: logoH });
+      const logoH = 0.44; const logoW = logoH * (img.naturalWidth / img.naturalHeight);
+      slide.addImage({ data: canvas.toDataURL('image/png'), x: (5.83 - logoW) / 2, y: 0.38, w: logoW, h: logoH });
     } catch(e) {
-      slide.addText('ASTRA AGENCY', { x: 0, y: 0.45, w: 7.48, h: 0.6, align: 'center', fontFace: 'Syne', fontSize: 22, bold: true, color: 'FFFFFF' });
+      slide.addText('ASTRA AGENCY', { x: 0, y: 0.35, w: 5.83, h: 0.5, align: 'center', fontFace: 'Syne', fontSize: 18, bold: true, color: 'FFFFFF' });
     }
 
-    // Badge gold
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 1.4, y: 1.35, w: 4.68, h: 0.48,
-      rectRadius: 0.24,
-      fill: { color: '28190A', transparency: 8 },
-      line: { color: 'FFB800', width: 1.5, transparency: 30 }
-    });
-    slide.addShape(pptx.ShapeType.ellipse, {
-      x: 1.82, y: 1.52, w: 0.14, h: 0.14,
-      fill: { color: 'FFB800' },
-      line: { color: 'FFB800', transparency: 100 }
-    });
-    slide.addText('⚡  OFFERTA DI LANCIO', {
-      x: 2.06, y: 1.37, w: 3.7, h: 0.46,
-      align: 'left', valign: 'middle',
-      fontFace: 'Syne', fontSize: 9, bold: true, color: 'FFB800', charSpacing: 4
-    });
+    slide.addShape(pptx.ShapeType.roundRect, { x: 1.1, y: 1.04, w: 3.63, h: 0.38, rectRadius: 0.19, fill: { color: '28190A', transparency: 8 }, line: { color: 'FFB800', width: 1.5, transparency: 30 } });
+    slide.addShape(pptx.ShapeType.ellipse, { x: 1.42, y: 1.17, w: 0.11, h: 0.11, fill: { color: 'FFB800' }, line: { color: 'FFB800', transparency: 100 } });
+    slide.addText('⚡  OFFERTA DI LANCIO', { x: 1.62, y: 1.06, w: 2.9, h: 0.36, align: 'left', valign: 'middle', fontFace: 'Syne', fontSize: 7.5, bold: true, color: 'FFB800', charSpacing: 3.5 });
 
-    // Headline
     slide.addText([
-      { text: 'Sito Web\n', options: { color: 'FFFFFF' } },
+      { text: 'Sito Web ', options: { color: 'FFFFFF' } },
       { text: 'GRATIS\n', options: { color: 'FFD700' } },
       { text: 'con Social Manager', options: { color: 'FFFFFF' } }
-    ], {
-      x: 0.3, y: 1.98, w: 6.88, h: 2.3,
-      align: 'center', fontFace: 'Syne', fontSize: 38, bold: true, lineSpacingMultiple: 1.1
+    ], { x: 0.24, y: 1.54, w: 5.35, h: 1.76, align: 'center', fontFace: 'Syne', fontSize: 30, bold: true, lineSpacingMultiple: 1.1 });
+
+    slide.addText('Risparmio immediato di €800+  ·  Offerta a tempo limitato', { x: 0.4, y: 3.34, w: 5.03, h: 0.28, align: 'center', fontFace: 'Space Grotesk', fontSize: 8, color: '55554A', charSpacing: 1.5 });
+
+    slide.addShape(pptx.ShapeType.roundRect, { x: 0.24, y: 3.72, w: 5.35, h: 0.86, rectRadius: 0.12, fill: { color: 'FFB800', transparency: 90 }, line: { color: 'FFB800', width: 1.5, transparency: 55 } });
+    slide.addText('COSA È INCLUSO', { x: 0.44, y: 3.76, w: 5.0, h: 0.2, align: 'left', fontFace: 'Space Grotesk', fontSize: 7, bold: true, color: 'FFB800', charSpacing: 2.5 });
+    slide.addText('Sito web professionale incluso gratis — mobile-first, ottimizzato SEO', { x: 0.44, y: 3.96, w: 5.0, h: 0.5, align: 'left', fontFace: 'Syne', fontSize: 11, bold: true, color: 'FFFFFF' });
+
+    slide.addShape(pptx.ShapeType.line, { x: 0.4, y: 4.72, w: 5.03, h: 0, line: { color: '7B5CF0', width: 0.5, transparency: 60 } });
+
+    const svcs = ['Gestione\nSocial Media', 'Creazione\nSito Web', 'Foto\n& Video', 'Strategia\ndi Crescita'];
+    svcs.forEach((s, i) => {
+      const x = 0.24 + i * 1.38;
+      slide.addShape(pptx.ShapeType.roundRect, { x, y: 4.84, w: 1.26, h: 0.74, rectRadius: 0.1, fill: { color: '7B5CF0', transparency: 93 }, line: { color: '7B5CF0', width: 0.75, transparency: 78 } });
+      slide.addText(s + (i === 1 ? '\n✦ Gratis' : ''), { x, y: 4.88, w: 1.26, h: 0.66, align: 'center', fontFace: 'Space Grotesk', fontSize: 8, bold: true, color: 'DDDDEE' });
     });
 
-    // Subline
-    slide.addText('Risparmio immediato di €800+  ·  Offerta a tempo limitato', {
-      x: 0.5, y: 4.32, w: 6.48, h: 0.35,
-      align: 'center', fontFace: 'Space Grotesk', fontSize: 10, color: '666650', charSpacing: 2
-    });
+    slide.addShape(pptx.ShapeType.roundRect, { x: 0.58, y: 5.74, w: 4.67, h: 0.46, rectRadius: 0.23, fill: { color: 'A040C0' }, line: { color: 'FF2D78', transparency: 100 } });
+    slide.addText('📞  Prenota una chiamata GRATUITA  ✦', { x: 0.58, y: 5.74, w: 4.67, h: 0.46, align: 'center', valign: 'middle', fontFace: 'Syne', fontSize: 10.5, bold: true, color: 'FFFFFF' });
+    slide.addText('Nessun impegno · Nessun costo nascosto', { x: 0.58, y: 6.23, w: 4.67, h: 0.22, align: 'center', fontFace: 'Space Grotesk', fontSize: 7, color: '444444' });
 
-    // Offer box
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 0.3, y: 4.8, w: 6.88, h: 1.1,
-      rectRadius: 0.16,
-      fill: { color: 'FFB800', transparency: 90 },
-      line: { color: 'FFB800', width: 1.5, transparency: 55 }
-    });
-    slide.addText('🎁  INCLUSO NELL\'OFFERTA', {
-      x: 0.55, y: 4.85, w: 6.4, h: 0.25,
-      align: 'left', fontFace: 'Space Grotesk', fontSize: 8, bold: true, color: 'FFB800', charSpacing: 2.5
-    });
-    slide.addText('Sito web professionale incluso gratis col pacchetto Social Manager', {
-      x: 0.55, y: 5.12, w: 6.4, h: 0.65,
-      align: 'left', fontFace: 'Syne', fontSize: 14, bold: true, color: 'FFFFFF'
-    });
+    slide.addText('info@astragency.it   ·   astragency.it', { x: 0.4, y: 6.54, w: 5.03, h: 0.26, align: 'center', fontFace: 'Space Grotesk', fontSize: 8, color: '555568', charSpacing: 0.5 });
 
-    // Divider
-    slide.addShape(pptx.ShapeType.line, {
-      x: 0.5, y: 6.1, w: 6.48, h: 0,
-      line: { color: '7B5CF0', width: 0.5, transparency: 60 }
-    });
+    slide.addShape(pptx.ShapeType.roundRect, { x: 1.12, y: 6.9, w: 1.56, h: 0.33, rectRadius: 0.08, fill: { color: 'C0306A' }, line: { color: 'C0306A', transparency: 100 } });
+    slide.addText('@astragency.it', { x: 1.12, y: 6.9, w: 1.56, h: 0.33, align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 7.5, bold: true, color: 'FFFFFF' });
+    slide.addShape(pptx.ShapeType.roundRect, { x: 3.0, y: 6.9, w: 1.56, h: 0.33, rectRadius: 0.08, fill: { color: '111128' }, line: { color: '00F5FF', width: 1, transparency: 60 } });
+    slide.addText('@astragency.it', { x: 3.0, y: 6.9, w: 1.56, h: 0.33, align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 7.5, bold: true, color: 'FFFFFF' });
 
-    // Service cards
-    const services = [
-      { title: 'Gestione\nSocial Media', color: '7B5CF0', extra: '' },
-      { title: 'Creazione\nSito Web',    color: '00F5B4', extra: '✦ Incluso gratis' },
-      { title: 'Foto\n& Video',          color: 'FF2D78', extra: '' },
-      { title: 'Strategia\ndi Crescita', color: '00F5FF', extra: '' },
-    ];
-    services.forEach((s, i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const x = 0.3 + col * 3.44;
-      const y = 6.28 + row * 0.98;
-      slide.addShape(pptx.ShapeType.roundRect, {
-        x, y, w: 3.24, h: 0.82,
-        rectRadius: 0.12,
-        fill: { color: '7B5CF0', transparency: 93 },
-        line: { color: '7B5CF0', width: 0.75, transparency: 78 }
-      });
-      slide.addText(s.title + (s.extra ? `\n${s.extra}` : ''), {
-        x, y: y + 0.1, w: 3.24, h: 0.65,
-        align: 'center', fontFace: 'Space Grotesk', fontSize: 10, bold: true, color: 'DDDDEE'
-      });
-    });
-
-    // CTA button
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 0.74, y: 8.44, w: 6.0, h: 0.58,
-      rectRadius: 0.29,
-      fill: { color: 'A040C0' },
-      line: { color: 'FF2D78', transparency: 100 }
-    });
-    slide.addText('📞  Prenota una chiamata GRATUITA  ✦', {
-      x: 0.74, y: 8.44, w: 6.0, h: 0.58,
-      align: 'center', valign: 'middle', fontFace: 'Syne', fontSize: 13, bold: true, color: 'FFFFFF'
-    });
-    slide.addText('Nessun impegno · Nessun costo nascosto', {
-      x: 0.74, y: 9.05, w: 6.0, h: 0.28,
-      align: 'center', fontFace: 'Space Grotesk', fontSize: 8.5, color: '555555'
-    });
-
-    // Contacts
-    slide.addText('info@astragency.it   ·   astragency.it', {
-      x: 0.5, y: 9.42, w: 6.48, h: 0.3,
-      align: 'center', fontFace: 'Space Grotesk', fontSize: 9.5, color: '666680', charSpacing: 0.5
-    });
-
-    // Social buttons
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 1.44, y: 9.82, w: 2.0, h: 0.42,
-      rectRadius: 0.1,
-      fill: { color: 'C0306A' },
-      line: { color: 'C0306A', transparency: 100 }
-    });
-    slide.addText('@astragency.it', {
-      x: 1.44, y: 9.82, w: 2.0, h: 0.42,
-      align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 9, bold: true, color: 'FFFFFF'
-    });
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 3.64, y: 9.82, w: 2.0, h: 0.42,
-      rectRadius: 0.1,
-      fill: { color: '111128' },
-      line: { color: '00F5FF', width: 1, transparency: 60 }
-    });
-    slide.addText('@astragency.it', {
-      x: 3.64, y: 9.82, w: 2.0, h: 0.42,
-      align: 'center', valign: 'middle', fontFace: 'Space Grotesk', fontSize: 9, bold: true, color: 'FFFFFF'
-    });
-
-    // Footer
-    slide.addText('© 2025 Astra Agency · Tutti i diritti riservati', {
-      x: 0.5, y: 10.38, w: 6.48, h: 0.18,
-      align: 'center', fontFace: 'Space Grotesk', fontSize: 7, color: '282828'
-    });
+    slide.addText('© 2025 Astra Agency · Tutti i diritti riservati', { x: 0.4, y: 7.98, w: 5.03, h: 0.2, align: 'center', fontFace: 'Space Grotesk', fontSize: 6, color: '222222' });
 
     await pptx.writeFile({ fileName: 'Volantino-Offerta-AstraAgency.pptx' });
-
   } catch(err) {
     console.error(err);
-    alert('Errore generazione PPTX: ' + err.message);
+    alert('Errore: ' + err.message);
   }
 }
 
-function toggleFab() {
-  document.getElementById('fab-wrap').classList.toggle('open');
-}
-function closeFab() {
-  document.getElementById('fab-wrap').classList.remove('open');
-}
+function toggleFab() { document.getElementById('fab-wrap').classList.toggle('open'); }
+function closeFab()   { document.getElementById('fab-wrap').classList.remove('open'); }
 
 function apriSchermo() {
   const flyer = document.getElementById('flyer');
@@ -763,7 +529,7 @@ function apriSchermo() {
   clone.style.transform = 'none';
   clone.style.margin = '0 auto';
   clone.style.borderRadius = '0';
-  clone.style.maxWidth = '700px';
+  clone.style.maxWidth = '560px';
   clone.style.width = '100%';
   wrap.appendChild(clone);
   document.getElementById('fullscreen-mode').classList.add('active');
