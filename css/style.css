@@ -1785,6 +1785,8 @@ body.promo-active #pkg-sito {
   inset: 0;
   background: rgba(7,6,15,.50);
   border-radius: 28px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .pkg-promo-cross::after { display: none; }
 .pkg-promo-cross-label {
