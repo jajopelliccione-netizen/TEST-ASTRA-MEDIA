@@ -1783,10 +1783,10 @@ body.promo-active #pkg-sito {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(7,6,15,.50);
+  background: rgba(7,6,15,.70);
   border-radius: 28px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .pkg-promo-cross::after { display: none; }
 .pkg-promo-cross-label {
