@@ -101,8 +101,15 @@
   </div>
 
   <!-- ═══════════════════════════════════ PROMO BAR ═══════════════════════════════════ -->
-  <div id="promo-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#7B5CF0,#FF2D78);padding:9px 16px;text-align:center;font-size:.78rem;font-weight:700;color:#fff;letter-spacing:.04em;line-height:1.4;">
-    ⚡ OFFERTA DI LANCIO · Gestione Social + Sito Web <strong>GRATIS</strong> &nbsp;—&nbsp; <a href="#contact" style="color:#fff;text-decoration:underline;font-weight:800;">Approfitta ora →</a>
+  <div id="promo-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#7B5CF0,#FF2D78);padding:10px 16px;text-align:center;color:#fff;line-height:1.5;">
+    <div style="font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">⚡ Offerta di Lancio — Sito Web <strong>GRATIS</strong> con la Gestione Social</div>
+    <div id="bar-cd" style="font-size:.72rem;font-weight:600;opacity:.9;margin-top:3px;letter-spacing:.03em;">
+      Scade tra&nbsp;
+      <span id="bar-cd-days">00</span>g&nbsp;
+      <span id="bar-cd-hours">00</span>h&nbsp;
+      <span id="bar-cd-mins">00</span>m&nbsp;
+      <span id="bar-cd-secs">00</span>s
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════ NAV ═══════════════════════════════════ -->
@@ -868,6 +875,8 @@
         }
         const bar = document.getElementById('promo-bar');
         const nav = document.querySelector('nav');
+        const barCd = document.getElementById('bar-cd');
+        if (noExpiry && barCd) barCd.style.display = 'none';
         bar.style.display = '';
         const barH = bar.offsetHeight;
         if (nav) nav.style.top = barH + 'px';
@@ -877,8 +886,10 @@
         if (svc) { svc.value = 'social'; document.getElementById('service-group').style.display = 'none'; }
         if (!noExpiry) {
           const end = new Date(endDate);
-          const timer = setInterval(() => {
-            if (end - new Date() <= 0) {
+          const pad = n => String(n).padStart(2,'0');
+          const tick = () => {
+            const diff = end - new Date();
+            if (diff <= 0) {
               clearInterval(timer);
               bar.style.display = 'none';
               if (nav) nav.style.top = '';
@@ -886,8 +897,15 @@
               document.body.classList.remove('promo-active');
               const sg = document.getElementById('service-group');
               if (sg) sg.style.display = '';
+              return;
             }
-          }, 1000);
+            document.getElementById('bar-cd-days').textContent  = pad(Math.floor(diff / 86400000));
+            document.getElementById('bar-cd-hours').textContent = pad(Math.floor((diff % 86400000) / 3600000));
+            document.getElementById('bar-cd-mins').textContent  = pad(Math.floor((diff % 3600000) / 60000));
+            document.getElementById('bar-cd-secs').textContent  = pad(Math.floor((diff % 60000) / 1000));
+          };
+          tick();
+          const timer = setInterval(tick, 1000);
         }
       } catch(e) { console.warn('promo', e); }
     })();
