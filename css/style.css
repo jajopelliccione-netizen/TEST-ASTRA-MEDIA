@@ -2293,53 +2293,6 @@ body.promo-active #pkg-social { padding-top: 74px; }
   .bar-long { display: none; }
 }
 
-/* ── Sticky mobile CTA bar ───────────────────────────────────── */
-.mob-cta-bar {
-  display: none;
-}
-@media (max-width: 768px) {
-  .mob-cta-bar {
-    display: flex;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 500;
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    gap: 10px;
-    background: rgba(7,6,15,.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(123,92,240,.2);
-  }
-  .mob-cta-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 13px 10px;
-    border-radius: 14px;
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: .82rem;
-    letter-spacing: .02em;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: opacity .2s;
-  }
-  .mob-cta-btn:active { opacity: .75; }
-  .mob-cta-primary {
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(255,45,120,.4);
-  }
-  .mob-cta-outline {
-    background: rgba(123,92,240,.12);
-    color: var(--text);
-    border: 1px solid rgba(123,92,240,.35);
-  }
-  body { padding-bottom: 80px; }
-}
-
 /* ── GPU hints for animated elements ─────────────────────────── */
 .hero-logo-bg,
 .sc-chip,
