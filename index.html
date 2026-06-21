@@ -31,9 +31,9 @@
   <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=6" />
+  <link rel="stylesheet" href="css/style.css?v=7" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -101,7 +101,7 @@
   </div>
 
   <!-- ═══════════════════════════════════ PROMO BAR ═══════════════════════════════════ -->
-  <div id="promo-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#FFB800,#FF8C00);padding:6px 16px;text-align:center;color:#1a0a00;font-size:.74rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+  <div id="promo-bar" style="display:none">
     ⚡ OFFERTA LAMPO<span class="bar-long">&nbsp;·&nbsp; Sito Web <strong>GRATIS</strong> con Social Manager</span>
     <span id="bar-cd">&nbsp;— Scade tra&nbsp;<span id="bar-cd-days">00</span>g <span id="bar-cd-hours">00</span>h <span id="bar-cd-mins">00</span>m <span id="bar-cd-secs">00</span>s</span>
   </div>
@@ -867,171 +867,179 @@
   </div>
 
   <script type="module">
-    import { db } from './js/firebase-config.js';
-    import { collection, addDoc, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    window.addEventListener('load', async () => {
+      const [{ db }, { collection, addDoc, serverTimestamp, doc, getDoc }] = await Promise.all([
+        import('./js/firebase-config.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'),
+      ]);
 
-    // ── CONFIG: promo + site settings in parallel ─────────────────
-    const [promoSnap, siteSnap] = await Promise.all([
-      getDoc(doc(db, 'config', 'promo')),
-      getDoc(doc(db, 'config', 'site')),
-    ]).catch(() => [null, null]);
+      // ── CONFIG: promo + site settings in parallel ─────────────────
+      const [promoSnap, siteSnap] = await Promise.all([
+        getDoc(doc(db, 'config', 'promo')),
+        getDoc(doc(db, 'config', 'site')),
+      ]).catch(() => [null, null]);
 
-    // ── SITE SETTINGS (visibilità sezioni) ────────────────────────
-    if (siteSnap?.exists()) {
-      const { partnerVisible } = siteSnap.data();
-      if (partnerVisible === false) {
-        const sec = document.getElementById('partner');
-        if (sec) sec.style.display = 'none';
-        document.querySelectorAll('a[href="#partner"]').forEach(el => {
-          const li = el.closest('li');
-          if (li) li.remove(); else el.remove();
+      // ── SITE SETTINGS (visibilità sezioni) ────────────────────────
+      if (siteSnap?.exists()) {
+        const { partnerVisible } = siteSnap.data();
+        if (partnerVisible === false) {
+          const sec = document.getElementById('partner');
+          if (sec) sec.style.display = 'none';
+          document.querySelectorAll('a[href="#partner"]').forEach(el => {
+            const li = el.closest('li');
+            if (li) li.remove(); else el.remove();
+          });
+        }
+      }
+
+      // ── PROMO BANNER ──────────────────────────────────────────────
+      (async () => {
+        try {
+          const snap = promoSnap;
+          if (!snap?.exists()) return;
+          const { enabled, startDate, endDate, noExpiry } = snap.data();
+          if (!enabled) return;
+          const now = new Date();
+          if (!noExpiry) {
+            if (!endDate) return;
+            const end = new Date(endDate);
+            if (end <= now) return;
+            if (startDate && new Date(startDate) > now) return;
+          }
+          const bar = document.getElementById('promo-bar');
+          const nav = document.querySelector('nav');
+          const barCd = document.getElementById('bar-cd');
+          if (noExpiry && barCd) barCd.style.display = 'none';
+          bar.style.display = 'block';
+          const barH = bar.offsetHeight;
+          if (nav) nav.style.top = barH + 'px';
+          document.body.style.paddingTop = barH + 'px';
+          document.body.classList.add('promo-active');
+          const svc = document.getElementById('service');
+          if (svc) { svc.value = 'social'; document.getElementById('service-group').style.display = 'none'; }
+          if (!noExpiry) {
+            const end = new Date(endDate);
+            const pad = n => String(n).padStart(2,'0');
+            const pkgCd = document.getElementById('pkg-countdown');
+            if (pkgCd) pkgCd.style.display = '';
+            let pkgVisible = true;
+            if (pkgCd && 'IntersectionObserver' in window) {
+              new IntersectionObserver(([e]) => { pkgVisible = e.isIntersecting; }, { threshold: 0 }).observe(pkgCd);
+            }
+            const tick = () => {
+              const diff = end - new Date();
+              if (diff <= 0) {
+                clearInterval(timer);
+                bar.style.display = 'none';
+                if (pkgCd) pkgCd.style.display = 'none';
+                if (nav) nav.style.top = '';
+                document.body.style.paddingTop = '';
+                document.body.classList.remove('promo-active');
+                const sg = document.getElementById('service-group');
+                if (sg) sg.style.display = '';
+                return;
+              }
+              const d = Math.floor(diff / 86400000);
+              const h = Math.floor((diff % 86400000) / 3600000);
+              const m = Math.floor((diff % 3600000) / 60000);
+              const s = Math.floor((diff % 60000) / 1000);
+              document.getElementById('bar-cd-days').textContent  = pad(d);
+              document.getElementById('bar-cd-hours').textContent = pad(h);
+              document.getElementById('bar-cd-mins').textContent  = pad(m);
+              document.getElementById('bar-cd-secs').textContent  = pad(s);
+              if (pkgCd && pkgVisible) {
+                document.getElementById('pkg-cd-days').textContent  = pad(d);
+                document.getElementById('pkg-cd-hours').textContent = pad(h);
+                document.getElementById('pkg-cd-mins').textContent  = pad(m);
+                document.getElementById('pkg-cd-secs').textContent  = pad(s);
+              }
+            };
+            tick();
+            const timer = setInterval(tick, 1000);
+          }
+        } catch(e) { console.warn('promo', e); }
+      })();
+
+      const pForm = document.getElementById('partner-form');
+      const pBtn  = document.getElementById('partner-submit');
+      const pSucc = document.getElementById('partner-success');
+
+      // Contact form
+      const cForm = document.getElementById('contact-form');
+      const cSucc = document.getElementById('form-success');
+      if (cForm) {
+        cForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const cBtn = cForm.querySelector('button[type="submit"]');
+          const cBtnText = cBtn.querySelector('.btn-text');
+          cBtnText.textContent = 'Invio in corso…';
+          cBtn.style.opacity = '.7';
+          cBtn.style.pointerEvents = 'none';
+          try {
+            const contactName = document.getElementById('name').value.trim();
+            await addDoc(collection(db, 'contacts'), {
+              name:      contactName,
+              email:     document.getElementById('email').value.trim(),
+              phone:     document.getElementById('contact-phone').value.trim(),
+              service:   document.getElementById('service').value,
+              message:   document.getElementById('message').value.trim(),
+              status:    'new',
+              createdAt: serverTimestamp(),
+            });
+            fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'contact', name: contactName }),
+            }).catch(() => {});
+            cSucc.classList.add('show');
+            cForm.reset();
+            setTimeout(() => cSucc.classList.remove('show'), 6000);
+          } catch (err) {
+            console.error('Contact form error:', err);
+            cBtnText.textContent = 'Errore. Riprova.';
+            setTimeout(() => { cBtnText.textContent = 'Invia messaggio'; }, 3000);
+          }
+          cBtn.style.opacity = '';
+          cBtn.style.pointerEvents = '';
+          if (!cSucc.classList.contains('show')) cBtnText.textContent = 'Invia messaggio';
         });
       }
-    }
 
-    // ── PROMO BANNER ──────────────────────────────────────────────
-    (async () => {
-      try {
-        const snap = promoSnap;
-        if (!snap?.exists()) return;
-        const { enabled, startDate, endDate, noExpiry } = snap.data();
-        if (!enabled) return;
-        const now = new Date();
-        if (!noExpiry) {
-          if (!endDate) return;
-          const end = new Date(endDate);
-          if (end <= now) return;
-          if (startDate && new Date(startDate) > now) return;
-        }
-        const bar = document.getElementById('promo-bar');
-        const nav = document.querySelector('nav');
-        const barCd = document.getElementById('bar-cd');
-        if (noExpiry && barCd) barCd.style.display = 'none';
-        bar.style.display = '';
-        const barH = bar.offsetHeight;
-        if (nav) nav.style.top = barH + 'px';
-        document.body.style.paddingTop = barH + 'px';
-        document.body.classList.add('promo-active');
-        const svc = document.getElementById('service');
-        if (svc) { svc.value = 'social'; document.getElementById('service-group').style.display = 'none'; }
-        if (!noExpiry) {
-          const end = new Date(endDate);
-          const pad = n => String(n).padStart(2,'0');
-          const pkgCd = document.getElementById('pkg-countdown');
-          if (pkgCd) pkgCd.style.display = '';
-          const tick = () => {
-            const diff = end - new Date();
-            if (diff <= 0) {
-              clearInterval(timer);
-              bar.style.display = 'none';
-              if (pkgCd) pkgCd.style.display = 'none';
-              if (nav) nav.style.top = '';
-              document.body.style.paddingTop = '';
-              document.body.classList.remove('promo-active');
-              const sg = document.getElementById('service-group');
-              if (sg) sg.style.display = '';
-              return;
-            }
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            document.getElementById('bar-cd-days').textContent  = pad(d);
-            document.getElementById('bar-cd-hours').textContent = pad(h);
-            document.getElementById('bar-cd-mins').textContent  = pad(m);
-            document.getElementById('bar-cd-secs').textContent  = pad(s);
-            if (pkgCd) {
-              document.getElementById('pkg-cd-days').textContent  = pad(d);
-              document.getElementById('pkg-cd-hours').textContent = pad(h);
-              document.getElementById('pkg-cd-mins').textContent  = pad(m);
-              document.getElementById('pkg-cd-secs').textContent  = pad(s);
-            }
-          };
-          tick();
-          const timer = setInterval(tick, 1000);
-        }
-      } catch(e) { console.warn('promo', e); }
-    })();
-
-    const pForm = document.getElementById('partner-form');
-    const pBtn  = document.getElementById('partner-submit');
-    const pSucc = document.getElementById('partner-success');
-
-    // Contact form
-    const cForm = document.getElementById('contact-form');
-    const cSucc = document.getElementById('form-success');
-    if (cForm) {
-      cForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const cBtn = cForm.querySelector('button[type="submit"]');
-        const cBtnText = cBtn.querySelector('.btn-text');
-        cBtnText.textContent = 'Invio in corso…';
-        cBtn.style.opacity = '.7';
-        cBtn.style.pointerEvents = 'none';
-        try {
-          const contactName = document.getElementById('name').value.trim();
-          await addDoc(collection(db, 'contacts'), {
-            name:      contactName,
-            email:     document.getElementById('email').value.trim(),
-            phone:     document.getElementById('contact-phone').value.trim(),
-            service:   document.getElementById('service').value,
-            message:   document.getElementById('message').value.trim(),
-            status:    'new',
-            createdAt: serverTimestamp(),
-          });
-          fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'contact', name: contactName }),
-          }).catch(() => {});
-          cSucc.classList.add('show');
-          cForm.reset();
-          setTimeout(() => cSucc.classList.remove('show'), 6000);
-        } catch (err) {
-          console.error('Contact form error:', err);
-          cBtnText.textContent = 'Errore. Riprova.';
-          setTimeout(() => { cBtnText.textContent = 'Invia messaggio'; }, 3000);
-        }
-        cBtn.style.opacity = '';
-        cBtn.style.pointerEvents = '';
-        if (!cSucc.classList.contains('show')) cBtnText.textContent = 'Invia messaggio';
-      });
-    }
-
-    if (pForm) {
-      pForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btnText = pBtn.querySelector('.btn-text');
-        btnText.textContent = 'Invio in corso…';
-        pBtn.style.opacity = '.7';
-        pBtn.style.pointerEvents = 'none';
-        try {
-          const partnerCompany = document.getElementById('p-company').value.trim();
-          await addDoc(collection(db, 'partners'), {
-            companyName: partnerCompany,
-            email:       document.getElementById('p-email').value.trim(),
-            message:     document.getElementById('p-message').value.trim(),
-            status:      'pending',
-            createdAt:   serverTimestamp(),
-          });
-          fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'partner', companyName: partnerCompany }),
-          }).catch(() => {});
-          pSucc.classList.add('show');
-          pForm.reset();
-          setTimeout(() => pSucc.classList.remove('show'), 6000);
-        } catch (err) {
-          console.error('Partner form error:', err);
-          btnText.textContent = 'Errore. Riprova.';
-          setTimeout(() => { btnText.textContent = 'Invia candidatura'; }, 3000);
-        }
-        pBtn.style.opacity = '';
-        pBtn.style.pointerEvents = '';
-        if (!pSucc.classList.contains('show')) btnText.textContent = 'Invia candidatura';
-      });
-    }
+      if (pForm) {
+        pForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btnText = pBtn.querySelector('.btn-text');
+          btnText.textContent = 'Invio in corso…';
+          pBtn.style.opacity = '.7';
+          pBtn.style.pointerEvents = 'none';
+          try {
+            const partnerCompany = document.getElementById('p-company').value.trim();
+            await addDoc(collection(db, 'partners'), {
+              companyName: partnerCompany,
+              email:       document.getElementById('p-email').value.trim(),
+              message:     document.getElementById('p-message').value.trim(),
+              status:      'pending',
+              createdAt:   serverTimestamp(),
+            });
+            fetch('https://astra-notify.jacopopelliccione.workers.dev/api/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'partner', companyName: partnerCompany }),
+            }).catch(() => {});
+            pSucc.classList.add('show');
+            pForm.reset();
+            setTimeout(() => pSucc.classList.remove('show'), 6000);
+          } catch (err) {
+            console.error('Partner form error:', err);
+            btnText.textContent = 'Errore. Riprova.';
+            setTimeout(() => { btnText.textContent = 'Invia candidatura'; }, 3000);
+          }
+          pBtn.style.opacity = '';
+          pBtn.style.pointerEvents = '';
+          if (!pSucc.classList.contains('show')) btnText.textContent = 'Invia candidatura';
+        });
+      }
+    });
   </script>
   <script src="js/main.js?v=6" defer></script>
   <script>
