@@ -103,7 +103,7 @@
 
     .phrase {
       font-family: 'Syne', sans-serif;
-      font-size: 116px;
+      font-size: 96px;
       font-weight: 800;
       line-height: 1.0;
       color: #fff;
@@ -341,14 +341,9 @@
     msg.textContent = 'Generando immagine…';
 
     try {
-      const scale = 2; // 2x per qualità alta
       const dataUrl = await domtoimage.toPng(card, {
-        width:  1200 * scale,
-        height: 900  * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }
+        width:  1200,
+        height: 900,
       });
 
       msg.textContent = 'Apertura…';
