@@ -1763,6 +1763,25 @@ footer {
   animation: none;
 }
 
+/* ── Promo bar ── */
+#promo-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  background: linear-gradient(90deg,#FFB800,#FF8C00);
+  padding: 6px 16px;
+  text-align: center;
+  color: #1a0a00;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ── Promo: package effects ── */
 .pkg-content {
   display: flex;
