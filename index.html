@@ -910,6 +910,20 @@
       } catch(e) { console.warn('promo', e); }
     })();
 
+    // ── SITE SETTINGS (visibilità sezioni) ────────────────────────
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'config', 'site'));
+        if (!snap.exists()) return;
+        const { partnerVisible } = snap.data();
+        if (partnerVisible === false) {
+          const sec = document.getElementById('partner');
+          if (sec) sec.style.display = 'none';
+          document.querySelectorAll('a[href="#partner"]').forEach(el => el.closest('li,a') && el.closest('li') ? el.closest('li').remove() : el.remove());
+        }
+      } catch(e) { console.warn('siteSettings', e); }
+    })();
+
     const pForm = document.getElementById('partner-form');
     const pBtn  = document.getElementById('partner-submit');
     const pSucc = document.getElementById('partner-success');

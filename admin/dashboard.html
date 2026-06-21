@@ -261,6 +261,31 @@
           </div>
         </div>
 
+        <!-- Visibilità sito -->
+        <div class="card" style="margin-bottom:16px;">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:4px;">Visibilità sezioni del sito</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:18px;">Attiva o disattiva sezioni visibili sul sito pubblico.</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <p style="font-weight:600;margin-bottom:3px;">Sezione Partner</p>
+              <p style="font-size:.82rem;color:var(--text-muted);">Mostra o nascondi la sezione "Diventa Partner" sul sito.</p>
+            </div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <span style="font-size:.85rem;" id="partner-visible-label" >Visibile</span>
+              <div onclick="togglePartnerVisible()" id="partner-visible-toggle" style="width:48px;height:26px;border-radius:13px;background:var(--purple);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;">
+                <div id="partner-visible-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;transform:translateX(22px);"></div>
+              </div>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <button onclick="saveSiteSettings()" class="btn btn-primary" style="min-width:140px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salva
+            </button>
+            <span id="site-settings-result" style="font-size:.83rem;"></span>
+          </div>
+        </div>
+
         <!-- Notifiche — accordion -->
         <div class="card" style="margin-bottom:16px;padding:0;overflow:hidden;">
           <button onclick="toggleNotifAccordion()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:none;border:none;cursor:pointer;text-align:left;">
@@ -1452,6 +1477,7 @@
     };
 
     function updateSettingsUI() {
+      loadSiteSettings();
       const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       const label   = document.getElementById('notif-settings-label');
@@ -2449,6 +2475,43 @@ ${cfg.logoDataUrl ? '⚠️ Il cliente ha caricato un logo nel questionario. Usa
       tick();
       setInterval(tick, 1000);
     }
+
+    // ── SITE SETTINGS (visibilità sezioni) ─────────────────────────
+    let _partnerVisible = true;
+
+    async function loadSiteSettings() {
+      try {
+        const snap = await getDoc(doc(db, 'config', 'site'));
+        if (snap.exists()) {
+          const d = snap.data();
+          _partnerVisible = d.partnerVisible !== false;
+        }
+      } catch(e) { console.error('loadSiteSettings', e); }
+      renderPartnerToggle();
+    }
+
+    function renderPartnerToggle() {
+      const toggle = document.getElementById('partner-visible-toggle');
+      const knob   = document.getElementById('partner-visible-knob');
+      const label  = document.getElementById('partner-visible-label');
+      if (!toggle) return;
+      toggle.style.background = _partnerVisible ? 'var(--purple)' : 'var(--border)';
+      knob.style.transform    = _partnerVisible ? 'translateX(22px)' : 'translateX(0)';
+      label.textContent       = _partnerVisible ? 'Visibile' : 'Nascosta';
+      label.style.color       = _partnerVisible ? 'var(--purple)' : 'var(--text-muted)';
+    }
+
+    window.togglePartnerVisible = () => { _partnerVisible = !_partnerVisible; renderPartnerToggle(); };
+
+    window.saveSiteSettings = async () => {
+      const result = document.getElementById('site-settings-result');
+      try {
+        await setDoc(doc(db, 'config', 'site'), { partnerVisible: _partnerVisible }, { merge: true });
+        result.textContent = '✓ Salvato!';
+        result.style.color = 'var(--green, #22c55e)';
+        setTimeout(() => result.textContent = '', 3000);
+      } catch(e) { result.textContent = 'Errore: ' + e.message; result.style.color = 'var(--pink)'; }
+    };
 
     window.savePromo = async () => {
       const startDate = getPromoStartVal();
