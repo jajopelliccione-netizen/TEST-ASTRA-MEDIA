@@ -2232,7 +2232,20 @@ body.promo-active #pkg-social { padding-top: 74px; }
   .hero-badge { font-size: .7rem; padding: 6px 14px; margin-bottom: 18px; }
   .hero-sub { font-size: .82rem; line-height: 1.55; margin-bottom: 22px; }
 
-  .services-grid { grid-template-columns: 1fr; }
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .service-card {
+    padding: 20px 16px;
+    gap: 10px;
+  }
+  .service-card > p { display: none; }
+  .service-list { display: none; }
+  .service-tag { font-size: .62rem; padding: 3px 8px; }
+  .service-icon { width: 44px; height: 44px; margin-bottom: 6px; }
+  .service-card h3 { font-size: .92rem; }
+  #services { padding: 60px 0; }
   .testimonials-grid { grid-template-columns: 1fr; }
   /* Clip pseudo-element glows that extend beyond section bounds */
   #collaborations, #packages, #partner, #contact { overflow: hidden; }
