@@ -2239,7 +2239,7 @@ body.promo-active #pkg-social { padding-top: 74px; }
   }
   .service-card > p { display: none; }
   .service-list { display: none; }
-  .service-tag { font-size: .62rem; padding: 3px 8px; }
+  .service-tag { display: none; }
   .service-icon { width: 44px; height: 44px; margin-bottom: 6px; }
   .service-card h3 { font-size: .92rem; }
   #services { padding: 60px 0; }
