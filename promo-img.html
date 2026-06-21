@@ -229,6 +229,44 @@
       animation: spin .8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Overlay immagine generata (mobile) ── */
+    #img-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(7,6,15,.97);
+      z-index: 10000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 16px;
+    }
+    #img-overlay.show { display: flex; }
+    #img-overlay img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 4px;
+      display: block;
+    }
+    #img-overlay p {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.5;
+    }
+    #img-overlay span { color: #00F5FF; }
+    #img-overlay-close {
+      padding: 12px 32px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px;
+      color: #fff; font-size: 15px; font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -237,6 +275,13 @@
 <div id="saving-overlay">
   <div class="spinner"></div>
   <span id="saving-msg">Generando immagine…</span>
+</div>
+
+<!-- Overlay immagine generata (mobile) -->
+<div id="img-overlay">
+  <img id="overlay-img" src="" alt="" />
+  <p><span>Tieni premuto sull'immagine</span> → Salva su iPhone</p>
+  <button id="img-overlay-close" onclick="document.getElementById('img-overlay').classList.remove('show')">✕ Chiudi</button>
 </div>
 
 <!-- FAB salva -->
@@ -318,10 +363,9 @@
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (isMobile) {
-        // Su mobile: apri in nuova tab → tieni premuto per salvare
-        const w = window.open('', '_blank');
-        w.document.write(`<html><body style="margin:0;background:#000"><img src="${dataUrl}" style="width:100%;display:block"/><p style="color:#fff;font-family:sans-serif;text-align:center;padding:16px;font-size:14px">Tieni premuto sull'immagine → Salva in Foto</p></body></html>`);
-        w.document.close();
+        // Su mobile: mostra immagine nella pagina, tieni premuto per salvare
+        document.getElementById('overlay-img').src = dataUrl;
+        document.getElementById('img-overlay').classList.add('show');
       } else {
         const a = document.createElement('a');
         a.download = 'Astra-PromoGoogle.png';
