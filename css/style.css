@@ -1781,24 +1781,34 @@ body.promo-active #pkg-sito {
   background: rgba(7,6,15,.50);
   border-radius: 28px;
 }
-/* nastro diagonale nell'angolo in alto a destra */
+.pkg-promo-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FF2D78 18%, #FF2D78 82%, transparent);
+  transform: translateY(-50%) rotate(-8deg);
+  box-shadow: 0 0 10px rgba(255,45,120,.9), 0 0 28px rgba(255,45,120,.5);
+}
 .pkg-promo-cross-label {
   position: absolute;
-  top: 34px;
-  right: -52px;
-  width: 210px;
-  padding: 9px 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) rotate(-8deg);
   background: linear-gradient(135deg,#FF2D78,#B44FD8);
   color: #fff;
   font-family: var(--font-head);
   font-weight: 800;
-  font-size: .7rem;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  font-size: .78rem;
+  padding: 8px 24px;
+  border-radius: 50px;
   white-space: nowrap;
-  transform: rotate(45deg);
-  box-shadow: 0 4px 16px rgba(255,45,120,.6), 0 0 32px rgba(255,45,120,.25);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(255,45,120,.65), 0 0 48px rgba(255,45,120,.25);
   z-index: 7;
   pointer-events: none;
 }
