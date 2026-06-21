@@ -561,6 +561,17 @@
 
       </div>
 
+      <!-- countdown promo sotto pacchetti, visibile solo con promo attiva + scadenza -->
+      <div id="pkg-countdown" style="display:none;text-align:center;margin:0 0 8px;padding:20px 0 4px;">
+        <p style="font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px;">⏱ L'offerta scade tra</p>
+        <div style="display:flex;justify-content:center;gap:16px;">
+          <div class="pkg-cd-unit"><span id="pkg-cd-days">00</span><small>giorni</small></div>
+          <div class="pkg-cd-unit"><span id="pkg-cd-hours">00</span><small>ore</small></div>
+          <div class="pkg-cd-unit"><span id="pkg-cd-mins">00</span><small>min</small></div>
+          <div class="pkg-cd-unit"><span id="pkg-cd-secs">00</span><small>sec</small></div>
+        </div>
+      </div>
+
       <div class="pkg-cta reveal">
         <p>Non sei sicuro di quale pacchetto fa per te? <strong>Parliamone insieme, senza impegno.</strong></p>
         <a href="#contact" class="btn-primary">Prenota una chiamata gratuita →</a>
@@ -887,11 +898,14 @@
         if (!noExpiry) {
           const end = new Date(endDate);
           const pad = n => String(n).padStart(2,'0');
+          const pkgCd = document.getElementById('pkg-countdown');
+          if (pkgCd) pkgCd.style.display = '';
           const tick = () => {
             const diff = end - new Date();
             if (diff <= 0) {
               clearInterval(timer);
               bar.style.display = 'none';
+              if (pkgCd) pkgCd.style.display = 'none';
               if (nav) nav.style.top = '';
               document.body.style.paddingTop = '';
               document.body.classList.remove('promo-active');
@@ -899,10 +913,20 @@
               if (sg) sg.style.display = '';
               return;
             }
-            document.getElementById('bar-cd-days').textContent  = pad(Math.floor(diff / 86400000));
-            document.getElementById('bar-cd-hours').textContent = pad(Math.floor((diff % 86400000) / 3600000));
-            document.getElementById('bar-cd-mins').textContent  = pad(Math.floor((diff % 3600000) / 60000));
-            document.getElementById('bar-cd-secs').textContent  = pad(Math.floor((diff % 60000) / 1000));
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('bar-cd-days').textContent  = pad(d);
+            document.getElementById('bar-cd-hours').textContent = pad(h);
+            document.getElementById('bar-cd-mins').textContent  = pad(m);
+            document.getElementById('bar-cd-secs').textContent  = pad(s);
+            if (pkgCd) {
+              document.getElementById('pkg-cd-days').textContent  = pad(d);
+              document.getElementById('pkg-cd-hours').textContent = pad(h);
+              document.getElementById('pkg-cd-mins').textContent  = pad(m);
+              document.getElementById('pkg-cd-secs').textContent  = pad(s);
+            }
           };
           tick();
           const timer = setInterval(tick, 1000);

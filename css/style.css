@@ -1929,6 +1929,32 @@ body.promo-active #pkg-social { padding-top: 74px; }
 
 .pkg-cta strong { color: var(--text); }
 
+.pkg-cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.pkg-cd-unit span {
+  font-family: var(--font-head);
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #FFB800, #FF8C00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(255,185,0,.5));
+}
+.pkg-cd-unit small {
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+}
+
 /* ═══════════════════════════════════ PARTNER ══════════════════ */
 #partner {
   padding: 120px 0;
