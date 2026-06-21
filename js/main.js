@@ -27,11 +27,14 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
 
   const canvas = document.getElementById('stars-canvas');
   const ctx    = canvas.getContext('2d', { alpha: true });
-  const dpr    = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr    = Math.min(window.devicePixelRatio || 1, 1); // cap dpr at 1 on canvas
   let W, H, stars, animId;
+  let paused = false;
 
-  const STAR_COUNT  = isMobile() ? 130 : 220;
-  const NEBULA_ORBS = isMobile() ? 5   : 8;
+  const STAR_COUNT = isMobile() ? 70 : 150;
+  const FPS        = isMobile() ? 24 : 30;
+  const INTERVAL   = 1000 / FPS;
+  let lastFrame    = 0;
 
   function resize() {
     const w = window.innerWidth;
@@ -40,55 +43,29 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     canvas.height = h * dpr;
     canvas.style.width  = w + 'px';
     canvas.style.height = h + 'px';
-    ctx.scale(dpr, dpr);
+    if (dpr > 1) ctx.scale(dpr, dpr);
     W = w; H = h;
   }
 
   function createStars() {
     stars = Array.from({ length: STAR_COUNT }, () => ({
-      x:           Math.random() * W,
-      y:           Math.random() * H,
-      r:           Math.random() * 2.0 + .3,
-      alpha:       Math.random() * .7 + .25,
-      speed:       Math.random() * .25 + .04,
-      twinkleSpd:  Math.random() * .015 + .004,
-      twinkleDir:  Math.random() > .5 ? 1 : -1,
-      color:       ['#fff','#B44FD8','#7B5CF0','#00F5FF','#FF2D78'][Math.floor(Math.random()*5)],
+      x:          Math.random() * W,
+      y:          Math.random() * H,
+      r:          Math.random() * 1.5 + .3,
+      alpha:      Math.random() * .6 + .25,
+      speed:      Math.random() * .2 + .03,
+      twinkleSpd: Math.random() * .012 + .003,
+      twinkleDir: Math.random() > .5 ? 1 : -1,
+      color:      ['#fff','#B44FD8','#7B5CF0','#00F5FF'][Math.floor(Math.random()*4)],
     }));
   }
 
-  /* nebula orbs – positions are relative so they don't need recreating on resize */
-  const nebulae = Array.from({ length: NEBULA_ORBS }, (_, i) => ({
-    rx:    Math.random(),
-    ry:    Math.random(),
-    r:     200 + Math.random() * 150,
-    color: ['rgba(123,92,240,','rgba(255,45,120,','rgba(0,245,255,','rgba(180,79,216,','rgba(0,229,160,'][i % 5],
-    speed: .00008 + Math.random() * .00007,
-    angle: Math.random() * Math.PI * 2,
-  }));
-
-  function drawNebulae() {
-    nebulae.forEach(n => {
-      n.angle += n.speed;
-      const cx = (n.rx + Math.cos(n.angle) * .07) * W;
-      const cy = (n.ry + Math.sin(n.angle) * .05) * H;
-      const g  = ctx.createRadialGradient(cx, cy, 0, cx, cy, n.r);
-      g.addColorStop(0, n.color + '.10)');
-      g.addColorStop(1, n.color + '0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(cx, cy, n.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-
   function drawStars() {
-    ctx.shadowBlur = 0;
     stars.forEach(s => {
       s.y -= s.speed;
       if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
       s.alpha += s.twinkleSpd * s.twinkleDir;
-      if (s.alpha > .95 || s.alpha < .1) s.twinkleDir *= -1;
+      if (s.alpha > .9 || s.alpha < .1) s.twinkleDir *= -1;
       ctx.globalAlpha = s.alpha;
       ctx.fillStyle   = s.color;
       ctx.beginPath();
@@ -100,52 +77,55 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
 
   let shooters = [];
   function maybeShoot() {
-    if (!isMobile() && Math.random() < .003) {
+    if (isMobile()) return;
+    if (Math.random() < .002) {
       shooters.push({
         x: Math.random() * W, y: Math.random() * H * .5,
-        len: 70 + Math.random() * 100,
-        speed: 7 + Math.random() * 7,
+        len: 60 + Math.random() * 80,
+        speed: 8 + Math.random() * 6,
         alpha: 1,
         angle: Math.PI / 5 + (Math.random() - .5) * .35,
       });
     }
     shooters = shooters.filter(s => s.alpha > .01);
     shooters.forEach(s => {
-      const dx = Math.cos(s.angle) * s.speed;
-      const dy = Math.sin(s.angle) * s.speed;
-      const g  = ctx.createLinearGradient(s.x, s.y,
+      const g = ctx.createLinearGradient(s.x, s.y,
         s.x - Math.cos(s.angle)*s.len, s.y - Math.sin(s.angle)*s.len);
       g.addColorStop(0, `rgba(255,255,255,${s.alpha})`);
       g.addColorStop(1, 'rgba(123,92,240,0)');
       ctx.strokeStyle = g;
-      ctx.lineWidth   = 1.2;
-      ctx.shadowBlur  = 0;
+      ctx.lineWidth   = 1;
       ctx.beginPath();
       ctx.moveTo(s.x, s.y);
       ctx.lineTo(s.x - Math.cos(s.angle)*s.len, s.y - Math.sin(s.angle)*s.len);
       ctx.stroke();
-      s.x += dx; s.y += dy;
-      s.alpha -= .02;
+      s.x += Math.cos(s.angle)*s.speed;
+      s.y += Math.sin(s.angle)*s.speed;
+      s.alpha -= .025;
     });
   }
 
-  function loop() {
+  function loop(ts) {
+    animId = requestAnimationFrame(loop);
+    if (paused) return;
+    if (ts - lastFrame < INTERVAL) return;
+    lastFrame = ts;
     ctx.clearRect(0, 0, W, H);
-    drawNebulae();
     drawStars();
     maybeShoot();
-    animId = requestAnimationFrame(loop);
   }
+
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; });
 
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { resize(); createStars(); }, 200);
+    resizeTimer = setTimeout(() => { resize(); createStars(); }, 250);
   }, { passive: true });
 
   resize();
   createStars();
-  loop();
+  requestAnimationFrame(loop);
 })();
 
 /* ── NAVBAR SCROLL ────────────────────────────────────────────── */

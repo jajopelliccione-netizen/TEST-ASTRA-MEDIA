@@ -110,7 +110,7 @@
   <nav id="navbar">
     <div class="nav-inner">
       <a href="#hero" class="nav-logo">
-        <img src="logo.png" class="nav-logo-img" alt="Astra Agency" />
+        <img src="logo.png" class="nav-logo-img" alt="Astra Agency" fetchpriority="high" />
       </a>
       <div class="nav-pill">
         <ul class="nav-links">
@@ -859,11 +859,30 @@
     import { db } from './js/firebase-config.js';
     import { collection, addDoc, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+    // ── CONFIG: promo + site settings in parallel ─────────────────
+    const [promoSnap, siteSnap] = await Promise.all([
+      getDoc(doc(db, 'config', 'promo')),
+      getDoc(doc(db, 'config', 'site')),
+    ]).catch(() => [null, null]);
+
+    // ── SITE SETTINGS (visibilità sezioni) ────────────────────────
+    if (siteSnap?.exists()) {
+      const { partnerVisible } = siteSnap.data();
+      if (partnerVisible === false) {
+        const sec = document.getElementById('partner');
+        if (sec) sec.style.display = 'none';
+        document.querySelectorAll('a[href="#partner"]').forEach(el => {
+          const li = el.closest('li');
+          if (li) li.remove(); else el.remove();
+        });
+      }
+    }
+
     // ── PROMO BANNER ──────────────────────────────────────────────
     (async () => {
       try {
-        const snap = await getDoc(doc(db, 'config', 'promo'));
-        if (!snap.exists()) return;
+        const snap = promoSnap;
+        if (!snap?.exists()) return;
         const { enabled, startDate, endDate, noExpiry } = snap.data();
         if (!enabled) return;
         const now = new Date();
@@ -908,20 +927,6 @@
           const timer = setInterval(tick, 1000);
         }
       } catch(e) { console.warn('promo', e); }
-    })();
-
-    // ── SITE SETTINGS (visibilità sezioni) ────────────────────────
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, 'config', 'site'));
-        if (!snap.exists()) return;
-        const { partnerVisible } = snap.data();
-        if (partnerVisible === false) {
-          const sec = document.getElementById('partner');
-          if (sec) sec.style.display = 'none';
-          document.querySelectorAll('a[href="#partner"]').forEach(el => el.closest('li,a') && el.closest('li') ? el.closest('li').remove() : el.remove());
-        }
-      } catch(e) { console.warn('siteSettings', e); }
     })();
 
     const pForm = document.getElementById('partner-form');
