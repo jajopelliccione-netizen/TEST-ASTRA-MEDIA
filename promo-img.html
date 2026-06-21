@@ -2,24 +2,35 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Promo Image – Astra Agency</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.0/dist/dom-to-image-more.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background: #111;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
-      padding: 40px;
+      padding: 20px 16px 100px;
       font-family: 'Space Grotesk', sans-serif;
     }
 
-    /* ── Immagine 1200×900 ── */
+    /* ── Wrapper per scaling mobile ── */
+    .img-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      /* altezza aggiornata via JS */
+    }
+
+    /* ── Card 1200×900 (proporzione 4:3) ── */
     .img {
       width: 1200px;
       height: 900px;
@@ -31,6 +42,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      transform-origin: top center;
     }
 
     /* Orbs */
@@ -56,7 +68,6 @@
       transform: translate(-50%, -50%);
     }
 
-    /* Stars */
     .star {
       position: absolute;
       border-radius: 50%;
@@ -64,11 +75,10 @@
       pointer-events: none;
     }
 
-    /* Thin top border accent */
     .top-accent {
       position: absolute;
       top: 0; left: 0; right: 0;
-      height: 3px;
+      height: 4px;
       background: linear-gradient(90deg, transparent, #7B5CF0, #FF2D78, #FFB800, transparent);
     }
 
@@ -80,29 +90,24 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 0;
     }
 
-    /* Logo */
     .logo {
-      height: 64px;
+      height: 100px;
       object-fit: contain;
-      margin-bottom: 40px;
-      filter: drop-shadow(0 0 28px rgba(123,92,240,.6));
+      margin-bottom: 36px;
+      filter: drop-shadow(0 0 32px rgba(123,92,240,.65));
     }
 
-    /* Eyebrow */
     .eyebrow {
-      font-family: 'Space Grotesk', sans-serif;
       font-size: 15px;
       font-weight: 600;
       letter-spacing: .22em;
       text-transform: uppercase;
-      color: rgba(255,255,255,.35);
-      margin-bottom: 22px;
+      color: rgba(255,255,255,.32);
+      margin-bottom: 20px;
     }
 
-    /* Big phrase */
     .phrase {
       font-family: 'Syne', sans-serif;
       font-size: 88px;
@@ -110,7 +115,7 @@
       line-height: 1.0;
       color: #fff;
       letter-spacing: -.03em;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
     .phrase .line-gold {
       background: linear-gradient(135deg, #FFD700, #FFB800, #FF8C00);
@@ -120,22 +125,19 @@
     }
     .phrase .line-grad {
       background: linear-gradient(135deg, #7B5CF0, #FF2D78, #00F5FF);
-      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    /* Sub */
     .sub {
       font-size: 20px;
       font-weight: 500;
-      color: rgba(255,255,255,.38);
+      color: rgba(255,255,255,.35);
       letter-spacing: .08em;
-      margin-bottom: 52px;
+      margin-bottom: 48px;
     }
 
-    /* CTA pill */
     .pill {
       display: inline-flex;
       align-items: center;
@@ -161,41 +163,87 @@
       text-transform: uppercase;
     }
 
-    /* Bottom URL */
     .url {
       position: absolute;
-      bottom: 36px;
+      bottom: 32px;
       left: 0; right: 0;
       text-align: center;
       font-family: 'Syne', sans-serif;
       font-size: 16px;
       font-weight: 700;
-      color: rgba(255,255,255,.2);
+      color: rgba(255,255,255,.18);
       letter-spacing: .1em;
       z-index: 2;
     }
 
-    /* Hint */
-    .hint {
-      margin-top: 24px;
-      color: rgba(255,255,255,.3);
-      font-size: 13px;
+    /* ── FAB salva ── */
+    #fab {
+      position: fixed;
+      bottom: 24px; right: 20px;
+      z-index: 999;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7B5CF0, #FF2D78);
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(123,92,240,.55);
+      font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: transform .15s;
+    }
+    #fab:active { transform: scale(.92); }
+
+    #fab-label {
+      position: fixed;
+      bottom: 88px; right: 16px;
+      background: rgba(20,16,40,.97);
+      border: 1px solid rgba(123,92,240,.3);
+      border-radius: 10px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 13px; font-weight: 600;
+      white-space: nowrap;
+      display: none;
+      z-index: 999;
+    }
+    #fab:hover + #fab-label,
+    #fab-label.show { display: block; }
+
+    #saving-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(7,6,15,.85);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      color: #fff; font-size: 16px; font-weight: 600;
       font-family: 'Space Grotesk', sans-serif;
-      text-align: center;
     }
-    .hint kbd {
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.15);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: inherit;
+    #saving-overlay.show { display: flex; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(123,92,240,.3);
+      border-top-color: #7B5CF0;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-<div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+<!-- Overlay durante salvataggio -->
+<div id="saving-overlay">
+  <div class="spinner"></div>
+  <span id="saving-msg">Generando immagine…</span>
+</div>
 
+<!-- FAB salva -->
+<button id="fab" onclick="salva()" title="Salva immagine">💾</button>
+<div id="fab-label">Salva immagine</div>
+
+<div class="img-wrap" id="wrap">
   <div class="img" id="img">
 
     <div class="orb orb-1"></div>
@@ -203,7 +251,6 @@
     <div class="orb orb-3"></div>
     <div class="top-accent"></div>
 
-    <!-- Star dots -->
     <div class="star" style="width:3px;height:3px;top:12%;left:8%;opacity:.5;"></div>
     <div class="star" style="width:2px;height:2px;top:22%;right:12%;opacity:.4;"></div>
     <div class="star" style="width:4px;height:4px;top:68%;left:6%;opacity:.3;"></div>
@@ -229,12 +276,66 @@
     <div class="url">astragency.it &nbsp;·&nbsp; info@astragency.it</div>
 
   </div>
-
-  <p class="hint">
-    <kbd>Ctrl+P</kbd> → Salva come PDF &nbsp;·&nbsp; oppure screenshot della card
-  </p>
-
 </div>
+
+<script>
+  // ── Scala la card per adattarsi allo schermo ──
+  function scale() {
+    const card = document.getElementById('img');
+    const wrap = document.getElementById('wrap');
+    const maxW = window.innerWidth - 32;
+    const s = Math.min(maxW / 1200, 1);
+    card.style.transform = `scale(${s})`;
+    wrap.style.height = Math.round(900 * s) + 'px';
+  }
+  scale();
+  window.addEventListener('resize', scale);
+
+  // ── Salva immagine ──
+  async function salva() {
+    const overlay = document.getElementById('saving-overlay');
+    const msg = document.getElementById('saving-msg');
+    const card = document.getElementById('img');
+
+    // Ripristina scala 1:1 durante il render
+    card.style.transform = 'scale(1)';
+
+    overlay.classList.add('show');
+    msg.textContent = 'Generando immagine…';
+
+    try {
+      const scale = 2; // 2x per qualità alta
+      const dataUrl = await domtoimage.toPng(card, {
+        width:  1200 * scale,
+        height: 900  * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }
+      });
+
+      msg.textContent = 'Apertura…';
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        // Su mobile: apri in nuova tab → tieni premuto per salvare
+        const w = window.open('', '_blank');
+        w.document.write(`<html><body style="margin:0;background:#000"><img src="${dataUrl}" style="width:100%;display:block"/><p style="color:#fff;font-family:sans-serif;text-align:center;padding:16px;font-size:14px">Tieni premuto sull'immagine → Salva in Foto</p></body></html>`);
+        w.document.close();
+      } else {
+        const a = document.createElement('a');
+        a.download = 'Astra-PromoGoogle.png';
+        a.href = dataUrl;
+        a.click();
+      }
+    } catch(e) {
+      alert('Errore: ' + e.message);
+    }
+
+    overlay.classList.remove('show');
+    scale(); // ripristina scaling
+  }
+</script>
 
 </body>
 </html>
