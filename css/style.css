@@ -1764,6 +1764,14 @@ footer {
 }
 
 /* ── Promo: package effects ── */
+.pkg-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+  transition: filter .3s, opacity .3s;
+}
 .pkg-promo-cross {
   display: none;
   position: absolute;
@@ -1772,15 +1780,17 @@ footer {
   overflow: hidden;
   z-index: 6;
   pointer-events: none;
-  background: rgba(7,6,15,.62);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 body.promo-active .pkg-promo-cross { display: block; }
 body.promo-active .pkg-badge { z-index: 8; }
 body.promo-active #pkg-sito {
   border-color: rgba(255,45,120,.45);
   box-shadow: 0 0 0 1px rgba(255,45,120,.25), 0 0 36px rgba(255,45,120,.15);
+}
+body.promo-active .pkg-promo-cross ~ .pkg-content {
+  filter: blur(3px) brightness(0.35);
+  pointer-events: none;
+  user-select: none;
 }
 .pkg-promo-cross::before { display: none; }
 .pkg-promo-cross::after { display: none; }
