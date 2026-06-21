@@ -1786,29 +1786,19 @@ body.promo-active #pkg-sito {
   background: rgba(7,6,15,.50);
   border-radius: 28px;
 }
-.pkg-promo-cross::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: -10%;
-  width: 120%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #FF2D78 18%, #FF2D78 82%, transparent);
-  transform: translateY(-50%) rotate(-8deg);
-  box-shadow: 0 0 10px rgba(255,45,120,.9), 0 0 28px rgba(255,45,120,.5);
-}
+.pkg-promo-cross::after { display: none; }
 .pkg-promo-cross-label {
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%) rotate(-8deg);
+  left: -30%;
+  width: 160%;
+  transform: translateY(-50%) rotate(-8deg);
   background: linear-gradient(135deg,#FF2D78,#B44FD8);
   color: #fff;
   font-family: var(--font-head);
   font-weight: 800;
   font-size: .78rem;
-  padding: 8px 24px;
-  border-radius: 50px;
+  padding: 10px 0;
   white-space: nowrap;
   letter-spacing: .07em;
   text-transform: uppercase;
