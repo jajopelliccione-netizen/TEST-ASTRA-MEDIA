@@ -2471,10 +2471,19 @@ async function scaricaPDF() {
       if (banner) banner.style.display = 'none';
     });
 
+    // html2canvas non cattura filter:drop-shadow su <img>: sposta il filter al wrapper div
+    const _lgImg  = document.getElementById('doc-logo');
+    const _lgWrap = _lgImg && _lgImg.closest('.doc-logo-wrap');
+    const _lgFilter = (_lgImg && _lgImg.style.filter) || '';
+    if (_lgFilter && _lgWrap) {
+      _lgWrap.style.filter = _lgFilter;
+      _lgImg.style.filter  = '';
+    }
+
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 200));
 
-    // Screenshot ogni elemento .doc direttamente a schermo (cattura filter:drop-shadow)
+    // Screenshot ogni elemento .doc direttamente a schermo
     const canvases = await Promise.all(pages.map(el =>
       html2canvas(el, {
         scale: 2,
@@ -2492,6 +2501,10 @@ async function scaricaPDF() {
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = '';
     });
+    if (_lgFilter && _lgImg && _lgWrap) {
+      _lgImg.style.filter  = _lgFilter;
+      _lgWrap.style.filter = '';
+    }
 
     // Costruisce PDF con dimensioni personalizzate che corrispondono esattamente al contenuto
     const { jsPDF } = window.jspdf;
