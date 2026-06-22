@@ -533,11 +533,15 @@
       user-select: none;
     }
 
-    .doc.edit-mode { position: relative; }
+    /* Layout fisso (posizioni assolute, nessuna UI di modifica) */
+    .doc.has-custom-layout { position: relative; }
+    .doc.has-custom-layout .drag-section { position: absolute; }
+    .doc.has-custom-layout #ds-header-clear { display: none; }
+
+    /* Modalità modifica (aggiunge UI sopra has-custom-layout) */
     .doc.edit-mode #edit-banner { display: block; }
 
     .doc.edit-mode .drag-section {
-      position: absolute;
       outline: 2px dashed rgba(123,92,240,.5);
       border-radius: 3px;
       cursor: grab;
@@ -1092,44 +1096,37 @@ function toggleEditMode() {
 
   if (!editMode) {
     // ── Entra in modalità modifica ──
-    // 1. Leggi TUTTE le posizioni in un unico passaggio (zero mutazioni DOM nel loop)
-    const docRect = docEl.getBoundingClientRect();
-    const snap = DS_IDS.map(id => {
-      const el = document.getElementById(id);
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { id, top: r.top - docRect.top, left: r.left - docRect.left, width: r.width };
-    });
-
-    // 2. Aggiungi la classe (cambia position a absolute via CSS)
-    docEl.style.minHeight = docRect.height + 'px';
+    if (!docEl.classList.contains('has-custom-layout')) {
+      // Snapshot tutte le posizioni in un unico passaggio (nessuna mutazione DOM nel loop)
+      const docRect = docEl.getBoundingClientRect();
+      const snap = DS_IDS.map(id => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { id, top: r.top - docRect.top, left: r.left - docRect.left, width: r.width };
+      });
+      docEl.style.minHeight = docRect.height + 'px';
+      docEl.classList.add('has-custom-layout');
+      snap.forEach(p => {
+        if (!p) return;
+        const el = document.getElementById(p.id);
+        if (!el) return;
+        el.style.top   = p.top   + 'px';
+        el.style.left  = p.left  + 'px';
+        el.style.width = p.width + 'px';
+      });
+    }
     docEl.classList.add('edit-mode');
-
-    // 3. Applica tutte le posizioni (ora gli elementi sono già absolute)
-    snap.forEach(p => {
-      if (!p) return;
-      const el = document.getElementById(p.id);
-      if (!el) return;
-      el.style.top   = p.top   + 'px';
-      el.style.left  = p.left  + 'px';
-      el.style.width = p.width + 'px';
-    });
-
     setupDragHandlers(true);
     editMode = true;
     btn.textContent = '✓ Fine modifica';
     btn.classList.add('active');
     acts.style.display = '';
   } else {
-    // ── Esci dalla modalità modifica ──
+    // ── Esci dalla modalità modifica — mantieni has-custom-layout ──
     setupDragHandlers(false);
+    docEl.classList.remove('edit-mode');
     editMode = false;
-    const hasSaved = !!localStorage.getItem(LAYOUT_KEY);
-    if (!hasSaved) {
-      ripristinaLayout();
-    } else {
-      docEl.classList.remove('edit-mode');
-    }
     btn.textContent = '⊹ Modifica layout';
     btn.classList.remove('active');
     acts.style.display = 'none';
@@ -1195,25 +1192,23 @@ function endDrag() {
 
 function salvaLayoutPredefinito() {
   const docEl = document.getElementById('doc-preview');
-  const layout = { _h: docEl.style.height };
+  const layout = { _h: docEl.style.minHeight };
   DS_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     layout[id] = { top: el.style.top, left: el.style.left, width: el.style.width };
   });
   localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
-  const btn = document.querySelector('.btn-predefinito');
-  const prev = btn.textContent;
-  btn.textContent = '✓ Layout salvato!';
-  setTimeout(() => { btn.textContent = prev; }, 1800);
+  const btns = document.querySelectorAll('.btn-predefinito');
+  btns.forEach(b => { const p = b.textContent; b.textContent = '✓ Layout salvato!'; setTimeout(() => { b.textContent = p; }, 1800); });
 }
 
 function caricaLayoutSalvato() {
   const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
   if (!saved) return;
   const docEl = document.getElementById('doc-preview');
-  if (saved._h) docEl.style.height = saved._h;
-  docEl.classList.add('edit-mode');
+  if (saved._h) docEl.style.minHeight = saved._h;
+  docEl.classList.add('has-custom-layout');
   DS_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el || !saved[id]) return;
@@ -1225,12 +1220,12 @@ function caricaLayoutSalvato() {
 
 function ripristinaLayout() {
   const docEl = document.getElementById('doc-preview');
-  docEl.classList.remove('edit-mode');
-  docEl.style.height = '';
+  docEl.classList.remove('edit-mode', 'has-custom-layout');
+  docEl.style.minHeight = '';
   DS_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.top = el.style.left = el.style.width = el.style.position = '';
+    el.style.top = el.style.left = el.style.width = '';
   });
   localStorage.removeItem(LAYOUT_KEY);
   editMode = false;
