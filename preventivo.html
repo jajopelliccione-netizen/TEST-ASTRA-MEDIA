@@ -540,10 +540,9 @@
 
     .doc.edit-mode .drag-section {
       position: absolute;
-      outline: 2px dashed rgba(123,92,240,.45);
+      outline: 2px dashed rgba(123,92,240,.5);
       border-radius: 3px;
       cursor: grab;
-      padding: 4px;
       user-select: none;
     }
     .doc.edit-mode .drag-section:hover { outline-color: #7B5CF0; }
@@ -1084,37 +1083,50 @@ let   editMode    = false;
 let   dragState   = null;
 
 function toggleEditMode() {
-  editMode = !editMode;
-  const docEl  = document.getElementById('doc-preview');
-  const btn    = document.getElementById('btn-edit-layout');
-  const acts   = document.getElementById('layout-actions');
+  const docEl = document.getElementById('doc-preview');
+  const btn   = document.getElementById('btn-edit-layout');
+  const acts  = document.getElementById('layout-actions');
 
-  if (editMode) {
-    // Cattura posizioni nel flusso corrente prima di switchare ad absolute
+  if (!editMode) {
+    // ── Entra in modalità modifica ──
+    // 1. Leggi TUTTE le posizioni in un unico passaggio (zero mutazioni DOM nel loop)
     const docRect = docEl.getBoundingClientRect();
-    const savedH  = docRect.height;
-
-    DS_IDS.forEach(id => {
+    const snap = DS_IDS.map(id => {
       const el = document.getElementById(id);
-      if (!el) return;
+      if (!el) return null;
       const r = el.getBoundingClientRect();
-      el.style.width  = r.width  + 'px';
-      el.style.top    = (r.top  - docRect.top)  + 'px';
-      el.style.left   = (r.left - docRect.left) + 'px';
+      return { id, top: r.top - docRect.top, left: r.left - docRect.left, width: r.width };
     });
 
-    docEl.style.height = savedH + 'px';
+    // 2. Aggiungi la classe (cambia position a absolute via CSS)
+    docEl.style.minHeight = docRect.height + 'px';
     docEl.classList.add('edit-mode');
+
+    // 3. Applica tutte le posizioni (ora gli elementi sono già absolute)
+    snap.forEach(p => {
+      if (!p) return;
+      const el = document.getElementById(p.id);
+      if (!el) return;
+      el.style.top   = p.top   + 'px';
+      el.style.left  = p.left  + 'px';
+      el.style.width = p.width + 'px';
+    });
+
     setupDragHandlers(true);
+    editMode = true;
     btn.textContent = '✓ Fine modifica';
     btn.classList.add('active');
     acts.style.display = '';
   } else {
+    // ── Esci dalla modalità modifica ──
     setupDragHandlers(false);
-    docEl.classList.remove('edit-mode');
-    // Mantieni le posizioni absolute se sono state salvate, altrimenti torna al flusso
-    const saved = localStorage.getItem(LAYOUT_KEY);
-    if (!saved) ripristinaLayout();
+    editMode = false;
+    const hasSaved = !!localStorage.getItem(LAYOUT_KEY);
+    if (!hasSaved) {
+      ripristinaLayout();
+    } else {
+      docEl.classList.remove('edit-mode');
+    }
     btn.textContent = '⊹ Modifica layout';
     btn.classList.remove('active');
     acts.style.display = 'none';
