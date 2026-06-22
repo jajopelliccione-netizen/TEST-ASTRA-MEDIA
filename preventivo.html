@@ -2432,56 +2432,85 @@ async function scaricaWord() {
   btn.disabled = false;
 }
 
-/* ── SCARICA PDF (html2pdf – rendering diretto del preview) ── */
+/* ── SCARICA PDF – rende il preview panel già visibile nel DOM ── */
 async function scaricaPDF() {
   const btn = document.getElementById('btn-pdf');
   const origHTML = btn.innerHTML;
-  btn.innerHTML = 'Generando…';
+  btn.textContent = 'Generando…';
   btn.disabled = true;
 
   const num       = document.getElementById('f-num').value || '001';
   const firstName = (contatti.find(c => c.nome)?.nome || 'Cliente').replace(/\s+/g, '-');
 
-  // Contenitore temporaneo fuori-schermo
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;width:794px;background:#fff;';
+  const panel    = document.querySelector('.preview-panel');
+  const docEl    = document.getElementById('doc-preview');
+  const descEl   = document.getElementById('desc-page-preview');
+  const labelEl  = document.getElementById('desc-page-label');
+  const banner   = document.getElementById('edit-banner');
 
-  const noShadow = 'box-shadow:none!important;border-radius:0!important;margin:0!important;';
+  // --- Salva stili originali ---
+  const snap = {
+    panelStyle:   panel.getAttribute('style') || '',
+    docShadow:    docEl.style.boxShadow,
+    docRadius:    docEl.style.borderRadius,
+    docMargin:    docEl.style.margin,
+    bannerDisp:   banner ? banner.style.display : '',
+    labelDisp:    labelEl ? labelEl.style.display : '',
+    descPBAfter:  descEl ? descEl.style.pageBreakAfter : '',
+    descBreakAfter: descEl ? descEl.style.breakAfter : '',
+  };
 
-  // Pagina descrizione (se presente)
-  const descEl = document.getElementById('desc-page-preview');
-  if (descEl && descEl.style.display !== 'none' && descEl.firstElementChild) {
-    const dc = descEl.firstElementChild.cloneNode(true);
-    dc.setAttribute('style', (dc.getAttribute('style') || '') + ';' + noShadow + 'page-break-after:always;break-after:page;');
-    wrap.appendChild(dc);
+  // --- Prepara il panel per il rendering ---
+  panel.style.cssText = 'display:block;padding:0;overflow:visible;background:#fff;align-items:unset;';
+  docEl.style.boxShadow    = 'none';
+  docEl.style.borderRadius = '0';
+  docEl.style.margin       = '0';
+  if (banner)  banner.style.display  = 'none';
+  if (labelEl) labelEl.style.display = 'none';
+
+  if (descEl && descEl.firstElementChild) {
+    descEl.style.pageBreakAfter = 'always';
+    descEl.style.breakAfter     = 'page';
+    const descDoc = descEl.firstElementChild;
+    descDoc.style.boxShadow    = 'none';
+    descDoc.style.borderRadius = '0';
+    descDoc.style.margin       = '0';
   }
 
-  // Pagina preventivo
-  const docEl   = document.getElementById('doc-preview');
-  const docClone = docEl.cloneNode(true);
-  docClone.querySelector('#edit-banner')?.remove();
-  docClone.querySelectorAll('.drag-handle,.drag-section').forEach(el => { el.style.outline = 'none'; el.style.cursor = 'default'; });
-  docClone.setAttribute('style', (docClone.getAttribute('style') || '') + ';' + noShadow);
-  wrap.appendChild(docClone);
-
-  document.body.appendChild(wrap);
-
+  // Breve pausa per layout + fonts
   await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 120));
 
   try {
     await html2pdf().set({
       margin:      0,
       filename:    `Preventivo-${num}-${firstName}-AstraAgency.pdf`,
       image:       { type: 'jpeg', quality: 0.97 },
-      html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' },
       jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:   { mode: ['css', 'legacy'] }
-    }).from(wrap).save();
+      pagebreak:   { mode: ['css', 'legacy'], avoid: ['tr', 'td', 'img'] }
+    }).from(panel).save();
   } catch(err) {
     alert('Errore PDF: ' + err.message);
   }
 
-  document.body.removeChild(wrap);
+  // --- Ripristina stili ---
+  panel.setAttribute('style', snap.panelStyle);
+  docEl.style.boxShadow    = snap.docShadow;
+  docEl.style.borderRadius = snap.docRadius;
+  docEl.style.margin       = snap.docMargin;
+  if (banner)  banner.style.display  = snap.bannerDisp;
+  if (labelEl) labelEl.style.display = snap.labelDisp;
+  if (descEl) {
+    descEl.style.pageBreakAfter = snap.descPBAfter;
+    descEl.style.breakAfter     = snap.descBreakAfter;
+    if (descEl.firstElementChild) {
+      descEl.firstElementChild.style.boxShadow    = '';
+      descEl.firstElementChild.style.borderRadius = '';
+      descEl.firstElementChild.style.margin       = '';
+    }
+  }
+
   btn.innerHTML = origHTML;
   btn.disabled  = false;
 }
