@@ -602,15 +602,15 @@
     }
     .btn-reset-layout:hover { background: rgba(255,255,255,.1); }
 
-    /* ── Primo mese ── */
+    /* ── Una tantum / Primo mese ── */
     .svc-pm-toggle {
-      margin-top: 8px; width: 100%;
-      background: none;
-      border: 1px dashed rgba(255,184,0,.35);
-      border-radius: 6px; padding: 5px 10px;
+      margin-top: 10px; width: 100%;
+      background: rgba(255,184,0,.08);
+      border: 1.5px dashed rgba(255,184,0,.55);
+      border-radius: 8px; padding: 8px 12px;
       color: var(--gold);
       font-family: 'Space Grotesk', sans-serif;
-      font-size: .75rem; font-weight: 600;
+      font-size: .82rem; font-weight: 700;
       cursor: pointer; transition: background .2s;
     }
     .svc-pm-toggle:hover { background: rgba(255,184,0,.1); }
@@ -641,6 +641,38 @@
     }
     .svc-pm-rm:hover { color: var(--gold); }
 
+    /* ── Una tantum button / badge ── */
+    .svc-tantum-toggle {
+      margin-top: 6px; width: 100%;
+      background: rgba(0,210,180,.06);
+      border: 1.5px dashed rgba(0,210,180,.4);
+      border-radius: 8px; padding: 7px 12px;
+      color: #00C8B4;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .79rem; font-weight: 700;
+      cursor: pointer; transition: background .2s;
+      text-align: center;
+    }
+    .svc-tantum-toggle:hover { background: rgba(0,210,180,.12); }
+    .svc-tantum-badge {
+      margin-top: 8px; display: flex;
+      align-items: center; justify-content: space-between;
+      background: rgba(0,210,180,.07);
+      border: 1px solid rgba(0,210,180,.22);
+      border-radius: 6px; padding: 7px 10px;
+    }
+    .svc-tantum-label {
+      font-size: .72rem; font-weight: 800;
+      color: #00C8B4; letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .svc-tantum-rm {
+      background: none; border: none;
+      color: rgba(0,210,180,.5); cursor: pointer;
+      font-size: .9rem; padding: 2px 4px; transition: color .2s;
+    }
+    .svc-tantum-rm:hover { color: #00C8B4; }
+
     /* totale primo mese nel preview */
     .doc-total-row.pm {
       border-top: 2px dashed #FFB800;
@@ -648,6 +680,15 @@
       font-family: 'Syne', sans-serif;
       font-size: 1rem; font-weight: 800;
       color: #7a5500;
+    }
+
+    /* totale una tantum nel preview */
+    .doc-total-row.tantum {
+      border-top: 2px dashed #00C8B4;
+      margin-top: 6px; padding-top: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      color: #007a6a;
     }
 
     /* ── AI Section ── */
@@ -1015,8 +1056,8 @@
 <script>
 // ── Stato ──
 let righe = [
-  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null },
-  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null },
+  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null, tantum: false },
+  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null, tantum: false },
 ];
 
 let contatti = [
@@ -1109,7 +1150,11 @@ function renderRighe() {
   const body = document.getElementById('svc-body');
   body.innerHTML = '';
   righe.forEach((r, i) => {
-    const hasPm = r.primoMese !== null && r.primoMese !== undefined;
+    const hasPm    = !r.tantum && r.primoMese !== null && r.primoMese !== undefined;
+    const isTantum = !!r.tantum;
+    let priceLabel = 'Prezzo (€)';
+    if (hasPm)      priceLabel = 'Dal 2° mese (€)';
+    else if (isTantum) priceLabel = 'Prezzo una tantum (€)';
     const div = document.createElement('div');
     div.className = 'svc-card';
     div.innerHTML = `
@@ -1123,7 +1168,7 @@ function renderRighe() {
           <input type="number" value="${r.qty}" min="1" oninput="righe[${i}].qty=+this.value;aggiorna()" />
         </div>
         <div class="svc-card-field">
-          <label>${hasPm ? 'Dal 2° mese (€)' : 'Prezzo (€)'}</label>
+          <label>${priceLabel}</label>
           <input type="number" value="${r.price}" min="0" step="0.01" oninput="righe[${i}].price=+this.value;aggiorna()" />
         </div>
         <div class="svc-card-field">
@@ -1131,13 +1176,18 @@ function renderRighe() {
           <input type="number" value="${r.iva}" min="0" max="100" oninput="righe[${i}].iva=+this.value;aggiorna()" />
         </div>
       </div>
-      ${hasPm ? `
+      ${isTantum ? `
+      <div class="svc-tantum-badge">
+        <span class="svc-tantum-label">✓ Pagamento unico — una tantum</span>
+        <button class="svc-tantum-rm" onclick="righe[${i}].tantum=false;renderRighe();aggiorna()" title="Rimuovi">✕</button>
+      </div>` : hasPm ? `
       <div class="svc-pm-row">
         <label>⚡ 1° Mese (€)</label>
         <input type="number" value="${r.primoMese}" min="0" step="0.01" oninput="righe[${i}].primoMese=+this.value;aggiorna()" />
         <button class="svc-pm-rm" onclick="righe[${i}].primoMese=null;renderRighe();aggiorna()" title="Rimuovi">✕</button>
       </div>` : `
-      <button class="svc-pm-toggle" onclick="righe[${i}].primoMese=0;renderRighe();aggiorna()">⚡ Aggiungi prezzo 1° mese</button>`}
+      <button class="svc-pm-toggle" onclick="righe[${i}].primoMese=0;renderRighe();aggiorna()">⚡ Aggiungi prezzo 1° mese</button>
+      <button class="svc-tantum-toggle" onclick="righe[${i}].tantum=true;renderRighe();aggiorna()">○ Segna come una tantum (si paga una sola volta)</button>`}
     `;
     body.appendChild(div);
   });
@@ -1145,7 +1195,7 @@ function renderRighe() {
 
 function aggiungiRiga() {
   const defIva = parseInt(document.getElementById('f-iva').value) || 22;
-  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null });
+  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null, tantum: false });
   renderRighe();
   aggiorna();
 }
@@ -1207,63 +1257,90 @@ function aggiorna() {
   // Tabella
   const tbody = document.getElementById('p-rows');
   tbody.innerHTML = '';
-  let sub = 0, ivaTotal = 0, sub1 = 0, iva1 = 0;
-  const hasPm = righe.some(r => r.primoMese !== null && r.primoMese !== undefined);
+  let sub = 0, ivaTotal = 0, sub1 = 0, iva1 = 0, subTantum = 0, ivaTantum = 0;
+  const hasPm     = righe.some(r => !r.tantum && r.primoMese !== null && r.primoMese !== undefined);
+  const hasTantum = righe.some(r => !!r.tantum);
 
   righe.forEach(r => {
     const imp  = r.qty * r.price;
     const ivaA = imp * r.iva / 100;
-    sub += imp; ivaTotal += ivaA;
 
-    if (hasPm) {
-      const pm   = (r.primoMese !== null && r.primoMese !== undefined) ? r.primoMese : r.price;
-      const imp1 = r.qty * pm;
-      sub1 += imp1; iva1 += imp1 * r.iva / 100;
-    }
-
-    if (r.primoMese !== null && r.primoMese !== undefined) {
-      // Riga 1° mese
-      const tot1 = r.qty * r.primoMese * (1 + r.iva / 100);
-      const tr1 = document.createElement('tr');
-      tr1.style.background = '#fff8e6';
-      tr1.innerHTML = `
-        <td>${r.desc || '—'}<br><small style="color:#9a6800;font-size:.75em">1° mese</small></td>
-        <td>${r.qty}</td><td>${fmt(r.primoMese)}</td><td>${r.iva}%</td>
-        <td><strong>${fmt(tot1)}</strong></td>`;
-      tbody.appendChild(tr1);
-      // Riga mensile
-      const tot = imp + ivaA;
-      const tr2 = document.createElement('tr');
-      tr2.innerHTML = `
-        <td>${r.desc || '—'}<br><small style="color:#888;font-size:.75em">dal 2° mese</small></td>
-        <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
-        <td><strong>${fmt(tot)}</strong></td>`;
-      tbody.appendChild(tr2);
-    } else {
+    if (r.tantum) {
+      // Riga una tantum
+      subTantum += imp; ivaTantum += ivaA;
       const tot = imp + ivaA;
       const tr = document.createElement('tr');
+      tr.style.background = '#edfaf8';
       tr.innerHTML = `
-        <td>${r.desc || '—'}</td><td>${r.qty}</td>
-        <td>${fmt(r.price)}</td><td>${r.iva}%</td>
+        <td>${r.desc || '—'}<br><small style="color:#007a6a;font-size:.75em">Pagamento unico</small></td>
+        <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
         <td><strong>${fmt(tot)}</strong></td>`;
       tbody.appendChild(tr);
+    } else {
+      sub += imp; ivaTotal += ivaA;
+
+      if (hasPm) {
+        const pm   = (r.primoMese !== null && r.primoMese !== undefined) ? r.primoMese : r.price;
+        const imp1 = r.qty * pm;
+        sub1 += imp1; iva1 += imp1 * r.iva / 100;
+      }
+
+      if (r.primoMese !== null && r.primoMese !== undefined) {
+        // Riga 1° mese
+        const tot1 = r.qty * r.primoMese * (1 + r.iva / 100);
+        const tr1 = document.createElement('tr');
+        tr1.style.background = '#fff8e6';
+        tr1.innerHTML = `
+          <td>${r.desc || '—'}<br><small style="color:#9a6800;font-size:.75em">1° mese</small></td>
+          <td>${r.qty}</td><td>${fmt(r.primoMese)}</td><td>${r.iva}%</td>
+          <td><strong>${fmt(tot1)}</strong></td>`;
+        tbody.appendChild(tr1);
+        // Riga mensile
+        const tot = imp + ivaA;
+        const tr2 = document.createElement('tr');
+        tr2.innerHTML = `
+          <td>${r.desc || '—'}<br><small style="color:#888;font-size:.75em">dal 2° mese</small></td>
+          <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
+          <td><strong>${fmt(tot)}</strong></td>`;
+        tbody.appendChild(tr2);
+      } else {
+        const tot = imp + ivaA;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.desc || '—'}</td><td>${r.qty}</td>
+          <td>${fmt(r.price)}</td><td>${r.iva}%</td>
+          <td><strong>${fmt(tot)}</strong></td>`;
+        tbody.appendChild(tr);
+      }
     }
   });
 
   // Totali
   const inner = document.querySelector('.doc-totals-inner');
-  if (hasPm) {
-    inner.innerHTML = `
+  let totHtml = '';
+
+  if (hasTantum && sub === 0) {
+    // Solo righe tantum, nessuna mensile
+    totHtml = `
+      <div class="doc-total-row"><span>Imponibile</span><span>${fmt(subTantum)}</span></div>
+      <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTantum)}</span></div>
+      <div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
+  } else if (hasPm) {
+    totHtml = `
       <div class="doc-total-row"><span>Imponibile mensile</span><span>${fmt(sub)}</span></div>
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
       <div class="doc-total-row grand"><span>MENSILE (dal 2°)</span><span>${fmt(sub + ivaTotal)}</span></div>
       <div class="doc-total-row pm"><span>1° MESE</span><span>${fmt(sub1 + iva1)}</span></div>`;
+    if (hasTantum) totHtml += `<div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
   } else {
-    inner.innerHTML = `
-      <div class="doc-total-row"><span>Imponibile</span><span>${fmt(sub)}</span></div>
+    totHtml = `
+      <div class="doc-total-row"><span>Imponibile${hasTantum ? ' mensile' : ''}</span><span>${fmt(sub)}</span></div>
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
-      <div class="doc-total-row grand"><span>TOTALE</span><span>${fmt(sub + ivaTotal)}</span></div>`;
+      <div class="doc-total-row grand"><span>${hasTantum ? 'MENSILE' : 'TOTALE'}</span><span>${fmt(sub + ivaTotal)}</span></div>`;
+    if (hasTantum) totHtml += `<div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
   }
+
+  inner.innerHTML = totHtml;
 
   reflowSections();
 }
@@ -1582,7 +1659,7 @@ FORMATO:
 {
   "azienda": "Nome azienda cliente (stringa vuota se non specificato)",
   "contatti": [{"nome": "Nome Cognome", "email": "email@esempio.it", "phone": "+39 000 000 0000"}],
-  "servizi": [{"desc": "Descrizione servizio professionale", "qty": 1, "price": 0, "iva": 22, "primoMese": null}],
+  "servizi": [{"desc": "Descrizione servizio professionale", "qty": 1, "price": 0, "iva": 22, "primoMese": null, "tantum": false}],
   "note": "Condizioni di pagamento in italiano professionale (2-4 righe)",
   "validita": "30 giorni"
 }
@@ -1592,7 +1669,8 @@ REGOLE:
 - contatti: campi vuoti ("") se non specificati
 - servizi[].desc: descrizione professionale e completa
 - servizi[].price: prezzo unitario/mensile (0 se non indicato)
-- servizi[].primoMese: null oppure il prezzo speciale del 1° mese
+- servizi[].primoMese: null oppure il prezzo speciale del 1° mese (starter pack)
+- servizi[].tantum: true se il servizio è pagato una sola volta (es. "sito web", "setup"), false se è mensile
 - servizi[].iva: 22 di default
 - note: includi modalità di pagamento se menzionate
 - validita: "30 giorni" di default`;
@@ -1617,27 +1695,30 @@ async function strutturaConAI() {
   btn.textContent = '✦ AI sta elaborando…';
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
-      })
+    // Prova i modelli in ordine finché uno risponde (salta i 404 = modello non disponibile)
+    const MODELS = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    const reqBody = JSON.stringify({
+      contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
     });
+    let resp;
+    for (const model of MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
+      if (resp.status !== 404) break;
+    }
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       if (resp.status === 429) {
-        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche secondo e riprova, oppure controlla la quota giornaliera su aistudio.google.com.');
+        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche minuto e riprova (la quota gratuita è limitata).');
       }
       if (resp.status === 400 || resp.status === 403) {
         localStorage.removeItem(AI_KEY_STORAGE);
         const el = document.getElementById('ai-key-status');
         const kb = document.getElementById('btn-ai-key');
         el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; kb.textContent = 'Imposta';
-        throw new Error('API Key non valida. Riconfigurala con il pulsante "Imposta".');
+        throw new Error('API Key non valida o scaduta. Riconfigurala su aistudio.google.com e usa il pulsante "Imposta".');
       }
       throw new Error(err.error?.message || `Errore ${resp.status}`);
     }
@@ -1656,7 +1737,7 @@ async function strutturaConAI() {
     if (Array.isArray(parsed.servizi) && parsed.servizi.length) {
       righe = parsed.servizi.map(s => ({
         desc: s.desc || '', qty: s.qty || 1, price: s.price || 0,
-        iva: s.iva ?? 22, primoMese: s.primoMese ?? null
+        iva: s.iva ?? 22, primoMese: s.primoMese ?? null, tantum: !!s.tantum
       }));
       renderRighe();
     }
@@ -1694,26 +1775,37 @@ async function scaricaWord() {
     const validity = document.getElementById('f-validity').value;
     const firstNome = contatti.find(c => c.nome)?.nome || 'Cliente';
 
-    // Calcola totali (calcolati di nuovo nel loop svcRows più avanti)
-
     const colorPurple = '7B5CF0';
     const colorDark   = '1A0A2E';
     const colorMuted  = '888888';
     const colorLight  = 'F8F6FF';
-    const noStyle     = { style: { size: 22 } };
 
     // Spacer
     const sp = (sz = 120) => new Paragraph({ spacing: { before: sz } });
 
     // Riga tabella servizi
-    const hasPmWord = righe.some(r => r.primoMese !== null && r.primoMese !== undefined);
-    let wSub = 0, wIva = 0, wSub1 = 0, wIva1 = 0;
+    const hasPmWord     = righe.some(r => !r.tantum && r.primoMese !== null && r.primoMese !== undefined);
+    const hasTantumWord = righe.some(r => !!r.tantum);
+    let wSub = 0, wIva = 0, wSub1 = 0, wIva1 = 0, wSubT = 0, wIvaT = 0;
     const svcRows = righe.flatMap((r, i) => {
       const imp  = r.qty * r.price;
       const ivaA = imp * r.iva / 100;
-      wSub += imp; wIva += ivaA;
       const bg = i % 2 === 0 ? 'FFFFFF' : 'F8F6FF';
-      const cell = (txt, align, bold) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: txt, size: 20, bold: !!bold })], alignment: align || AlignmentType.LEFT })], shading: { fill: bg, type: ShadingType.CLEAR } });
+      const cell = (txt, align, bold, bgOverride) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: txt, size: 20, bold: !!bold })], alignment: align || AlignmentType.LEFT })], shading: { fill: bgOverride || bg, type: ShadingType.CLEAR } });
+
+      if (r.tantum) {
+        // Riga una tantum
+        wSubT += imp; wIvaT += ivaA;
+        return [new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: (r.desc||'—') + ' — Pagamento unico', size: 20, italics: true })] })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(r.qty), size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(r.price), size: 20 })], alignment: AlignmentType.RIGHT })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.iva+'%', size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(imp+ivaA), size: 20, bold: true })], alignment: AlignmentType.RIGHT })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR } }),
+        ]})];
+      }
+
+      wSub += imp; wIva += ivaA;
 
       if (r.primoMese !== null && r.primoMese !== undefined) {
         const pm1 = r.qty * r.primoMese; const iva1a = pm1 * r.iva / 100;
@@ -1838,29 +1930,44 @@ async function scaricaWord() {
           sp(200),
 
           // ── TOTALI ──
-          new Table({
-            width: { size: 40, type: WidthType.PERCENTAGE },
-            float: { horizontalAnchor: 'margin', absoluteHorizontalPosition: 0, relativeHorizontalPosition: 'right-margin' },
-            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
-            rows: [
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: hasPmWord ? 'Imponibile mensile' : 'Imponibile', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-              ]}),
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IVA', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wIva), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-              ]}),
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: hasPmWord ? 'MENSILE (dal 2°)' : 'TOTALE', size: 26, bold: true, color: colorDark })] })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub + wIva), size: 26, bold: true, color: colorDark })], alignment: AlignmentType.RIGHT })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-              ]}),
-              ...(hasPmWord ? [new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1° MESE', size: 26, bold: true, color: 'B07800' })] })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub1 + wIva1), size: 26, bold: true, color: 'B07800' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-              ]})] : []),
-            ]
-          }),
+          (() => {
+            const onlyTantum = hasTantumWord && wSub === 0;
+            const grandLabel = onlyTantum ? 'UNA TANTUM' : hasPmWord ? 'MENSILE (dal 2°)' : hasTantumWord ? 'MENSILE' : 'TOTALE';
+            const grandColor = onlyTantum ? '007A6A' : colorDark;
+            const grandBg    = onlyTantum ? 'EDFAF8' : 'F8F6FF';
+            const grandBorder = onlyTantum ? '00C8B4' : colorPurple;
+            const grandVal   = onlyTantum ? wSubT + wIvaT : wSub + wIva;
+            const imponibile = onlyTantum ? wSubT : wSub;
+            const ivaShow    = onlyTantum ? wIvaT : wIva;
+            const imponibileLabel = hasPmWord ? 'Imponibile mensile' : hasTantumWord && !onlyTantum ? 'Imponibile mensile' : 'Imponibile';
+            return new Table({
+              width: { size: 40, type: WidthType.PERCENTAGE },
+              float: { horizontalAnchor: 'margin', absoluteHorizontalPosition: 0, relativeHorizontalPosition: 'right-margin' },
+              borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
+              rows: [
+                new TableRow({ children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: imponibileLabel, size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(imponibile), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                ]}),
+                new TableRow({ children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IVA', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(ivaShow), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                ]}),
+                new TableRow({ children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: grandLabel, size: 26, bold: true, color: grandColor })] })], shading: { fill: grandBg, type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: grandBorder, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(grandVal), size: 26, bold: true, color: grandColor })], alignment: AlignmentType.RIGHT })], shading: { fill: grandBg, type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: grandBorder, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                ]}),
+                ...(hasPmWord ? [new TableRow({ children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1° MESE', size: 26, bold: true, color: 'B07800' })] })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub1 + wIva1), size: 26, bold: true, color: 'B07800' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                ]})] : []),
+                ...(!onlyTantum && hasTantumWord ? [new TableRow({ children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'UNA TANTUM', size: 26, bold: true, color: '007A6A' })] })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: '00C8B4', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSubT + wIvaT), size: 26, bold: true, color: '007A6A' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: '00C8B4', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                ]})] : []),
+              ]
+            });
+          })(),
 
           sp(360),
 
