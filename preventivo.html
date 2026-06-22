@@ -109,16 +109,16 @@
     }
     .field textarea { resize: vertical; min-height: 70px; }
 
-    /* ── SERVICES TABLE IN FORM ── */
-    .svc-table { width: 100%; border-collapse: collapse; }
-    .svc-table th {
-      font-size: .68rem; font-weight: 700;
-      letter-spacing: .1em; text-transform: uppercase;
-      color: var(--muted);
-      padding: 4px 6px; text-align: left;
+    /* ── SERVICE CARDS IN FORM ── */
+    .svc-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      position: relative;
     }
-    .svc-table td { padding: 4px 4px; vertical-align: middle; }
-    .svc-table input {
+    .svc-card input {
       background: rgba(255,255,255,.05);
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -128,13 +128,27 @@
       font-size: .82rem;
       width: 100%;
       outline: none;
+      transition: border-color .2s;
     }
-    .svc-table input:focus { border-color: var(--purple); }
-    .svc-table input.price { text-align: right; }
+    .svc-card input:focus { border-color: var(--purple); }
+    .svc-card-desc { margin-bottom: 8px; }
+    .svc-card-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 6px;
+      align-items: end;
+    }
+    .svc-card-field label {
+      display: block;
+      font-size: .68rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 4px;
+    }
     .svc-remove {
+      position: absolute; top: 8px; right: 8px;
       background: none; border: none;
-      color: rgba(255,45,120,.5); cursor: pointer;
-      font-size: 1.1rem; padding: 4px 6px;
+      color: rgba(255,45,120,.45); cursor: pointer;
+      font-size: 1rem; padding: 2px 5px;
       transition: color .2s;
     }
     .svc-remove:hover { color: var(--pink); }
@@ -426,18 +440,7 @@
 
     <div class="form-section">
       <div class="form-section-title">Servizi</div>
-      <table class="svc-table">
-        <thead>
-          <tr>
-            <th style="width:45%">Descrizione</th>
-            <th style="width:12%">Qtà</th>
-            <th style="width:22%">Prezzo</th>
-            <th style="width:10%">IVA</th>
-            <th style="width:6%"></th>
-          </tr>
-        </thead>
-        <tbody id="svc-body"></tbody>
-      </table>
+      <div id="svc-body"></div>
       <button class="btn-add-svc" onclick="aggiungiRiga()">+ Aggiungi servizio</button>
     </div>
 
@@ -631,18 +634,32 @@ function rimuoviContatto(i) {
 
 // ── Render righe form ──
 function renderRighe() {
-  const tbody = document.getElementById('svc-body');
-  tbody.innerHTML = '';
+  const body = document.getElementById('svc-body');
+  body.innerHTML = '';
   righe.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input value="${r.desc}" oninput="righe[${i}].desc=this.value;aggiorna()" /></td>
-      <td><input type="number" value="${r.qty}" min="1" oninput="righe[${i}].qty=+this.value;aggiorna()" class="price" /></td>
-      <td><input type="number" value="${r.price}" min="0" oninput="righe[${i}].price=+this.value;aggiorna()" class="price" /></td>
-      <td><input type="number" value="${r.iva}" min="0" max="100" oninput="righe[${i}].iva=+this.value;aggiorna()" class="price" /></td>
-      <td><button class="svc-remove" onclick="rimuoviRiga(${i})">✕</button></td>
+    const div = document.createElement('div');
+    div.className = 'svc-card';
+    div.innerHTML = `
+      ${righe.length > 1 ? `<button class="svc-remove" onclick="rimuoviRiga(${i})" title="Rimuovi">✕</button>` : ''}
+      <div class="svc-card-desc">
+        <input value="${r.desc}" placeholder="Descrizione servizio…" oninput="righe[${i}].desc=this.value;aggiorna()" style="padding-right:${righe.length>1?'28px':'8px'}" />
+      </div>
+      <div class="svc-card-row">
+        <div class="svc-card-field">
+          <label>Qtà</label>
+          <input type="number" value="${r.qty}" min="1" oninput="righe[${i}].qty=+this.value;aggiorna()" />
+        </div>
+        <div class="svc-card-field">
+          <label>Prezzo (€)</label>
+          <input type="number" value="${r.price}" min="0" step="0.01" oninput="righe[${i}].price=+this.value;aggiorna()" />
+        </div>
+        <div class="svc-card-field">
+          <label>IVA (%)</label>
+          <input type="number" value="${r.iva}" min="0" max="100" oninput="righe[${i}].iva=+this.value;aggiorna()" />
+        </div>
+      </div>
     `;
-    tbody.appendChild(tr);
+    body.appendChild(div);
   });
 }
 
