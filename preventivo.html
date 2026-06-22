@@ -602,6 +602,54 @@
     }
     .btn-reset-layout:hover { background: rgba(255,255,255,.1); }
 
+    /* ── Primo mese ── */
+    .svc-pm-toggle {
+      margin-top: 8px; width: 100%;
+      background: none;
+      border: 1px dashed rgba(255,184,0,.35);
+      border-radius: 6px; padding: 5px 10px;
+      color: var(--gold);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      cursor: pointer; transition: background .2s;
+    }
+    .svc-pm-toggle:hover { background: rgba(255,184,0,.1); }
+    .svc-pm-row {
+      margin-top: 8px; display: flex;
+      align-items: center; gap: 8px;
+      background: rgba(255,184,0,.06);
+      border: 1px solid rgba(255,184,0,.22);
+      border-radius: 6px; padding: 7px 10px;
+    }
+    .svc-pm-row label {
+      font-size: .68rem; font-weight: 700;
+      color: var(--gold); white-space: nowrap; min-width: 90px;
+    }
+    .svc-pm-row input {
+      flex: 1;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,184,0,.25);
+      border-radius: 6px; padding: 6px 8px;
+      color: var(--text); font-size: .82rem;
+      font-family: 'Space Grotesk', sans-serif; outline: none;
+    }
+    .svc-pm-row input:focus { border-color: var(--gold); }
+    .svc-pm-rm {
+      background: none; border: none;
+      color: rgba(255,184,0,.5); cursor: pointer;
+      font-size: .9rem; padding: 2px 4px; transition: color .2s;
+    }
+    .svc-pm-rm:hover { color: var(--gold); }
+
+    /* totale primo mese nel preview */
+    .doc-total-row.pm {
+      border-top: 2px dashed #FFB800;
+      margin-top: 6px; padding-top: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      color: #7a5500;
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -884,8 +932,8 @@
 <script>
 // ── Stato ──
 let righe = [
-  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22 },
-  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22 },
+  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null },
+  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null },
 ];
 
 let contatti = [
@@ -977,6 +1025,7 @@ function renderRighe() {
   const body = document.getElementById('svc-body');
   body.innerHTML = '';
   righe.forEach((r, i) => {
+    const hasPm = r.primoMese !== null && r.primoMese !== undefined;
     const div = document.createElement('div');
     div.className = 'svc-card';
     div.innerHTML = `
@@ -990,7 +1039,7 @@ function renderRighe() {
           <input type="number" value="${r.qty}" min="1" oninput="righe[${i}].qty=+this.value;aggiorna()" />
         </div>
         <div class="svc-card-field">
-          <label>Prezzo (€)</label>
+          <label>${hasPm ? 'Dal 2° mese (€)' : 'Prezzo (€)'}</label>
           <input type="number" value="${r.price}" min="0" step="0.01" oninput="righe[${i}].price=+this.value;aggiorna()" />
         </div>
         <div class="svc-card-field">
@@ -998,6 +1047,13 @@ function renderRighe() {
           <input type="number" value="${r.iva}" min="0" max="100" oninput="righe[${i}].iva=+this.value;aggiorna()" />
         </div>
       </div>
+      ${hasPm ? `
+      <div class="svc-pm-row">
+        <label>⚡ 1° Mese (€)</label>
+        <input type="number" value="${r.primoMese}" min="0" step="0.01" oninput="righe[${i}].primoMese=+this.value;aggiorna()" />
+        <button class="svc-pm-rm" onclick="righe[${i}].primoMese=null;renderRighe();aggiorna()" title="Rimuovi">✕</button>
+      </div>` : `
+      <button class="svc-pm-toggle" onclick="righe[${i}].primoMese=0;renderRighe();aggiorna()">⚡ Aggiungi prezzo 1° mese</button>`}
     `;
     body.appendChild(div);
   });
@@ -1005,7 +1061,7 @@ function renderRighe() {
 
 function aggiungiRiga() {
   const defIva = parseInt(document.getElementById('f-iva').value) || 22;
-  righe.push({ desc: '', qty: 1, price: 0, iva: defIva });
+  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null });
   renderRighe();
   aggiorna();
 }
@@ -1067,25 +1123,63 @@ function aggiorna() {
   // Tabella
   const tbody = document.getElementById('p-rows');
   tbody.innerHTML = '';
-  let sub = 0, ivaTotal = 0;
+  let sub = 0, ivaTotal = 0, sub1 = 0, iva1 = 0;
+  const hasPm = righe.some(r => r.primoMese !== null && r.primoMese !== undefined);
+
   righe.forEach(r => {
-    const imponibile = r.qty * r.price;
-    const ivaAmt = imponibile * r.iva / 100;
-    const tot = imponibile + ivaAmt;
-    sub += imponibile; ivaTotal += ivaAmt;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.desc || '—'}</td>
-      <td>${r.qty}</td>
-      <td>${fmt(r.price)}</td>
-      <td>${r.iva}%</td>
-      <td><strong>${fmt(tot)}</strong></td>
-    `;
-    tbody.appendChild(tr);
+    const imp  = r.qty * r.price;
+    const ivaA = imp * r.iva / 100;
+    sub += imp; ivaTotal += ivaA;
+
+    if (hasPm) {
+      const pm   = (r.primoMese !== null && r.primoMese !== undefined) ? r.primoMese : r.price;
+      const imp1 = r.qty * pm;
+      sub1 += imp1; iva1 += imp1 * r.iva / 100;
+    }
+
+    if (r.primoMese !== null && r.primoMese !== undefined) {
+      // Riga 1° mese
+      const tot1 = r.qty * r.primoMese * (1 + r.iva / 100);
+      const tr1 = document.createElement('tr');
+      tr1.style.background = '#fff8e6';
+      tr1.innerHTML = `
+        <td>${r.desc || '—'}<br><small style="color:#9a6800;font-size:.75em">1° mese</small></td>
+        <td>${r.qty}</td><td>${fmt(r.primoMese)}</td><td>${r.iva}%</td>
+        <td><strong>${fmt(tot1)}</strong></td>`;
+      tbody.appendChild(tr1);
+      // Riga mensile
+      const tot = imp + ivaA;
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = `
+        <td>${r.desc || '—'}<br><small style="color:#888;font-size:.75em">dal 2° mese</small></td>
+        <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
+        <td><strong>${fmt(tot)}</strong></td>`;
+      tbody.appendChild(tr2);
+    } else {
+      const tot = imp + ivaA;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.desc || '—'}</td><td>${r.qty}</td>
+        <td>${fmt(r.price)}</td><td>${r.iva}%</td>
+        <td><strong>${fmt(tot)}</strong></td>`;
+      tbody.appendChild(tr);
+    }
   });
-  document.getElementById('p-sub').textContent   = fmt(sub);
-  document.getElementById('p-iva').textContent   = fmt(ivaTotal);
-  document.getElementById('p-total').textContent = fmt(sub + ivaTotal);
+
+  // Totali
+  const inner = document.querySelector('.doc-totals-inner');
+  if (hasPm) {
+    inner.innerHTML = `
+      <div class="doc-total-row"><span>Imponibile mensile</span><span>${fmt(sub)}</span></div>
+      <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
+      <div class="doc-total-row grand"><span>MENSILE (dal 2°)</span><span>${fmt(sub + ivaTotal)}</span></div>
+      <div class="doc-total-row pm"><span>1° MESE</span><span>${fmt(sub1 + iva1)}</span></div>`;
+  } else {
+    inner.innerHTML = `
+      <div class="doc-total-row"><span>Imponibile</span><span>${fmt(sub)}</span></div>
+      <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
+      <div class="doc-total-row grand"><span>TOTALE</span><span>${fmt(sub + ivaTotal)}</span></div>`;
+  }
 }
 
 // ── Layout editor drag & drop ──
@@ -1368,13 +1462,7 @@ async function scaricaWord() {
     const validity = document.getElementById('f-validity').value;
     const firstNome = contatti.find(c => c.nome)?.nome || 'Cliente';
 
-    // Calcola totali
-    let sub = 0, ivaTotal = 0;
-    righe.forEach(r => {
-      const imp = r.qty * r.price;
-      const iva = imp * r.iva / 100;
-      sub += imp; ivaTotal += iva;
-    });
+    // Calcola totali (calcolati di nuovo nel loop svcRows più avanti)
 
     const colorPurple = '7B5CF0';
     const colorDark   = '1A0A2E';
@@ -1386,20 +1474,39 @@ async function scaricaWord() {
     const sp = (sz = 120) => new Paragraph({ spacing: { before: sz } });
 
     // Riga tabella servizi
-    const svcRows = righe.map((r, i) => {
+    const hasPmWord = righe.some(r => r.primoMese !== null && r.primoMese !== undefined);
+    let wSub = 0, wIva = 0, wSub1 = 0, wIva1 = 0;
+    const svcRows = righe.flatMap((r, i) => {
       const imp  = r.qty * r.price;
-      const iva  = imp * r.iva / 100;
-      const tot  = imp + iva;
-      const bg   = i % 2 === 0 ? 'FFFFFF' : 'F8F6FF';
-      return new TableRow({
-        children: [
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.desc || '—', size: 20 })] })], shading: { fill: bg, type: ShadingType.CLEAR } }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(r.qty), size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: bg, type: ShadingType.CLEAR } }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(r.price), size: 20 })], alignment: AlignmentType.RIGHT })], shading: { fill: bg, type: ShadingType.CLEAR } }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.iva + '%', size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: bg, type: ShadingType.CLEAR } }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(tot), size: 20, bold: true })], alignment: AlignmentType.RIGHT })], shading: { fill: bg, type: ShadingType.CLEAR } }),
-        ]
-      });
+      const ivaA = imp * r.iva / 100;
+      wSub += imp; wIva += ivaA;
+      const bg = i % 2 === 0 ? 'FFFFFF' : 'F8F6FF';
+      const cell = (txt, align, bold) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: txt, size: 20, bold: !!bold })], alignment: align || AlignmentType.LEFT })], shading: { fill: bg, type: ShadingType.CLEAR } });
+
+      if (r.primoMese !== null && r.primoMese !== undefined) {
+        const pm1 = r.qty * r.primoMese; const iva1a = pm1 * r.iva / 100;
+        wSub1 += pm1; wIva1 += iva1a;
+        return [
+          new TableRow({ children: [
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: (r.desc||'—') + ' — 1° mese', size: 20 })] })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(r.qty), size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(r.primoMese), size: 20 })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.iva+'%', size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(pm1+iva1a), size: 20, bold: true })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR } }),
+          ]}),
+          new TableRow({ children: [
+            cell((r.desc||'—') + ' — dal 2° mese'), cell(String(r.qty), AlignmentType.CENTER),
+            cell(fmt(r.price), AlignmentType.RIGHT), cell(r.iva+'%', AlignmentType.CENTER),
+            cell(fmt(imp+ivaA), AlignmentType.RIGHT, true),
+          ]}),
+        ];
+      }
+      if (hasPmWord) { wSub1 += imp; wIva1 += ivaA; }
+      return [new TableRow({ children: [
+        cell(r.desc||'—'), cell(String(r.qty), AlignmentType.CENTER),
+        cell(fmt(r.price), AlignmentType.RIGHT), cell(r.iva+'%', AlignmentType.CENTER),
+        cell(fmt(imp+ivaA), AlignmentType.RIGHT, true),
+      ]})];
     });
 
     const doc = new Document({
@@ -1505,17 +1612,21 @@ async function scaricaWord() {
             borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
             rows: [
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Imponibile', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(sub), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: hasPmWord ? 'Imponibile mensile' : 'Imponibile', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
               ]}),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IVA', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(ivaTotal), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wIva), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
               ]}),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'TOTALE', size: 26, bold: true, color: colorDark })] })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(sub + ivaTotal), size: 26, bold: true, color: colorDark })], alignment: AlignmentType.RIGHT })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: hasPmWord ? 'MENSILE (dal 2°)' : 'TOTALE', size: 26, bold: true, color: colorDark })] })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub + wIva), size: 26, bold: true, color: colorDark })], alignment: AlignmentType.RIGHT })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
               ]}),
+              ...(hasPmWord ? [new TableRow({ children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1° MESE', size: 26, bold: true, color: 'B07800' })] })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub1 + wIva1), size: 26, bold: true, color: 'B07800' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+              ]})] : []),
             ]
           }),
 
