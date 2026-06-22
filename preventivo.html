@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Generatore Preventivi – Astra Agency</title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
@@ -11,6 +12,25 @@
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Auth overlay ── */
+    #auth-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #07060F;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      color: rgba(255,255,255,.5);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .85rem;
+    }
+    #auth-overlay .spin {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(123,92,240,.25);
+      border-top-color: #7B5CF0;
+      border-radius: 50%;
+      animation: ao-spin .75s linear infinite;
+    }
+    @keyframes ao-spin { to { transform: rotate(360deg); } }
 
     :root {
       --purple: #7B5CF0;
@@ -503,16 +523,26 @@
 </head>
 <body>
 
+<!-- Auth overlay -->
+<div id="auth-overlay">
+  <div class="spin"></div>
+  <span>Verifica accesso…</span>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
-  <button class="btn-download" onclick="scaricaWord()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Scarica Word
-  </button>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="topbar-user" style="font-size:.8rem;color:var(--muted);display:none"></span>
+    <button class="btn-download" onclick="scaricaWord()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Scarica Word
+    </button>
+    <button id="btn-logout" style="display:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 16px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.85rem;cursor:pointer;transition:background .2s" onmouseenter="this.style.background='rgba(255,255,255,.12)'" onmouseleave="this.style.background='rgba(255,255,255,.07)'">Esci</button>
+  </div>
 </div>
 
-<div class="layout">
+<div class="layout" id="main-layout" style="display:none">
 
   <!-- ── FORM PANEL ── -->
   <div class="form-panel">
@@ -697,6 +727,34 @@
     </div>
   </div>
 </div>
+
+<script type="module">
+  import { auth, db } from '/js/firebase-config.js';
+  import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = '/admin/login.html'; return; }
+    try {
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+      const name = snap.data()?.name || localStorage.getItem('admin_display_name') || user.email;
+      const userEl = document.getElementById('topbar-user');
+      if (userEl) { userEl.textContent = name; userEl.style.display = ''; }
+      document.getElementById('auth-overlay').style.display = 'none';
+      document.getElementById('main-layout').style.display = '';
+      document.getElementById('btn-logout').style.display = '';
+    } catch {
+      await signOut(auth);
+      window.location.href = '/admin/login.html';
+    }
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = '/admin/login.html';
+  });
+</script>
 
 <script>
 // ── Stato ──
