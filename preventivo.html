@@ -1617,7 +1617,7 @@ async function strutturaConAI() {
   btn.textContent = '✦ AI sta elaborando…';
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
     const resp = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -1629,6 +1629,9 @@ async function strutturaConAI() {
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
+      if (resp.status === 429) {
+        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche secondo e riprova, oppure controlla la quota giornaliera su aistudio.google.com.');
+      }
       if (resp.status === 400 || resp.status === 403) {
         localStorage.removeItem(AI_KEY_STORAGE);
         const el = document.getElementById('ai-key-status');
