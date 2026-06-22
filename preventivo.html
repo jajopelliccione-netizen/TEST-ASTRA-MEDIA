@@ -644,6 +644,31 @@
     }
     .svc-pm-rm:hover { color: var(--gold); }
 
+    /* ── Descrizione estesa ── */
+    .svc-desc-btn {
+      margin-top: 6px; width: 100%;
+      background: rgba(255,255,255,.03);
+      border: 1px dashed rgba(255,255,255,.13);
+      border-radius: 7px; padding: 6px 12px;
+      color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      cursor: pointer; text-align: left;
+      transition: background .2s;
+    }
+    .svc-desc-btn:hover { background: rgba(255,255,255,.07); }
+    .svc-desc-estesa {
+      width: 100%; margin-top: 6px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 6px; padding: 7px 10px;
+      color: var(--text); font-family: 'Space Grotesk', sans-serif;
+      font-size: .78rem; line-height: 1.5; outline: none;
+      resize: vertical; min-height: 56px;
+      transition: border-color .2s;
+    }
+    .svc-desc-estesa:focus { border-color: rgba(255,255,255,.25); }
+
     /* ── Una tantum button / badge ── */
     .svc-tantum-toggle {
       margin-top: 6px; width: 100%;
@@ -813,6 +838,7 @@
       </div>
       <textarea id="f-ai-input" placeholder="Es: Cliente Rossi Srl, contatto Mario Rossi mario@rossi.it. Dobbiamo fare gestione social media per 3 mesi a 400€ al mese, il primo mese solo 200€ perché partiamo piano. Anche un sito vetrina da 1200€. Pagamento 50% subito e 50% alla consegna."></textarea>
       <button class="btn-ai-struttura" id="btn-ai-struttura" onclick="strutturaConAI()">✦ Struttura con AI</button>
+      <button id="btn-undo-ai" onclick="undoAI()" style="display:none;margin-top:8px;width:100%;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3);border-radius:9px;padding:9px;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;color:var(--gold);cursor:pointer;transition:background .2s" onmouseenter="this.style.background='rgba(255,184,0,.14)'" onmouseleave="this.style.background='rgba(255,184,0,.08)'">↩ Annulla modifiche AI</button>
     </div>
 
     <div class="form-section">
@@ -1061,9 +1087,10 @@
 <script>
 // ── Stato ──
 let righe = [
-  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null, tantum: false },
-  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null, tantum: false },
+  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null, tantum: false, descEstesa: '' },
+  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null, tantum: false, descEstesa: '' },
 ];
+let _prevState = null;
 
 let contatti = [
   { nome: '', email: '', phone: '' }
@@ -1092,7 +1119,10 @@ function isoOggi() {
 // ── Init ──
 document.getElementById('f-date').value = isoOggi();
 document.getElementById('f-notes').value =
-  'Il pagamento è da effettuarsi al 50% all\'accettazione del preventivo e il restante 50% alla consegna del lavoro finito.\n\nI contenuti, materiali e accessi necessari saranno forniti dal cliente entro i tempi concordati.';
+  'Il pagamento è da effettuarsi al 50% all\'accettazione del preventivo e il restante 50% alla consegna del lavoro finito.\n\n' +
+  'I costi pubblicitari (ads Meta, Google, TikTok ecc.) e le eventuali collaborazioni con creator, influencer o altri professionisti esterni sono da intendersi come spese aggiuntive interamente a carico del cliente, separate dal presente preventivo.\n\n' +
+  'I prezzi indicati possono subire variazioni mensili che verranno comunicate al cliente con congruo anticipo. Nel corso del mese possono rendersi necessarie spese straordinarie (es. boost post, licenze software, materiali creativi) che saranno sempre a carico del cliente e preventivamente concordate.\n\n' +
+  'I contenuti, materiali e accessi necessari saranno forniti dal cliente entro i tempi concordati.';
 
 // Carica predefinito logo
 (function() {
@@ -1193,6 +1223,10 @@ function renderRighe() {
       </div>` : `
       <button class="svc-pm-toggle" onclick="righe[${i}].primoMese=0;renderRighe();aggiorna()">⚡ Aggiungi prezzo 1° mese</button>
       <button class="svc-tantum-toggle" onclick="righe[${i}].tantum=true;renderRighe();aggiorna()">○ Segna come una tantum (si paga una sola volta)</button>`}
+      ${r.descEstesa ? `
+      <textarea class="svc-desc-estesa" placeholder="Descrizione del servizio per la pagina introduttiva del documento…" oninput="righe[${i}].descEstesa=this.value">${r.descEstesa}</textarea>
+      <button class="svc-desc-btn" onclick="righe[${i}].descEstesa='';renderRighe()">✕ Rimuovi descrizione</button>` : `
+      <button class="svc-desc-btn" onclick="righe[${i}].descEstesa=' ';renderRighe()">⊕ Aggiungi descrizione (pagina introduttiva Word)</button>`}
     `;
     body.appendChild(div);
   });
@@ -1200,9 +1234,27 @@ function renderRighe() {
 
 function aggiungiRiga() {
   const defIva = parseInt(document.getElementById('f-iva').value) || 22;
-  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null, tantum: false });
+  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null, tantum: false, descEstesa: '' });
   renderRighe();
   aggiorna();
+}
+
+function undoAI() {
+  if (!_prevState) return;
+  const d = _prevState;
+  document.getElementById('f-num').value      = d.num;
+  document.getElementById('f-date').value     = d.date;
+  document.getElementById('f-ccompany').value = d.ccompany;
+  document.getElementById('f-iva').value      = d.iva;
+  document.getElementById('f-validity').value = d.validity;
+  document.getElementById('f-notes').value    = d.notes;
+  contatti = d.contatti;
+  righe    = d.righe;
+  renderContatti();
+  renderRighe();
+  aggiorna();
+  document.getElementById('btn-undo-ai').style.display = 'none';
+  _prevState = null;
 }
 
 function rimuoviRiga(i) {
@@ -1671,7 +1723,7 @@ FORMATO:
 {
   "azienda": "Nome azienda cliente (stringa vuota se non specificato)",
   "contatti": [{"nome": "Nome Cognome", "email": "email@esempio.it", "phone": "+39 000 000 0000"}],
-  "servizi": [{"desc": "Descrizione servizio professionale", "qty": 1, "price": 0, "iva": 22, "primoMese": null, "tantum": false}],
+  "servizi": [{"desc": "Titolo breve servizio", "qty": 1, "price": 0, "iva": 22, "primoMese": null, "tantum": false, "descEstesa": "Descrizione dettagliata del servizio (2-4 frasi) per la pagina introduttiva del documento"}],
   "note": "Condizioni di pagamento in italiano professionale (2-4 righe)",
   "validita": "30 giorni"
 }
@@ -1683,6 +1735,7 @@ REGOLE:
 - servizi[].price: prezzo unitario/mensile (0 se non indicato)
 - servizi[].primoMese: null oppure il prezzo speciale del 1° mese (starter pack)
 - servizi[].tantum: true se il servizio è pagato una sola volta (es. "sito web", "setup"), false se è mensile
+- servizi[].descEstesa: 2-4 frasi professionali che descrivono cosa include il servizio (per la pagina introduttiva)
 - servizi[].iva: 22 di default
 - note: includi modalità di pagamento se menzionate
 - validita: "30 giorni" di default`;
@@ -1697,6 +1750,18 @@ async function strutturaConAI() {
 
   const testo = document.getElementById('f-ai-input').value.trim();
   if (!testo) { alert('Scrivi prima le note sul progetto nel campo qui sopra!'); return; }
+
+  // Salva stato corrente per undo
+  _prevState = {
+    num:      document.getElementById('f-num').value,
+    date:     document.getElementById('f-date').value,
+    ccompany: document.getElementById('f-ccompany').value,
+    iva:      document.getElementById('f-iva').value,
+    validity: document.getElementById('f-validity').value,
+    notes:    document.getElementById('f-notes').value,
+    contatti: JSON.parse(JSON.stringify(contatti)),
+    righe:    JSON.parse(JSON.stringify(righe)),
+  };
 
   const btn = document.getElementById('btn-ai-struttura');
   btn.disabled = true;
@@ -1803,7 +1868,8 @@ async function strutturaConAI() {
     if (Array.isArray(parsed.servizi) && parsed.servizi.length) {
       righe = parsed.servizi.map(s => ({
         desc: s.desc || '', qty: s.qty || 1, price: s.price || 0,
-        iva: s.iva ?? 22, primoMese: s.primoMese ?? null, tantum: !!s.tantum
+        iva: s.iva ?? 22, primoMese: s.primoMese ?? null, tantum: !!s.tantum,
+        descEstesa: s.descEstesa || ''
       }));
       renderRighe();
     }
@@ -1811,6 +1877,7 @@ async function strutturaConAI() {
     if (parsed.validita) document.getElementById('f-validity').value = parsed.validita;
     aggiorna();
 
+    document.getElementById('btn-undo-ai').style.display = '';
     btn.textContent = '✓ Preventivo compilato!';
     setTimeout(() => { btn.textContent = '✦ Struttura con AI'; btn.disabled = false; }, 2200);
 
@@ -1910,6 +1977,60 @@ async function scaricaWord() {
           page: { margin: { top: 900, right: 900, bottom: 900, left: 900 } }
         },
         children: [
+
+          // ── PAGINA INTRODUTTIVA (solo se c'è almeno una descEstesa) ──
+          ...(() => {
+            const hasIntro = righe.some(r => r.descEstesa && r.descEstesa.trim());
+            if (!hasIntro) return [];
+            const noBorder = { top:{style:BorderStyle.NONE}, bottom:{style:BorderStyle.NONE}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} };
+            return [
+              // Header agenzia
+              new Paragraph({ children:[new TextRun({text:'ASTRA AGENCY',font:'Calibri',size:52,bold:true,color:colorDark})], spacing:{after:60} }),
+              new Paragraph({ children:[new TextRun({text:'SOCIAL MEDIA AGENCY',font:'Calibri',size:20,bold:true,color:colorPurple})], spacing:{after:500} }),
+              // Titolo pagina
+              new Paragraph({
+                children:[new TextRun({text:'COSA OFFRIAMO',font:'Calibri',size:56,bold:true,color:colorDark})],
+                border:{ bottom:{style:BorderStyle.SINGLE,size:8,color:colorPurple,space:8} },
+                spacing:{after:120}
+              }),
+              ...(ccompany ? [new Paragraph({children:[new TextRun({text:'Proposta per ' + ccompany,font:'Calibri',size:24,color:colorPurple,bold:true})],spacing:{after:600}})] : [sp(600)]),
+              // Servizi con descrizioni
+              ...righe.flatMap(r => {
+                const rows = [
+                  new Paragraph({
+                    children:[new TextRun({text:(r.desc||'Servizio').toUpperCase(),font:'Calibri',size:26,bold:true,color:colorDark})],
+                    border:{ bottom:{style:BorderStyle.SINGLE,size:4,color:'ECE8FF',space:4} },
+                    spacing:{before:300,after:80}
+                  }),
+                ];
+                if (r.descEstesa?.trim()) {
+                  rows.push(new Paragraph({
+                    children:[new TextRun({text:r.descEstesa.trim(),font:'Calibri',size:20,color:'444444'})],
+                    spacing:{after:60}
+                  }));
+                }
+                const priceLabel = r.tantum ? `Costo unico: ${fmt(r.price)}` : `${fmt(r.price)}/mese`;
+                rows.push(new Paragraph({
+                  children:[new TextRun({text:priceLabel,font:'Calibri',size:18,bold:true,color:colorPurple})],
+                  spacing:{after:40}
+                }));
+                return rows;
+              }),
+              // Footer pagina intro
+              sp(400),
+              new Paragraph({
+                children:[
+                  new TextRun({text:'ASTRA AGENCY',size:18,bold:true,color:colorPurple}),
+                  new TextRun({text:'   ·   info@astragency.it   ·   astragency.it',size:18,color:colorMuted}),
+                ],
+                border:{top:{style:BorderStyle.SINGLE,size:4,color:'ECE8FF',space:6}},
+                alignment:AlignmentType.CENTER,
+                spacing:{before:120}
+              }),
+              // Interruzione di pagina → inizia il preventivo
+              new Paragraph({ pageBreakBefore: true, children:[] }),
+            ];
+          })(),
 
           // ── HEADER: AGENZIA + N. PREVENTIVO ──
           new Table({
