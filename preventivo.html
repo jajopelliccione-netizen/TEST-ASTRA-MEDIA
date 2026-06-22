@@ -761,7 +761,7 @@
         <span class="ai-title">Descrivi il progetto — l'AI compila il preventivo</span>
       </div>
       <div class="ai-key-row">
-        <span class="ai-key-label">API Key:</span>
+        <span class="ai-key-label">Gemini Key:</span>
         <span class="ai-key-status" id="ai-key-status">Non configurata</span>
         <button class="btn-ai-key" id="btn-ai-key" onclick="impostaApiKey()">Imposta</button>
       </div>
@@ -1545,8 +1545,10 @@ function renderBozze() {
 }
 
 // ── AI ──
+const AI_KEY_STORAGE = 'astra-gemini-key';
+
 (function aggiornaStatoKey() {
-  const k = localStorage.getItem('astra-claude-key');
+  const k = localStorage.getItem(AI_KEY_STORAGE);
   const el = document.getElementById('ai-key-status');
   const btn = document.getElementById('btn-ai-key');
   if (k) {
@@ -1561,31 +1563,50 @@ function renderBozze() {
 })();
 
 function impostaApiKey() {
-  const attuale = localStorage.getItem('astra-claude-key') || '';
-  const key = prompt('Incolla la tua Anthropic API Key:\n(viene salvata solo nel browser, non viene condivisa)', attuale);
+  const attuale = localStorage.getItem(AI_KEY_STORAGE) || '';
+  const key = prompt('Incolla la tua Google Gemini API Key (gratuita su aistudio.google.com):\n(viene salvata solo nel browser)', attuale);
   if (key === null) return;
-  if (!key.trim()) {
-    localStorage.removeItem('astra-claude-key');
-  } else {
-    localStorage.setItem('astra-claude-key', key.trim());
-  }
+  if (!key.trim()) { localStorage.removeItem(AI_KEY_STORAGE); }
+  else             { localStorage.setItem(AI_KEY_STORAGE, key.trim()); }
   const el = document.getElementById('ai-key-status');
   const btn = document.getElementById('btn-ai-key');
-  const k = localStorage.getItem('astra-claude-key');
+  const k = localStorage.getItem(AI_KEY_STORAGE);
   if (k) { el.textContent = '••••' + k.slice(-4); el.className = 'ai-key-status ok'; btn.textContent = 'Cambia'; }
-  else    { el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; btn.textContent = 'Imposta'; }
+  else   { el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; btn.textContent = 'Imposta'; }
 }
 
+const AI_PROMPT = `Sei l'assistente interno di Astra Agency, un'agenzia di social media marketing italiana.
+Analizza le note informali su un progetto cliente e restituisci SOLO un JSON valido, senza testo prima o dopo.
+
+FORMATO:
+{
+  "azienda": "Nome azienda cliente (stringa vuota se non specificato)",
+  "contatti": [{"nome": "Nome Cognome", "email": "email@esempio.it", "phone": "+39 000 000 0000"}],
+  "servizi": [{"desc": "Descrizione servizio professionale", "qty": 1, "price": 0, "iva": 22, "primoMese": null}],
+  "note": "Condizioni di pagamento in italiano professionale (2-4 righe)",
+  "validita": "30 giorni"
+}
+
+REGOLE:
+- azienda: nome del cliente, non di Astra Agency
+- contatti: campi vuoti ("") se non specificati
+- servizi[].desc: descrizione professionale e completa
+- servizi[].price: prezzo unitario/mensile (0 se non indicato)
+- servizi[].primoMese: null oppure il prezzo speciale del 1° mese
+- servizi[].iva: 22 di default
+- note: includi modalità di pagamento se menzionate
+- validita: "30 giorni" di default`;
+
 async function strutturaConAI() {
-  let apiKey = localStorage.getItem('astra-claude-key');
+  let apiKey = localStorage.getItem(AI_KEY_STORAGE);
   if (!apiKey) {
-    const key = prompt('Inserisci la tua Anthropic API Key per usare l\'AI:\n(salvata solo nel browser)');
+    const key = prompt('Inserisci la tua Google Gemini API Key (gratuita su aistudio.google.com):\n(salvata solo nel browser)');
     if (!key?.trim()) return;
     apiKey = key.trim();
-    localStorage.setItem('astra-claude-key', apiKey);
+    localStorage.setItem(AI_KEY_STORAGE, apiKey);
     const el = document.getElementById('ai-key-status');
-    const btn = document.getElementById('btn-ai-key');
-    el.textContent = '••••' + apiKey.slice(-4); el.className = 'ai-key-status ok'; btn.textContent = 'Cambia';
+    const kb = document.getElementById('btn-ai-key');
+    el.textContent = '••••' + apiKey.slice(-4); el.className = 'ai-key-status ok'; kb.textContent = 'Cambia';
   }
 
   const testo = document.getElementById('f-ai-input').value.trim();
@@ -1596,46 +1617,20 @@ async function strutturaConAI() {
   btn.textContent = '✦ AI sta elaborando…';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const resp = await fetch(url, {
       method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-allow-browser': 'true'
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
-        system: `Sei l'assistente interno di Astra Agency, un'agenzia di social media marketing italiana.
-Il tuo compito: analizza le note informali su un progetto cliente e restituisci un JSON strutturato.
-
-FORMATO DI RISPOSTA — rispondi SOLO con questo JSON valido, nessun testo prima o dopo:
-{
-  "azienda": "Nome azienda cliente (stringa vuota se non specificato)",
-  "contatti": [{"nome": "Nome Cognome", "email": "email@esempio.it", "phone": "+39 000 000 0000"}],
-  "servizi": [{"desc": "Descrizione servizio professionale e chiara", "qty": 1, "price": 0, "iva": 22, "primoMese": null}],
-  "note": "Condizioni di pagamento e note scritte in italiano professionale (2-4 righe)",
-  "validita": "30 giorni"
-}
-
-REGOLE:
-- azienda: nome dell'azienda cliente, non dell'agenzia
-- contatti: lascia campi vuoti ("") se non specificati; ometti contatti senza dati
-- servizi[].desc: descrizione professionale e completa del servizio
-- servizi[].price: prezzo mensile/unitario (0 se non indicato)
-- servizi[].primoMese: null se non c'è prezzo speciale per il 1° mese, altrimenti il numero
-- servizi[].iva: 22 di default, 0 se il cliente è esente
-- note: scrivi condizioni di pagamento chiare e professionali, includi eventuali dettagli di pagamento menzionati
-- validita: "30 giorni" di default, adatta se specificato`,
-        messages: [{ role: 'user', content: testo }]
+        contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
       })
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      if (resp.status === 401) {
-        localStorage.removeItem('astra-claude-key');
+      if (resp.status === 400 || resp.status === 403) {
+        localStorage.removeItem(AI_KEY_STORAGE);
         const el = document.getElementById('ai-key-status');
         const kb = document.getElementById('btn-ai-key');
         el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; kb.textContent = 'Imposta';
@@ -1645,7 +1640,7 @@ REGOLE:
     }
 
     const data = await resp.json();
-    const rawText = data.content?.[0]?.text || '';
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('Risposta AI non valida.');
     const parsed = JSON.parse(jsonMatch[0]);
