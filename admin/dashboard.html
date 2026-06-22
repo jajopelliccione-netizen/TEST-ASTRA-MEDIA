@@ -435,6 +435,17 @@
             </select>
           </div>
         </div>
+        <!-- Prezzi -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Prezzo mensile (€/mese)</label>
+            <input class="form-input" type="number" id="f-price-monthly" placeholder="es. 500" min="0" step="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Una tantum (€, solo primo mese)</label>
+            <input class="form-input" type="number" id="f-price-tantum" placeholder="es. 300" min="0" step="1" />
+          </div>
+        </div>
         <!-- Config mode toggle — visibile solo per pacchetti con sito -->
         <div class="form-group" id="config-mode-group" style="display:none;">
           <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(123,92,240,.07);border:1px solid rgba(123,92,240,.22);border-radius:10px;padding:12px 14px;">
@@ -946,7 +957,8 @@
             <div class="cc-details">
               <div class="cc-detail-item"><span class="cc-detail-label">Report</span><span>${c.reports?.length||0} totali</span></div>
               <div class="cc-detail-item"><span class="cc-detail-label">Bozza</span><span>${c.websiteDraft?.url ? (c.websiteDraft.status||'—') : 'Nessuna'}</span></div>
-
+              ${c.priceMonthly != null ? `<div class="cc-detail-item"><span class="cc-detail-label">Mensile</span><span style="color:var(--green);font-weight:700;">€${c.priceMonthly.toLocaleString('it')}/mese</span></div>` : ''}
+              ${c.priceTantum  != null ? `<div class="cc-detail-item"><span class="cc-detail-label">Una tantum</span><span style="color:var(--yellow);font-weight:700;">€${c.priceTantum.toLocaleString('it')} <span style="font-weight:400;font-size:.75rem;opacity:.7;">(primo mese)</span></span></div>` : ''}
               ${c.analyticsActive===undefined&&!c.analyticsConfigured ? `<div class="cc-detail-item"><span class="cc-detail-label">Analytics</span><span style="cursor:pointer;color:var(--text-muted);font-size:.78rem;text-decoration:underline;" onclick="markAnalyticsConfigured('${c.uid}')">Segna come configurato</span></div>` : ''}
             </div>
             <div class="act-btns">
@@ -1314,7 +1326,9 @@
       document.getElementById('f-name').value             = c.displayName || '';
       document.getElementById('f-company').value          = c.company || '';
       document.getElementById('f-email').value            = c.email || '';
-      document.getElementById('f-package').value       = c.package || 'Gestione Social Media';
+      document.getElementById('f-package').value        = c.package || 'Gestione Social Media';
+      document.getElementById('f-price-monthly').value  = c.priceMonthly != null ? c.priceMonthly : '';
+      document.getElementById('f-price-tantum').value   = c.priceTantum  != null ? c.priceTantum  : '';
 
       document.getElementById('f-draft-url').value     = c.websiteDraft?.url || '';
       document.getElementById('f-draft-desc').value    = c.websiteDraft?.description || '';
@@ -1343,6 +1357,8 @@
         company:           document.getElementById('f-company').value.trim(),
         email:             document.getElementById('f-email').value.trim(),
         package:           document.getElementById('f-package').value,
+        priceMonthly:      parseFloat(document.getElementById('f-price-monthly').value) || null,
+        priceTantum:       parseFloat(document.getElementById('f-price-tantum').value) || null,
 
         configModeEnabled: document.getElementById('f-config-mode').checked,
         websiteDraft: {
