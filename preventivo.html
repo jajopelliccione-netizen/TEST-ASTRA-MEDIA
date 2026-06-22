@@ -605,6 +605,45 @@
     }
     .btn-reset-layout:hover { background: rgba(255,255,255,.1); }
 
+    /* ── Descrizione pacchetto ── */
+    .desc-section {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      margin-top: 4px;
+    }
+    .btn-elabora-desc {
+      margin-top: 10px; width: 100%;
+      background: linear-gradient(135deg, rgba(123,92,240,.8), rgba(255,45,120,.7));
+      border: none; border-radius: 9px;
+      padding: 10px 16px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: .85rem; color: #fff;
+      cursor: pointer; letter-spacing: .03em;
+      transition: opacity .2s;
+    }
+    .btn-elabora-desc:hover { opacity: .88; }
+    .btn-elabora-desc:disabled { opacity: .5; cursor: not-allowed; }
+    .desc-elaborata-preview {
+      margin-top: 10px;
+      background: rgba(123,92,240,.07);
+      border: 1px solid rgba(123,92,240,.22);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .78rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .desc-elaborata-preview strong { color: var(--purple); }
+    .page-label {
+      text-align: center;
+      font-size: .68rem;
+      color: rgba(255,255,255,.25);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      padding: 10px 0;
+      margin-bottom: 16px;
+    }
+
     /* ── Una tantum / Primo mese ── */
     .svc-pm-toggle {
       margin-top: 10px; width: 100%;
@@ -643,31 +682,6 @@
       font-size: .9rem; padding: 2px 4px; transition: color .2s;
     }
     .svc-pm-rm:hover { color: var(--gold); }
-
-    /* ── Descrizione estesa ── */
-    .svc-desc-btn {
-      margin-top: 6px; width: 100%;
-      background: rgba(255,255,255,.03);
-      border: 1px dashed rgba(255,255,255,.13);
-      border-radius: 7px; padding: 6px 12px;
-      color: var(--muted);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: .75rem; font-weight: 600;
-      cursor: pointer; text-align: left;
-      transition: background .2s;
-    }
-    .svc-desc-btn:hover { background: rgba(255,255,255,.07); }
-    .svc-desc-estesa {
-      width: 100%; margin-top: 6px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 6px; padding: 7px 10px;
-      color: var(--text); font-family: 'Space Grotesk', sans-serif;
-      font-size: .78rem; line-height: 1.5; outline: none;
-      resize: vertical; min-height: 56px;
-      transition: border-color .2s;
-    }
-    .svc-desc-estesa:focus { border-color: rgba(255,255,255,.25); }
 
     /* ── Una tantum button / badge ── */
     .svc-tantum-toggle {
@@ -940,6 +954,19 @@
       </div>
     </div>
 
+    <div class="desc-section">
+      <div class="bozze-header">
+        <div class="form-section-title" style="margin:0">Pagina descrizione pacchetto</div>
+        <button id="btn-reset-desc" onclick="resetDescPacchetto()" style="display:none;background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.25);border-radius:7px;padding:5px 10px;color:var(--pink);font-size:.72rem;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer">✕ Rimuovi</button>
+      </div>
+      <p style="font-size:.75rem;color:var(--muted);line-height:1.5;margin-bottom:10px">Scrivi cosa offri nel pacchetto — l'AI la trasforma in una pagina professionale che viene inserita nel Word prima del preventivo.</p>
+      <div class="field">
+        <textarea id="f-desc-pacchetto" rows="5" style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.83rem;line-height:1.5;outline:none;resize:vertical;width:100%;transition:border-color .2s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor=''" placeholder="Es: gestiamo instagram e facebook, 3 post a settimana, 2 storie al giorno, risposta a commenti e DM, analisi mensile con report, ottimizzazione profilo, grafica coordinata…"></textarea>
+      </div>
+      <button class="btn-elabora-desc" id="btn-elabora-desc" onclick="elaboraDescPacchetto()">✦ Elabora con AI</button>
+      <div id="desc-elaborata-box" style="display:none" class="desc-elaborata-preview"></div>
+    </div>
+
     <div class="bozze-section">
       <div class="bozze-header">
         <div class="form-section-title" style="margin:0">Bozze</div>
@@ -952,6 +979,8 @@
 
   <!-- ── PREVIEW PANEL ── -->
   <div class="preview-panel">
+      <div id="desc-page-preview" style="display:none;width:100%;max-width:794px"></div>
+      <div id="desc-page-label" class="page-label" style="display:none;width:100%;max-width:794px">— Pagina 2: Preventivo —</div>
     <div class="doc" id="doc-preview">
 
       <div id="edit-banner">✎ Trascina le sezioni per riposizionarle</div>
@@ -1087,10 +1116,11 @@
 <script>
 // ── Stato ──
 let righe = [
-  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null, tantum: false, descEstesa: '' },
-  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null, tantum: false, descEstesa: '' },
+  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22, primoMese: null, tantum: false },
+  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22, primoMese: null, tantum: false },
 ];
 let _prevState = null;
+let _elaboratoPacchetto = null; // JSON elaborato dall'AI per la pagina descrizione
 
 let contatti = [
   { nome: '', email: '', phone: '' }
@@ -1119,10 +1149,8 @@ function isoOggi() {
 // ── Init ──
 document.getElementById('f-date').value = isoOggi();
 document.getElementById('f-notes').value =
-  'Il pagamento è da effettuarsi al 50% all\'accettazione del preventivo e il restante 50% alla consegna del lavoro finito.\n\n' +
   'I costi pubblicitari (ads Meta, Google, TikTok ecc.) e le eventuali collaborazioni con creator, influencer o altri professionisti esterni sono da intendersi come spese aggiuntive interamente a carico del cliente, separate dal presente preventivo.\n\n' +
-  'I prezzi indicati possono subire variazioni mensili che verranno comunicate al cliente con congruo anticipo. Nel corso del mese possono rendersi necessarie spese straordinarie (es. boost post, licenze software, materiali creativi) che saranno sempre a carico del cliente e preventivamente concordate.\n\n' +
-  'I contenuti, materiali e accessi necessari saranno forniti dal cliente entro i tempi concordati.';
+  'I prezzi indicati possono subire variazioni mensili che verranno comunicate al cliente con congruo anticipo. Nel corso del mese possono rendersi necessarie spese straordinarie (es. boost post, licenze software, materiali creativi) che saranno sempre a carico del cliente e preventivamente concordate.';
 
 // Carica predefinito logo
 (function() {
@@ -1223,10 +1251,6 @@ function renderRighe() {
       </div>` : `
       <button class="svc-pm-toggle" onclick="righe[${i}].primoMese=0;renderRighe();aggiorna()">⚡ Aggiungi prezzo 1° mese</button>
       <button class="svc-tantum-toggle" onclick="righe[${i}].tantum=true;renderRighe();aggiorna()">○ Segna come una tantum (si paga una sola volta)</button>`}
-      ${r.descEstesa ? `
-      <textarea class="svc-desc-estesa" placeholder="Descrizione del servizio per la pagina introduttiva del documento…" oninput="righe[${i}].descEstesa=this.value">${r.descEstesa}</textarea>
-      <button class="svc-desc-btn" onclick="righe[${i}].descEstesa='';renderRighe()">✕ Rimuovi descrizione</button>` : `
-      <button class="svc-desc-btn" onclick="righe[${i}].descEstesa=' ';renderRighe()">⊕ Aggiungi descrizione (pagina introduttiva Word)</button>`}
     `;
     body.appendChild(div);
   });
@@ -1234,7 +1258,7 @@ function renderRighe() {
 
 function aggiungiRiga() {
   const defIva = parseInt(document.getElementById('f-iva').value) || 22;
-  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null, tantum: false, descEstesa: '' });
+  righe.push({ desc: '', qty: 1, price: 0, iva: defIva, primoMese: null, tantum: false });
   renderRighe();
   aggiorna();
 }
@@ -1261,6 +1285,151 @@ function rimuoviRiga(i) {
   righe.splice(i, 1);
   renderRighe();
   aggiorna();
+}
+
+// ── Descrizione Pacchetto ──
+const DESC_PROMPT = `Sei il copywriter di Astra Agency, un'agenzia social media italiana dal brand sofisticato.
+Il cliente descrive in modo grezzo cosa è incluso in un pacchetto di servizi. Elaborala in modo professionale e accattivante.
+Restituisci SOLO un JSON valido, senza testo prima o dopo.
+
+FORMATO:
+{
+  "titolo": "Nome commerciale del pacchetto (es: 'Gestione Social Premium')",
+  "intro": "1-2 frasi di presentazione accattivanti del pacchetto, parla al cliente in seconda persona",
+  "sezioni": [
+    {
+      "nome": "Nome categoria (es: 'Gestione Contenuti')",
+      "voci": ["Voce concisa 1", "Voce concisa 2"]
+    }
+  ],
+  "chiusura": "1 frase finale motivante sul valore del pacchetto"
+}
+
+REGOLE:
+- titolo: commerciale, accattivante, max 5 parole
+- sezioni: raggruppa logicamente (Contenuti, Community, Analisi, ecc.), max 4 sezioni
+- voci: frasi brevi e concrete, max 6 per sezione
+- tono: professionale ma caldo, moderno`;
+
+async function elaboraDescPacchetto() {
+  const apiKey = localStorage.getItem(AI_KEY_STORAGE);
+  if (!apiKey) {
+    alert('Prima configura la tua API Key AI con il pulsante "Imposta" nella sezione AI sopra.');
+    return;
+  }
+  const note = document.getElementById('f-desc-pacchetto').value.trim();
+  if (!note) { alert('Scrivi prima una descrizione del pacchetto!'); return; }
+
+  const btn = document.getElementById('btn-elabora-desc');
+  btn.disabled = true;
+  btn.textContent = '✦ Elaborazione…';
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  try {
+    const prompt = DESC_PROMPT + '\n\nDESCRIZIONE GREZZA:\n' + note;
+    let rawText = '';
+
+    if (apiKey.startsWith('gsk_')) {
+      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama3-8b-8192', 'gemma2-9b-it'];
+      let resp;
+      for (const model of GROQ_MODELS) {
+        resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.4, max_tokens: 1500 })
+        });
+        if (resp.status === 404) continue;
+        if (resp.status === 429) { await delay(3000); resp = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model,messages:[{role:'user',content:prompt}],temperature:0.4,max_tokens:1500}) }); if (resp.status===429||resp.status===404) continue; }
+        break;
+      }
+      if (!resp.ok) throw new Error(`Errore Groq ${resp.status}`);
+      const data = await resp.json();
+      rawText = data.choices?.[0]?.message?.content || '';
+    } else {
+      const ATTEMPTS = [
+        { v: 'v1beta', m: 'gemini-2.0-flash' },
+        { v: 'v1beta', m: 'gemini-2.0-flash-lite' },
+        { v: 'v1beta', m: 'gemini-1.5-flash' },
+        { v: 'v1beta', m: 'gemini-1.5-pro' },
+      ];
+      const reqBody = JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.4,maxOutputTokens:1500} });
+      let resp;
+      for (const { v, m } of ATTEMPTS) {
+        const url = `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${apiKey}`;
+        resp = await fetch(url, { method:'POST', headers:{'content-type':'application/json'}, body:reqBody });
+        if (resp.status===404||resp.status===429) continue;
+        break;
+      }
+      if (!resp.ok) throw new Error(`Errore Gemini ${resp.status}`);
+      const data = await resp.json();
+      rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Risposta non valida');
+    _elaboratoPacchetto = JSON.parse(jsonMatch[0]);
+    renderDescPacchetto();
+
+    btn.textContent = '✓ Elaborata!';
+    document.getElementById('btn-reset-desc').style.display = '';
+    setTimeout(() => { btn.textContent = '✦ Rielabora con AI'; btn.disabled = false; }, 1800);
+  } catch(e) {
+    console.error(e);
+    alert('Errore elaborazione: ' + e.message);
+    btn.textContent = '✦ Elabora con AI';
+    btn.disabled = false;
+  }
+}
+
+function resetDescPacchetto() {
+  _elaboratoPacchetto = null;
+  document.getElementById('desc-page-preview').style.display = 'none';
+  document.getElementById('desc-page-label').style.display = 'none';
+  document.getElementById('desc-elaborata-box').style.display = 'none';
+  document.getElementById('btn-reset-desc').style.display = 'none';
+}
+
+function renderDescPacchetto() {
+  const p = _elaboratoPacchetto;
+  if (!p) { resetDescPacchetto(); return; }
+  const ccompany = document.getElementById('f-ccompany').value;
+
+  // Aggiorna il box riassunto nel form
+  const box = document.getElementById('desc-elaborata-box');
+  box.style.display = '';
+  box.innerHTML = `<strong>${p.titolo || ''}</strong><br>${(p.sezioni||[]).map(s => `<span style="opacity:.7">${s.nome}: </span>${(s.voci||[]).join(', ')}`).join('<br>')}`;
+
+  // Renderizza la pagina preview
+  const container = document.getElementById('desc-page-preview');
+  container.style.display = '';
+  document.getElementById('desc-page-label').style.display = '';
+
+  container.innerHTML = `
+    <div class="doc" style="margin-bottom:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#1a0a2e;letter-spacing:.04em">ASTRA AGENCY</div>
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.16em;color:#7B5CF0;text-transform:uppercase;margin-top:3px">Social Media Agency</div>
+        </div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#1a0a2e;padding-bottom:14px;border-bottom:2px solid #7B5CF0;margin-bottom:${ccompany?'8px':'28px'}">${p.titolo||'COSA OFFRIAMO'}</div>
+      ${ccompany ? `<div style="font-size:.82rem;font-weight:700;color:#7B5CF0;margin-bottom:28px">Per ${ccompany}</div>` : ''}
+      ${p.intro ? `<div style="font-size:.88rem;color:#444;line-height:1.75;margin-bottom:28px;padding:14px 20px;background:#f8f6ff;border-left:3px solid #7B5CF0;border-radius:0 6px 6px 0">${p.intro}</div>` : ''}
+      ${(p.sezioni||[]).map(s => `
+        <div style="margin-bottom:22px">
+          <div style="font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;color:#1a0a2e;padding-bottom:7px;border-bottom:1px solid #ece8ff;margin-bottom:10px">${s.nome||''}</div>
+          <ul style="margin:0;padding-left:20px">
+            ${(s.voci||[]).map(v=>`<li style="font-size:.85rem;color:#2a2a3e;margin-bottom:5px;line-height:1.5">${v}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+      ${p.chiusura ? `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #ece8ff;font-size:.82rem;color:#7B5CF0;font-weight:600;font-style:italic">${p.chiusura}</div>` : ''}
+      <div style="border-top:1px solid #ece8ff;padding-top:18px;margin-top:40px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;color:#7B5CF0">ASTRA AGENCY</div>
+        <div style="font-size:.72rem;color:#888">info@astragency.it · astragency.it</div>
+      </div>
+    </div>`;
 }
 
 // ── Aggiorna preview ──
@@ -1723,7 +1892,7 @@ FORMATO:
 {
   "azienda": "Nome azienda cliente (stringa vuota se non specificato)",
   "contatti": [{"nome": "Nome Cognome", "email": "email@esempio.it", "phone": "+39 000 000 0000"}],
-  "servizi": [{"desc": "Titolo breve servizio", "qty": 1, "price": 0, "iva": 22, "primoMese": null, "tantum": false, "descEstesa": "Descrizione dettagliata del servizio (2-4 frasi) per la pagina introduttiva del documento"}],
+  "servizi": [{"desc": "Titolo breve servizio", "qty": 1, "price": 0, "iva": 22, "primoMese": null, "tantum": false}],
   "note": "Condizioni di pagamento in italiano professionale (2-4 righe)",
   "validita": "30 giorni"
 }
@@ -1735,7 +1904,6 @@ REGOLE:
 - servizi[].price: prezzo unitario/mensile (0 se non indicato)
 - servizi[].primoMese: null oppure il prezzo speciale del 1° mese (starter pack)
 - servizi[].tantum: true se il servizio è pagato una sola volta (es. "sito web", "setup"), false se è mensile
-- servizi[].descEstesa: 2-4 frasi professionali che descrivono cosa include il servizio (per la pagina introduttiva)
 - servizi[].iva: 22 di default
 - note: includi modalità di pagamento se menzionate
 - validita: "30 giorni" di default`;
@@ -1868,8 +2036,7 @@ async function strutturaConAI() {
     if (Array.isArray(parsed.servizi) && parsed.servizi.length) {
       righe = parsed.servizi.map(s => ({
         desc: s.desc || '', qty: s.qty || 1, price: s.price || 0,
-        iva: s.iva ?? 22, primoMese: s.primoMese ?? null, tantum: !!s.tantum,
-        descEstesa: s.descEstesa || ''
+        iva: s.iva ?? 22, primoMese: s.primoMese ?? null, tantum: !!s.tantum
       }));
       renderRighe();
     }
@@ -1978,57 +2145,45 @@ async function scaricaWord() {
         },
         children: [
 
-          // ── PAGINA INTRODUTTIVA (solo se c'è almeno una descEstesa) ──
+          // ── PAGINA DESCRIZIONE PACCHETTO (solo se elaborata) ──
           ...(() => {
-            const hasIntro = righe.some(r => r.descEstesa && r.descEstesa.trim());
-            if (!hasIntro) return [];
-            const noBorder = { top:{style:BorderStyle.NONE}, bottom:{style:BorderStyle.NONE}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} };
+            if (!_elaboratoPacchetto) return [];
+            const p = _elaboratoPacchetto;
+            const ccompany = document.getElementById('f-ccompany').value;
             return [
-              // Header agenzia
-              new Paragraph({ children:[new TextRun({text:'ASTRA AGENCY',font:'Calibri',size:52,bold:true,color:colorDark})], spacing:{after:60} }),
-              new Paragraph({ children:[new TextRun({text:'SOCIAL MEDIA AGENCY',font:'Calibri',size:20,bold:true,color:colorPurple})], spacing:{after:500} }),
-              // Titolo pagina
+              new Paragraph({ children:[new TextRun({text:'ASTRA AGENCY',font:'Calibri',size:48,bold:true,color:colorDark})], spacing:{after:60} }),
+              new Paragraph({ children:[new TextRun({text:'SOCIAL MEDIA AGENCY',font:'Calibri',size:18,bold:true,color:colorPurple})], spacing:{after:500} }),
               new Paragraph({
-                children:[new TextRun({text:'COSA OFFRIAMO',font:'Calibri',size:56,bold:true,color:colorDark})],
-                border:{ bottom:{style:BorderStyle.SINGLE,size:8,color:colorPurple,space:8} },
-                spacing:{after:120}
+                children:[new TextRun({text:(p.titolo||'COSA OFFRIAMO').toUpperCase(),font:'Calibri',size:52,bold:true,color:colorDark})],
+                border:{bottom:{style:BorderStyle.SINGLE,size:8,color:colorPurple,space:8}},
+                spacing:{after:100}
               }),
-              ...(ccompany ? [new Paragraph({children:[new TextRun({text:'Proposta per ' + ccompany,font:'Calibri',size:24,color:colorPurple,bold:true})],spacing:{after:600}})] : [sp(600)]),
-              // Servizi con descrizioni
-              ...righe.flatMap(r => {
-                const rows = [
-                  new Paragraph({
-                    children:[new TextRun({text:(r.desc||'Servizio').toUpperCase(),font:'Calibri',size:26,bold:true,color:colorDark})],
-                    border:{ bottom:{style:BorderStyle.SINGLE,size:4,color:'ECE8FF',space:4} },
-                    spacing:{before:300,after:80}
-                  }),
-                ];
-                if (r.descEstesa?.trim()) {
-                  rows.push(new Paragraph({
-                    children:[new TextRun({text:r.descEstesa.trim(),font:'Calibri',size:20,color:'444444'})],
-                    spacing:{after:60}
-                  }));
-                }
-                const priceLabel = r.tantum ? `Costo unico: ${fmt(r.price)}` : `${fmt(r.price)}/mese`;
-                rows.push(new Paragraph({
-                  children:[new TextRun({text:priceLabel,font:'Calibri',size:18,bold:true,color:colorPurple})],
-                  spacing:{after:40}
-                }));
-                return rows;
-              }),
-              // Footer pagina intro
-              sp(400),
+              ...(ccompany ? [new Paragraph({children:[new TextRun({text:'Per '+ccompany,font:'Calibri',size:24,bold:true,color:colorPurple})],spacing:{after:400}})] : [new Paragraph({spacing:{before:400,children:[]}})]),
+              ...(p.intro ? [new Paragraph({
+                children:[new TextRun({text:p.intro,font:'Calibri',size:20,color:'444444'})],
+                shading:{fill:'F8F6FF',type:ShadingType.CLEAR},
+                border:{left:{style:BorderStyle.SINGLE,size:12,color:colorPurple,space:8}},
+                spacing:{before:60,after:300},indent:{left:160}
+              })] : []),
+              ...(p.sezioni||[]).flatMap(s => [
+                new Paragraph({
+                  children:[new TextRun({text:(s.nome||'').toUpperCase(),font:'Calibri',size:22,bold:true,color:colorDark})],
+                  border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'ECE8FF',space:4}},
+                  spacing:{before:240,after:80}
+                }),
+                ...(s.voci||[]).map(v => new Paragraph({
+                  children:[new TextRun({text:'• '+v,font:'Calibri',size:20,color:'2a2a3e'})],
+                  spacing:{before:40,after:40},indent:{left:120}
+                }))
+              ]),
+              ...(p.chiusura ? [new Paragraph({children:[new TextRun({text:p.chiusura,font:'Calibri',size:18,italic:true,color:colorPurple})],spacing:{before:200}})] : []),
+              new Paragraph({spacing:{before:400,children:[]}}),
               new Paragraph({
-                children:[
-                  new TextRun({text:'ASTRA AGENCY',size:18,bold:true,color:colorPurple}),
-                  new TextRun({text:'   ·   info@astragency.it   ·   astragency.it',size:18,color:colorMuted}),
-                ],
+                children:[new TextRun({text:'ASTRA AGENCY',size:18,bold:true,color:colorPurple}),new TextRun({text:'   ·   info@astragency.it   ·   astragency.it',size:18,color:colorMuted})],
                 border:{top:{style:BorderStyle.SINGLE,size:4,color:'ECE8FF',space:6}},
-                alignment:AlignmentType.CENTER,
-                spacing:{before:120}
+                alignment:AlignmentType.CENTER,spacing:{before:120}
               }),
-              // Interruzione di pagina → inizia il preventivo
-              new Paragraph({ pageBreakBefore: true, children:[] }),
+              new Paragraph({pageBreakBefore:true,children:[]}),
             ];
           })(),
 
