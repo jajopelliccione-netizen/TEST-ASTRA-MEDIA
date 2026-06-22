@@ -2471,11 +2471,12 @@ async function scaricaPDF() {
       if (banner) banner.style.display = 'none';
     });
 
-    // html2canvas non supporta filter:drop-shadow → bake l'ombra nei pixel dell'img via Canvas 2D
+    // html2canvas non renderizza filter:drop-shadow → bake l'ombra nei pixel via Canvas 2D.
+    // Il canvas deve avere PADDING attorno al logo, altrimenti l'ombra finisce fuori
+    // dai bordi e viene ritagliata (questo era il bug: ombra invisibile).
     const _lgImg  = document.getElementById('doc-logo');
-    const _lgWrap = _lgImg && _lgImg.closest('.doc-logo-wrap');
-    const _lgFilterStr = (_lgImg && _lgImg.style.filter) || (_lgWrap && _lgWrap.style.filter) || '';
-    let _lgOrigSrc = null, _lgOrigImgFilter = '', _lgOrigWrapFilter = '';
+    const _lgFilterStr = (_lgImg && _lgImg.style.filter) || '';
+    let _lgRestore = null;
 
     if (_lgImg && _lgImg.complete && _lgImg.naturalWidth > 0 && _lgFilterStr.includes('drop-shadow')) {
       const shadows = [];
@@ -2485,29 +2486,55 @@ async function scaricaPDF() {
         shadows.push({ x: +sm[1], y: +sm[2], blur: +sm[3], color: sm[4] });
       }
       if (shadows.length > 0) {
+        const rect      = _lgImg.getBoundingClientRect();
+        const origDispW = rect.width  || _lgImg.naturalWidth;
+        const origDispH = rect.height || _lgImg.naturalHeight;
         const nW = _lgImg.naturalWidth, nH = _lgImg.naturalHeight;
-        const dispW = _lgImg.getBoundingClientRect().width || nW;
-        const scale = nW / dispW;
+        const scale = nH / origDispH;            // px naturali per px visualizzati
+
+        // Padding necessario (in px display) per contenere offset + sfocatura di ogni ombra
+        let maxExt = 0;
+        shadows.forEach(s => {
+          maxExt = Math.max(maxExt, Math.abs(s.x) + s.blur * 2, Math.abs(s.y) + s.blur * 2);
+        });
+        const pDisp = Math.ceil(maxExt) + 6;     // px display
+        const p     = Math.round(pDisp * scale); // px naturali
+
         const cv  = document.createElement('canvas');
-        cv.width  = nW; cv.height = nH;
+        cv.width  = nW + p * 2;
+        cv.height = nH + p * 2;
         const ctx = cv.getContext('2d');
-        // Disegna ogni shadow pass con Canvas 2D API (rispetta alpha channel come drop-shadow CSS)
+        // Ogni ombra: disegna l'immagine con shadowColor/Blur (segue il canale alpha come drop-shadow CSS)
         shadows.forEach(sh => {
           ctx.save();
           ctx.shadowOffsetX = sh.x * scale;
           ctx.shadowOffsetY = sh.y * scale;
-          ctx.shadowBlur    = sh.blur * scale * 2.5;
+          ctx.shadowBlur    = sh.blur * scale * 2;
           ctx.shadowColor   = sh.color;
-          ctx.drawImage(_lgImg, 0, 0, nW, nH);
+          ctx.drawImage(_lgImg, p, p, nW, nH);
           ctx.restore();
         });
-        ctx.drawImage(_lgImg, 0, 0, nW, nH); // immagine sopra le shadow
-        _lgOrigSrc        = _lgImg.src;
-        _lgOrigImgFilter  = _lgImg.style.filter  || '';
-        _lgOrigWrapFilter = _lgWrap ? (_lgWrap.style.filter || '') : '';
-        _lgImg.src          = cv.toDataURL('image/png');
-        _lgImg.style.filter = '';
-        if (_lgWrap) _lgWrap.style.filter = '';
+        ctx.drawImage(_lgImg, p, p, nW, nH);     // logo nitido sopra le ombre
+
+        // Salva stili inline da ripristinare dopo
+        _lgRestore = {
+          src:      _lgImg.src,
+          filter:   _lgImg.style.filter,
+          height:   _lgImg.style.height,
+          width:    _lgImg.style.width,
+          maxWidth: _lgImg.style.maxWidth,
+          margin:   _lgImg.style.margin
+        };
+
+        // Mostra il canvas con padding, ma riposiziona/ridimensiona così il LOGO resta
+        // identico per posizione e dimensione: ingrandisco di 2*pDisp e sposto di -pDisp.
+        _lgImg.style.filter   = '';
+        _lgImg.style.height   = (origDispH + pDisp * 2) + 'px';
+        _lgImg.style.width    = (origDispW + pDisp * 2) + 'px';
+        _lgImg.style.maxWidth = 'none';
+        _lgImg.style.margin   = `${-pDisp}px ${-pDisp}px ${-pDisp}px ${-pDisp}px`;
+        _lgImg.src = cv.toDataURL('image/png');
+        try { await _lgImg.decode(); } catch (e) {}
       }
     }
 
@@ -2526,10 +2553,13 @@ async function scaricaPDF() {
     ));
 
     // Ripristina logo originale
-    if (_lgOrigSrc) {
-      _lgImg.src          = _lgOrigSrc;
-      _lgImg.style.filter = _lgOrigImgFilter;
-      if (_lgWrap) _lgWrap.style.filter = _lgOrigWrapFilter;
+    if (_lgRestore) {
+      _lgImg.src             = _lgRestore.src;
+      _lgImg.style.filter    = _lgRestore.filter;
+      _lgImg.style.height    = _lgRestore.height;
+      _lgImg.style.width     = _lgRestore.width;
+      _lgImg.style.maxWidth  = _lgRestore.maxWidth;
+      _lgImg.style.margin    = _lgRestore.margin;
     }
     // Ripristina stili .doc
     pages.forEach((el, i) => {
