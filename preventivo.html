@@ -942,6 +942,7 @@ let contatti = [
 
 // ── Layout editor state (dichiarato in cima per evitare temporal dead zone) ──
 const LAYOUT_KEY = 'astra-preventivo-layout';
+const BOZZE_KEY  = 'astra-preventivi-bozze';
 const DS_IDS     = ['ds-logo','ds-meta','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
 let   editMode   = false;
 let   dragState  = null;
@@ -1180,6 +1181,25 @@ function aggiorna() {
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
       <div class="doc-total-row grand"><span>TOTALE</span><span>${fmt(sub + ivaTotal)}</span></div>`;
   }
+
+  reflowSections();
+}
+
+function reflowSections() {
+  const docEl = document.getElementById('doc-preview');
+  if (!docEl.classList.contains('has-custom-layout')) return;
+  const tableEl = document.getElementById('ds-table');
+  if (!tableEl) return;
+  const tableTop = parseFloat(tableEl.style.top) || 0;
+  const tableH   = tableEl.getBoundingClientRect().height;
+  let cursor = tableTop + tableH + 24;
+  ['ds-totals', 'ds-validity', 'ds-notes', 'ds-footer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.top = cursor + 'px';
+    cursor += el.getBoundingClientRect().height + 24;
+  });
+  docEl.style.minHeight = (cursor + 36) + 'px';
 }
 
 // ── Layout editor drag & drop ──
@@ -1355,8 +1375,6 @@ function salvaPredefinitoLogo() {
 }
 
 // ── Bozze ──
-const BOZZE_KEY = 'astra-preventivi-bozze';
-
 function getBozze() {
   return JSON.parse(localStorage.getItem(BOZZE_KEY) || '[]');
 }
