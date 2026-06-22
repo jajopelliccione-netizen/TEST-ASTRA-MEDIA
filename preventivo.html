@@ -918,7 +918,7 @@
     <div class="form-section">
       <div class="form-section-title">Note e condizioni</div>
       <div class="field">
-        <textarea id="f-notes" rows="5" placeholder="Es: Il pagamento è da effettuarsi al 50% all'accettazione e 50% alla consegna. I contenuti e i materiali necessari alla realizzazione saranno forniti dal cliente." oninput="aggiorna()"></textarea>
+        <textarea id="f-notes" rows="5" placeholder="Es: I costi pubblicitari sono a carico del cliente. I prezzi possono subire variazioni mensili." oninput="aggiorna()"></textarea>
       </div>
     </div>
 
@@ -2284,7 +2284,7 @@ async function scaricaWord() {
             const imponibileLabel = hasPmWord ? 'Imponibile mensile' : hasTantumWord && !onlyTantum ? 'Imponibile mensile' : 'Imponibile';
             return new Table({
               width: { size: 40, type: WidthType.PERCENTAGE },
-              float: { horizontalAnchor: 'margin', absoluteHorizontalPosition: 0, relativeHorizontalPosition: 'right-margin' },
+              alignment: AlignmentType.RIGHT,
               borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
               rows: [
                 new TableRow({ children: [
@@ -2311,7 +2311,7 @@ async function scaricaWord() {
             });
           })(),
 
-          sp(360),
+          sp(200),
 
           // ── VALIDITÀ ──
           ...(validity ? [new Paragraph({
@@ -2324,19 +2324,19 @@ async function scaricaWord() {
 
           sp(120),
 
-          // ── NOTE ──
+          // ── NOTE (ogni paragrafo separato per rispettare i \n\n) ──
           ...(notes ? [
             new Paragraph({
               children: [new TextRun({ text: 'NOTE E CONDIZIONI DI PAGAMENTO', size: 16, bold: true, color: colorPurple })],
               spacing: { after: 60 }
             }),
-            new Paragraph({
-              children: [new TextRun({ text: notes, size: 18, color: '444444' })],
+            ...notes.split(/\n\n+/).filter(Boolean).map((para, idx, arr) => new Paragraph({
+              children: [new TextRun({ text: para.replace(/\n/g, ' '), size: 18, color: '444444' })],
               shading: { fill: 'F8F6FF', type: ShadingType.CLEAR },
               border: { left: { style: BorderStyle.SINGLE, size: 12, color: colorPurple, space: 8 } },
-              spacing: { before: 60, after: 60 },
+              spacing: { before: idx === 0 ? 60 : 120, after: idx === arr.length - 1 ? 60 : 0 },
               indent: { left: 160 }
-            }),
+            })),
           ] : []),
 
           sp(300),
