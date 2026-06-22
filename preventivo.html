@@ -198,7 +198,8 @@
       padding: 40px;
       overflow-y: auto;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
     }
 
     /* ── DOCUMENTO PREVENTIVO ── */
@@ -2337,30 +2338,36 @@ async function scaricaWord() {
             const imponibile = onlyTantum ? wSubT : wSub;
             const ivaShow    = onlyTantum ? wIvaT : wIva;
             const imponibileLabel = hasPmWord ? 'Imponibile mensile' : hasTantumWord && !onlyTantum ? 'Imponibile mensile' : 'Imponibile';
+            const noBorder = { top:{style:BorderStyle.NONE}, bottom:{style:BorderStyle.NONE}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE} };
+            const sepBorder = { ...noBorder, bottom:{style:BorderStyle.SINGLE,color:'ECE8FF',size:4} };
+            const mkCell = (children, opts={}) => new TableCell({ children, borders: opts.borders||noBorder, shading: opts.shading, width:{size:opts.w||50,type:WidthType.PERCENTAGE} });
+            const grandLabelRuns = hasPmWord && !onlyTantum
+              ? [new TextRun({text:'MENSILE',size:24,bold:true,color:grandColor}),new TextRun({text:'  (dal 2° mese)',size:17,color:grandColor})]
+              : [new TextRun({text:grandLabel,size:24,bold:true,color:grandColor})];
             return new Table({
-              width: { size: 40, type: WidthType.PERCENTAGE },
+              width: { size: 50, type: WidthType.PERCENTAGE },
               alignment: AlignmentType.RIGHT,
-              borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
+              borders: { top:{style:BorderStyle.NONE}, bottom:{style:BorderStyle.NONE}, left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE}, insideH:{style:BorderStyle.NONE}, insideV:{style:BorderStyle.NONE} },
               rows: [
                 new TableRow({ children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: imponibileLabel, size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(imponibile), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  mkCell([new Paragraph({children:[new TextRun({text:imponibileLabel,size:20,color:colorMuted})]})], {borders:sepBorder,w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(imponibile),size:20,color:colorMuted})],alignment:AlignmentType.RIGHT})], {borders:sepBorder,w:40}),
                 ]}),
                 new TableRow({ children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IVA', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(ivaShow), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  mkCell([new Paragraph({children:[new TextRun({text:'IVA',size:20,color:colorMuted})]})], {borders:sepBorder,w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(ivaShow),size:20,color:colorMuted})],alignment:AlignmentType.RIGHT})], {borders:sepBorder,w:40}),
                 ]}),
                 new TableRow({ children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: grandLabel, size: 26, bold: true, color: grandColor })] })], shading: { fill: grandBg, type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: grandBorder, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(grandVal), size: 26, bold: true, color: grandColor })], alignment: AlignmentType.RIGHT })], shading: { fill: grandBg, type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: grandBorder, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  mkCell([new Paragraph({children:grandLabelRuns})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:grandBorder,size:6}},shading:{fill:grandBg,type:ShadingType.CLEAR},w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(grandVal),size:24,bold:true,color:grandColor})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:grandBorder,size:6}},shading:{fill:grandBg,type:ShadingType.CLEAR},w:40}),
                 ]}),
                 ...(hasPmWord ? [new TableRow({ children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '1° MESE', size: 26, bold: true, color: 'B07800' })] })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSub1 + wIva1), size: 26, bold: true, color: 'B07800' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'FFF8E6', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: 'FFB800', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  mkCell([new Paragraph({children:[new TextRun({text:'1° MESE',size:24,bold:true,color:'B07800'})]})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'FFB800',size:6}},shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(wSub1+wIva1),size:24,bold:true,color:'B07800'})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'FFB800',size:6}},shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:40}),
                 ]})] : []),
                 ...(!onlyTantum && hasTantumWord ? [new TableRow({ children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'UNA TANTUM', size: 26, bold: true, color: '007A6A' })] })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: '00C8B4', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(wSubT + wIvaT), size: 26, bold: true, color: '007A6A' })], alignment: AlignmentType.RIGHT })], shading: { fill: 'EDFAF8', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: '00C8B4', size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                  mkCell([new Paragraph({children:[new TextRun({text:'UNA TANTUM',size:24,bold:true,color:'007A6A'})]})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'00C8B4',size:6}},shading:{fill:'EDFAF8',type:ShadingType.CLEAR},w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(wSubT+wIvaT),size:24,bold:true,color:'007A6A'})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'00C8B4',size:6}},shading:{fill:'EDFAF8',type:ShadingType.CLEAR},w:40}),
                 ]})] : []),
               ]
             });
