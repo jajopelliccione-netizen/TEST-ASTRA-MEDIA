@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generatore Preventivi – Astra Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/docx@8.5.0/build/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #7B5CF0;
+      --pink: #FF2D78;
+      --gold: #FFB800;
+      --bg: #07060F;
+      --bg2: #0D0B1A;
+      --border: rgba(123,92,240,.22);
+      --text: #F0EEFF;
+      --muted: #9B91C7;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      color: var(--text); letter-spacing: .06em;
+    }
+    .topbar-brand span { color: var(--purple); }
+    .btn-download {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border: none; border-radius: 10px;
+      padding: 10px 22px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: .9rem; color: #fff;
+      cursor: pointer; letter-spacing: .04em;
+      transition: opacity .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-download:hover { opacity: .88; }
+    .btn-download:active { opacity: .75; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 57px);
+    }
+
+    /* ── FORM PANEL ── */
+    .form-panel {
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      height: calc(100vh - 57px);
+      position: sticky; top: 57px;
+    }
+
+    .form-section {
+      margin-bottom: 28px;
+    }
+    .form-section-title {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 12px;
+    }
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .form-row.full { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: .75rem; font-weight: 600; color: var(--muted); }
+    .field input, .field textarea, .field select {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .85rem;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--purple);
+    }
+    .field textarea { resize: vertical; min-height: 70px; }
+
+    /* ── SERVICES TABLE IN FORM ── */
+    .svc-table { width: 100%; border-collapse: collapse; }
+    .svc-table th {
+      font-size: .68rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+      padding: 4px 6px; text-align: left;
+    }
+    .svc-table td { padding: 4px 4px; vertical-align: middle; }
+    .svc-table input {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 8px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .82rem;
+      width: 100%;
+      outline: none;
+    }
+    .svc-table input:focus { border-color: var(--purple); }
+    .svc-table input.price { text-align: right; }
+    .svc-remove {
+      background: none; border: none;
+      color: rgba(255,45,120,.5); cursor: pointer;
+      font-size: 1.1rem; padding: 4px 6px;
+      transition: color .2s;
+    }
+    .svc-remove:hover { color: var(--pink); }
+    .btn-add-svc {
+      margin-top: 10px;
+      background: rgba(123,92,240,.12);
+      border: 1px dashed rgba(123,92,240,.35);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--purple);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .82rem; font-weight: 600;
+      cursor: pointer; width: 100%;
+      transition: background .2s;
+    }
+    .btn-add-svc:hover { background: rgba(123,92,240,.2); }
+
+    /* ── DIVIDER ── */
+    .form-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── PREVIEW PANEL ── */
+    .preview-panel {
+      padding: 40px;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── DOCUMENTO PREVENTIVO ── */
+    .doc {
+      width: 100%;
+      max-width: 794px; /* A4 */
+      background: #fff;
+      color: #1a1a2e;
+      padding: 60px 64px;
+      box-shadow: 0 8px 60px rgba(0,0,0,.4);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      border-radius: 4px;
+    }
+
+    /* Header doc */
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 48px;
+    }
+    .doc-logo-wrap img { height: 52px; object-fit: contain; }
+    .doc-logo-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      color: #1a0a2e;
+      letter-spacing: .04em;
+    }
+    .doc-logo-sub {
+      font-size: .72rem; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: #7B5CF0; margin-top: 2px;
+    }
+    .doc-meta {
+      text-align: right;
+    }
+    .doc-meta-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      color: #7B5CF0; letter-spacing: .04em;
+    }
+    .doc-meta-date {
+      font-size: .82rem; color: #888;
+      margin-top: 4px;
+    }
+
+    /* Title */
+    .doc-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem; font-weight: 800;
+      color: #1a0a2e;
+      letter-spacing: -.01em;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #7B5CF0;
+    }
+
+    /* Parti */
+    .doc-parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+    .doc-party-label {
+      font-size: .68rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: #7B5CF0; margin-bottom: 8px;
+    }
+    .doc-party-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      color: #1a0a2e; margin-bottom: 2px;
+    }
+    .doc-party-detail { font-size: .82rem; color: #555; }
+
+    /* Tabella servizi */
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+    .doc-table thead tr {
+      background: #7B5CF0;
+    }
+    .doc-table thead th {
+      padding: 10px 14px;
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: #fff; text-align: left;
+    }
+    .doc-table thead th:last-child,
+    .doc-table thead th:nth-child(2),
+    .doc-table thead th:nth-child(3) { text-align: right; }
+    .doc-table tbody tr:nth-child(even) { background: #f8f6ff; }
+    .doc-table tbody tr:nth-child(odd)  { background: #fff; }
+    .doc-table tbody td {
+      padding: 10px 14px;
+      font-size: .88rem;
+      color: #2a2a3e;
+      border-bottom: 1px solid #ece8ff;
+    }
+    .doc-table tbody td:nth-child(2),
+    .doc-table tbody td:nth-child(3),
+    .doc-table tbody td:last-child { text-align: right; }
+
+    /* Totali */
+    .doc-totals {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 40px;
+    }
+    .doc-totals-inner { width: 260px; }
+    .doc-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: .88rem;
+      color: #555;
+      border-bottom: 1px solid #ece8ff;
+    }
+    .doc-total-row.grand {
+      border-bottom: none;
+      border-top: 2px solid #7B5CF0;
+      margin-top: 4px; padding-top: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 800;
+      color: #1a0a2e;
+    }
+
+    /* Note */
+    .doc-notes {
+      background: #f8f6ff;
+      border-left: 3px solid #7B5CF0;
+      border-radius: 0 6px 6px 0;
+      padding: 16px 20px;
+      margin-bottom: 40px;
+    }
+    .doc-notes-label {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #7B5CF0; margin-bottom: 6px;
+    }
+    .doc-notes-text { font-size: .85rem; color: #444; line-height: 1.6; white-space: pre-wrap; }
+
+    /* Footer doc */
+    .doc-footer {
+      border-top: 1px solid #ece8ff;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .doc-footer-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem; font-weight: 800;
+      color: #7B5CF0;
+    }
+    .doc-footer-contacts {
+      font-size: .75rem; color: #888;
+      text-align: right; line-height: 1.6;
+    }
+    .doc-validity {
+      background: #fff8e6;
+      border: 1px solid #FFB800;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: .82rem;
+      color: #7a5500;
+      margin-bottom: 28px;
+      display: flex; gap: 8px; align-items: center;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .form-panel { height: auto; position: static; }
+      .preview-panel { padding: 20px 12px; }
+      .doc { padding: 32px 24px; }
+      .doc-parties { grid-template-columns: 1fr; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
+  <button class="btn-download" onclick="scaricaWord()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Scarica Word
+  </button>
+</div>
+
+<div class="layout">
+
+  <!-- ── FORM PANEL ── -->
+  <div class="form-panel">
+
+    <div class="form-section">
+      <div class="form-section-title">Preventivo</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Numero</label>
+          <input type="text" id="f-num" value="001" oninput="aggiorna()" />
+        </div>
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="f-date" oninput="aggiorna()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Cliente</div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Nome e Cognome</label>
+          <input type="text" id="f-cname" placeholder="Mario Rossi" oninput="aggiorna()" />
+        </div>
+      </div>
+      <div class="form-row full" style="margin-top:10px">
+        <div class="field">
+          <label>Azienda / Attività</label>
+          <input type="text" id="f-ccompany" placeholder="Nome Attività Srl" oninput="aggiorna()" />
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:10px">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="f-cemail" placeholder="cliente@email.it" oninput="aggiorna()" />
+        </div>
+        <div class="field">
+          <label>Telefono</label>
+          <input type="text" id="f-cphone" placeholder="+39 000 000 0000" oninput="aggiorna()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Servizi</div>
+      <table class="svc-table">
+        <thead>
+          <tr>
+            <th style="width:45%">Descrizione</th>
+            <th style="width:12%">Qtà</th>
+            <th style="width:22%">Prezzo</th>
+            <th style="width:10%">IVA</th>
+            <th style="width:6%"></th>
+          </tr>
+        </thead>
+        <tbody id="svc-body"></tbody>
+      </table>
+      <button class="btn-add-svc" onclick="aggiungiRiga()">+ Aggiungi servizio</button>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Opzioni</div>
+      <div class="form-row">
+        <div class="field">
+          <label>IVA default (%)</label>
+          <select id="f-iva" onchange="aggiorna()">
+            <option value="0">0% (Esente)</option>
+            <option value="22" selected>22%</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Validità offerta</label>
+          <input type="text" id="f-validity" value="30 giorni" oninput="aggiorna()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Note e condizioni</div>
+      <div class="field">
+        <textarea id="f-notes" rows="5" placeholder="Es: Il pagamento è da effettuarsi al 50% all'accettazione e 50% alla consegna. I contenuti e i materiali necessari alla realizzazione saranno forniti dal cliente." oninput="aggiorna()"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── PREVIEW PANEL ── -->
+  <div class="preview-panel">
+    <div class="doc" id="doc-preview">
+
+      <!-- Header -->
+      <div class="doc-header">
+        <div class="doc-logo-wrap">
+          <img src="logo.png" alt="Astra Agency" id="doc-logo"
+            onerror="this.style.display='none'; document.getElementById('doc-logo-text').style.display='block'" />
+          <div id="doc-logo-text" style="display:none">
+            <div class="doc-logo-name">ASTRA AGENCY</div>
+            <div class="doc-logo-sub">Social Media Agency</div>
+          </div>
+        </div>
+        <div class="doc-meta">
+          <div class="doc-meta-num">PREVENTIVO N. <span id="p-num">001</span></div>
+          <div class="doc-meta-date" id="p-date"></div>
+        </div>
+      </div>
+
+      <div class="doc-title">Preventivo Commerciale</div>
+
+      <!-- Parti -->
+      <div class="doc-parties">
+        <div>
+          <div class="doc-party-label">Da</div>
+          <div class="doc-party-name">Astra Agency</div>
+          <div class="doc-party-detail">info@astragency.it</div>
+          <div class="doc-party-detail">astragency.it</div>
+        </div>
+        <div>
+          <div class="doc-party-label">A</div>
+          <div class="doc-party-name" id="p-cname">—</div>
+          <div class="doc-party-detail" id="p-ccompany"></div>
+          <div class="doc-party-detail" id="p-cemail"></div>
+          <div class="doc-party-detail" id="p-cphone"></div>
+        </div>
+      </div>
+
+      <!-- Tabella servizi -->
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th>Qtà</th>
+            <th>Prezzo Unit.</th>
+            <th>IVA</th>
+            <th>Totale</th>
+          </tr>
+        </thead>
+        <tbody id="p-rows"></tbody>
+      </table>
+
+      <!-- Totali -->
+      <div class="doc-totals">
+        <div class="doc-totals-inner">
+          <div class="doc-total-row"><span>Imponibile</span><span id="p-sub">€ 0,00</span></div>
+          <div class="doc-total-row"><span>IVA</span><span id="p-iva">€ 0,00</span></div>
+          <div class="doc-total-row grand"><span>TOTALE</span><span id="p-total">€ 0,00</span></div>
+        </div>
+      </div>
+
+      <!-- Validità -->
+      <div class="doc-validity" id="p-validity-box">
+        ⏱ <span>Questo preventivo è valido per <strong id="p-validity">30 giorni</strong> dalla data di emissione.</span>
+      </div>
+
+      <!-- Note -->
+      <div class="doc-notes" id="p-notes-box">
+        <div class="doc-notes-label">Note e condizioni di pagamento</div>
+        <div class="doc-notes-text" id="p-notes"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <div class="doc-footer-brand">ASTRA AGENCY</div>
+        <div class="doc-footer-contacts">
+          info@astragency.it &nbsp;·&nbsp; astragency.it
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Stato ──
+let righe = [
+  { desc: 'Gestione Social Media (mensile)', qty: 1, price: 500, iva: 22 },
+  { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22 },
+];
+
+function fmt(n) {
+  return '€ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function oggi() {
+  const d = new Date();
+  return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function isoOggi() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ── Init ──
+document.getElementById('f-date').value = isoOggi();
+document.getElementById('f-notes').value =
+  'Il pagamento è da effettuarsi al 50% all\'accettazione del preventivo e il restante 50% alla consegna del lavoro finito.\n\nI contenuti, materiali e accessi necessari saranno forniti dal cliente entro i tempi concordati.';
+
+renderRighe();
+aggiorna();
+
+// ── Render righe form ──
+function renderRighe() {
+  const tbody = document.getElementById('svc-body');
+  tbody.innerHTML = '';
+  righe.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${r.desc}" oninput="righe[${i}].desc=this.value;aggiorna()" /></td>
+      <td><input type="number" value="${r.qty}" min="1" oninput="righe[${i}].qty=+this.value;aggiorna()" class="price" /></td>
+      <td><input type="number" value="${r.price}" min="0" oninput="righe[${i}].price=+this.value;aggiorna()" class="price" /></td>
+      <td><input type="number" value="${r.iva}" min="0" max="100" oninput="righe[${i}].iva=+this.value;aggiorna()" class="price" /></td>
+      <td><button class="svc-remove" onclick="rimuoviRiga(${i})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function aggiungiRiga() {
+  const defIva = parseInt(document.getElementById('f-iva').value) || 22;
+  righe.push({ desc: '', qty: 1, price: 0, iva: defIva });
+  renderRighe();
+  aggiorna();
+}
+
+function rimuoviRiga(i) {
+  righe.splice(i, 1);
+  renderRighe();
+  aggiorna();
+}
+
+// ── Aggiorna preview ──
+function aggiorna() {
+  const num      = document.getElementById('f-num').value || '001';
+  const dateVal  = document.getElementById('f-date').value;
+  const cname    = document.getElementById('f-cname').value;
+  const ccompany = document.getElementById('f-ccompany').value;
+  const cemail   = document.getElementById('f-cemail').value;
+  const cphone   = document.getElementById('f-cphone').value;
+  const notes    = document.getElementById('f-notes').value;
+  const validity = document.getElementById('f-validity').value;
+
+  document.getElementById('p-num').textContent = num;
+  const d = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
+  document.getElementById('p-date').textContent = d;
+
+  document.getElementById('p-cname').textContent    = cname || '—';
+  document.getElementById('p-ccompany').textContent = ccompany;
+  document.getElementById('p-cemail').textContent   = cemail;
+  document.getElementById('p-cphone').textContent   = cphone;
+  document.getElementById('p-notes').textContent    = notes;
+  document.getElementById('p-validity').textContent = validity;
+  document.getElementById('p-notes-box').style.display = notes ? '' : 'none';
+
+  // Tabella
+  const tbody = document.getElementById('p-rows');
+  tbody.innerHTML = '';
+  let sub = 0, ivaTotal = 0;
+  righe.forEach(r => {
+    const imponibile = r.qty * r.price;
+    const ivaAmt = imponibile * r.iva / 100;
+    const tot = imponibile + ivaAmt;
+    sub += imponibile; ivaTotal += ivaAmt;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.desc || '—'}</td>
+      <td>${r.qty}</td>
+      <td>${fmt(r.price)}</td>
+      <td>${r.iva}%</td>
+      <td><strong>${fmt(tot)}</strong></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('p-sub').textContent   = fmt(sub);
+  document.getElementById('p-iva').textContent   = fmt(ivaTotal);
+  document.getElementById('p-total').textContent = fmt(sub + ivaTotal);
+}
+
+// ── Scarica Word ──
+async function scaricaWord() {
+  const btn = document.querySelector('.btn-download');
+  btn.textContent = 'Generando…';
+  btn.disabled = true;
+
+  try {
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+            WidthType, AlignmentType, BorderStyle, HeadingLevel,
+            ShadingType, VerticalAlign, ImageRun } = window.docx;
+
+    const num      = document.getElementById('f-num').value || '001';
+    const dateVal  = document.getElementById('f-date').value;
+    const d        = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
+    const cname    = document.getElementById('f-cname').value || '—';
+    const ccompany = document.getElementById('f-ccompany').value;
+    const cemail   = document.getElementById('f-cemail').value;
+    const cphone   = document.getElementById('f-cphone').value;
+    const notes    = document.getElementById('f-notes').value;
+    const validity = document.getElementById('f-validity').value;
+
+    // Calcola totali
+    let sub = 0, ivaTotal = 0;
+    righe.forEach(r => {
+      const imp = r.qty * r.price;
+      const iva = imp * r.iva / 100;
+      sub += imp; ivaTotal += iva;
+    });
+
+    const colorPurple = '7B5CF0';
+    const colorDark   = '1A0A2E';
+    const colorMuted  = '888888';
+    const colorLight  = 'F8F6FF';
+    const noStyle     = { style: { size: 22 } };
+
+    // Spacer
+    const sp = (sz = 120) => new Paragraph({ spacing: { before: sz } });
+
+    // Riga tabella servizi
+    const svcRows = righe.map((r, i) => {
+      const imp  = r.qty * r.price;
+      const iva  = imp * r.iva / 100;
+      const tot  = imp + iva;
+      const bg   = i % 2 === 0 ? 'FFFFFF' : 'F8F6FF';
+      return new TableRow({
+        children: [
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.desc || '—', size: 20 })] })], shading: { fill: bg, type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(r.qty), size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: bg, type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(r.price), size: 20 })], alignment: AlignmentType.RIGHT })], shading: { fill: bg, type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r.iva + '%', size: 20 })], alignment: AlignmentType.CENTER })], shading: { fill: bg, type: ShadingType.CLEAR } }),
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(tot), size: 20, bold: true })], alignment: AlignmentType.RIGHT })], shading: { fill: bg, type: ShadingType.CLEAR } }),
+        ]
+      });
+    });
+
+    const doc = new Document({
+      styles: {
+        default: {
+          document: { run: { font: 'Calibri', size: 22, color: '2a2a3e' } }
+        }
+      },
+      sections: [{
+        properties: {
+          page: { margin: { top: 900, right: 900, bottom: 900, left: 900 } }
+        },
+        children: [
+
+          // ── HEADER: AGENZIA + N. PREVENTIVO ──
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.NONE }, insideV: { style: BorderStyle.NONE } },
+            rows: [new TableRow({ children: [
+              new TableCell({
+                width: { size: 60, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: 'ASTRA AGENCY', font: 'Calibri', size: 36, bold: true, color: colorDark })] }),
+                  new Paragraph({ children: [new TextRun({ text: 'SOCIAL MEDIA AGENCY', font: 'Calibri', size: 16, color: colorPurple, bold: true })] }),
+                ],
+                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+              }),
+              new TableCell({
+                width: { size: 40, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: `PREVENTIVO N. ${num}`, font: 'Calibri', size: 22, bold: true, color: colorPurple })], alignment: AlignmentType.RIGHT }),
+                  new Paragraph({ children: [new TextRun({ text: d, font: 'Calibri', size: 18, color: colorMuted })], alignment: AlignmentType.RIGHT }),
+                ],
+                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+              }),
+            ]})]
+          }),
+
+          sp(200),
+
+          // ── TITOLO ──
+          new Paragraph({
+            children: [new TextRun({ text: 'Preventivo Commerciale', font: 'Calibri', size: 48, bold: true, color: colorDark })],
+            border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: colorPurple, space: 6 } },
+            spacing: { after: 300 }
+          }),
+
+          sp(100),
+
+          // ── DA / A ──
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.NONE }, insideV: { style: BorderStyle.NONE } },
+            rows: [new TableRow({ children: [
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: 'DA', size: 16, bold: true, color: colorPurple })] }),
+                  new Paragraph({ children: [new TextRun({ text: 'Astra Agency', size: 24, bold: true, color: colorDark })] }),
+                  new Paragraph({ children: [new TextRun({ text: 'info@astragency.it', size: 18, color: colorMuted })] }),
+                  new Paragraph({ children: [new TextRun({ text: 'astragency.it', size: 18, color: colorMuted })] }),
+                ],
+                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: 'A', size: 16, bold: true, color: colorPurple })] }),
+                  new Paragraph({ children: [new TextRun({ text: cname, size: 24, bold: true, color: colorDark })] }),
+                  ...(ccompany ? [new Paragraph({ children: [new TextRun({ text: ccompany, size: 18, color: colorMuted })] })] : []),
+                  ...(cemail   ? [new Paragraph({ children: [new TextRun({ text: cemail,   size: 18, color: colorMuted })] })] : []),
+                  ...(cphone   ? [new Paragraph({ children: [new TextRun({ text: cphone,   size: 18, color: colorMuted })] })] : []),
+                ],
+                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+              }),
+            ]})]
+          }),
+
+          sp(240),
+
+          // ── TABELLA SERVIZI ──
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                tableHeader: true,
+                children: ['Descrizione', 'Qtà', 'Prezzo Unit.', 'IVA', 'Totale'].map((h, i) => new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, color: 'FFFFFF', size: 18 })], alignment: i > 0 ? AlignmentType.RIGHT : AlignmentType.LEFT })],
+                  shading: { fill: colorPurple, type: ShadingType.CLEAR },
+                  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+                }))
+              }),
+              ...svcRows
+            ]
+          }),
+
+          sp(200),
+
+          // ── TOTALI ──
+          new Table({
+            width: { size: 40, type: WidthType.PERCENTAGE },
+            float: { horizontalAnchor: 'margin', absoluteHorizontalPosition: 0, relativeHorizontalPosition: 'right-margin' },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, insideV: { style: BorderStyle.NONE } },
+            rows: [
+              new TableRow({ children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Imponibile', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(sub), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+              ]}),
+              new TableRow({ children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'IVA', size: 20, color: colorMuted })] })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(ivaTotal), size: 20, color: colorMuted })], alignment: AlignmentType.RIGHT })], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: 'ECE8FF', size: 4 }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+              ]}),
+              new TableRow({ children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'TOTALE', size: 26, bold: true, color: colorDark })] })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: fmt(sub + ivaTotal), size: 26, bold: true, color: colorDark })], alignment: AlignmentType.RIGHT })], shading: { fill: 'F8F6FF', type: ShadingType.CLEAR }, borders: { top: { style: BorderStyle.SINGLE, color: colorPurple, size: 8 }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+              ]}),
+            ]
+          }),
+
+          sp(360),
+
+          // ── VALIDITÀ ──
+          ...(validity ? [new Paragraph({
+            children: [new TextRun({ text: `⏱  Questo preventivo è valido per ${validity} dalla data di emissione.`, size: 18, color: '7A5500' })],
+            shading: { fill: 'FFF8E6', type: ShadingType.CLEAR },
+            border: { left: { style: BorderStyle.SINGLE, size: 12, color: 'FFB800', space: 8 } },
+            spacing: { before: 80, after: 80 },
+            indent: { left: 160 }
+          })] : []),
+
+          sp(120),
+
+          // ── NOTE ──
+          ...(notes ? [
+            new Paragraph({
+              children: [new TextRun({ text: 'NOTE E CONDIZIONI DI PAGAMENTO', size: 16, bold: true, color: colorPurple })],
+              spacing: { after: 60 }
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: notes, size: 18, color: '444444' })],
+              shading: { fill: 'F8F6FF', type: ShadingType.CLEAR },
+              border: { left: { style: BorderStyle.SINGLE, size: 12, color: colorPurple, space: 8 } },
+              spacing: { before: 60, after: 60 },
+              indent: { left: 160 }
+            }),
+          ] : []),
+
+          sp(300),
+
+          // ── FOOTER ──
+          new Paragraph({
+            children: [
+              new TextRun({ text: 'ASTRA AGENCY', size: 18, bold: true, color: colorPurple }),
+              new TextRun({ text: '   ·   info@astragency.it   ·   astragency.it', size: 18, color: colorMuted }),
+            ],
+            border: { top: { style: BorderStyle.SINGLE, size: 4, color: 'ECE8FF', space: 6 } },
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 120 }
+          }),
+
+        ]
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const cname2 = document.getElementById('f-cname').value.replace(/\s+/g, '-') || 'Cliente';
+    saveAs(blob, `Preventivo-${num}-${cname2}-AstraAgency.docx`);
+
+  } catch(e) {
+    console.error(e);
+    alert('Errore generazione Word: ' + e.message);
+  }
+
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Scarica Word`;
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
