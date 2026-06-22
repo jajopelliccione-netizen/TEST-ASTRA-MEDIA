@@ -878,12 +878,88 @@
     }
 
     /* ── MOBILE ── */
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-      .form-panel { height: auto; position: static; }
-      .preview-panel { padding: 20px 12px; }
-      .doc { padding: 32px 24px; }
-      .doc-parties { grid-template-columns: 1fr; gap: 16px; }
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .layout { grid-template-columns: 300px 1fr; }
+      .form-panel { padding: 18px 14px; }
+      .topbar { padding: 10px 16px; }
+      .topbar-brand { font-size: .9rem; }
+      .btn-label { display: none; }
+      #topbar-user { display: none !important; }
+    }
+
+    /* ── Mobile Tab Switcher ── */
+    .mobile-tabs {
+      display: none;
+      position: sticky;
+      top: 52px;
+      z-index: 98;
+      background: var(--bg2);
+      border-bottom: 2px solid var(--border);
+    }
+    .mobile-tab {
+      flex: 1;
+      padding: 13px 8px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    .mobile-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+    /* ── Mobile (≤ 768px) ── */
+    @media (max-width: 768px) {
+      /* Topbar */
+      .topbar { padding: 10px 12px; gap: 6px; }
+      .topbar-brand { font-size: .85rem; }
+      .btn-label { display: none; }
+      #topbar-user { display: none !important; }
+      #btn-logout { padding: 7px 10px !important; font-size: .75rem !important; }
+      .btn-pdf, .btn-download { padding: 9px 12px !important; }
+
+      /* Mobile tabs */
+      .mobile-tabs { display: flex; }
+
+      /* Layout: colonna singola */
+      .layout { grid-template-columns: 1fr; min-height: auto; }
+
+      /* Form panel */
+      .form-panel {
+        height: auto;
+        position: static;
+        padding: 16px 12px;
+        overflow-y: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      /* Nasconde il pannello non attivo */
+      .form-panel.tab-hidden,
+      .preview-panel.tab-hidden { display: none !important; }
+
+      /* Preview panel */
+      .preview-panel { padding: 14px 8px; }
+
+      /* Doc */
+      .doc {
+        padding: 26px 18px;
+        font-size: 12.5px;
+      }
+      .doc-parties { grid-template-columns: 1fr; gap: 12px; }
+      .doc-totals { font-size: .8rem; }
+
+      /* Svc card: griglia a 2 colonne su mobile */
+      .svc-card-row { grid-template-columns: 1fr 1fr; }
+
+      /* Prevenire zoom iOS sugli input */
+      input, select, textarea { font-size: 16px !important; }
+      .svc-card input { font-size: 14px !important; }
     }
   </style>
 </head>
@@ -898,18 +974,24 @@
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex;align-items:center;gap:10px">
     <span id="topbar-user" style="font-size:.8rem;color:var(--muted);display:none"></span>
     <button class="btn-pdf" id="btn-pdf" onclick="scaricaPDF()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-      Scarica PDF
+      <span class="btn-label">Scarica PDF</span>
     </button>
     <button class="btn-download" onclick="scaricaWord()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Word
+      <span class="btn-label">Word</span>
     </button>
     <button id="btn-logout" style="display:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 16px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.85rem;cursor:pointer;transition:background .2s" onmouseenter="this.style.background='rgba(255,255,255,.12)'" onmouseleave="this.style.background='rgba(255,255,255,.07)'">Esci</button>
   </div>
+</div>
+
+<!-- Mobile tab switcher (visibile solo su ≤768px) -->
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mobile-tab active" id="tab-form" onclick="switchTab('form')">✎ Modulo</button>
+  <button class="mobile-tab" id="tab-preview" onclick="switchTab('preview')">👁 Anteprima</button>
 </div>
 
 <div class="layout" id="main-layout" style="display:none">
@@ -1241,6 +1323,27 @@ aggiorna();
 aggiornaLogo();
 caricaLayoutSalvato();
 renderBozze();
+
+// ── Mobile tab switcher ──
+function switchTab(tab) {
+  const formPanel    = document.querySelector('.form-panel');
+  const previewPanel = document.querySelector('.preview-panel');
+  const tabForm      = document.getElementById('tab-form');
+  const tabPreview   = document.getElementById('tab-preview');
+  if (tab === 'form') {
+    formPanel.classList.remove('tab-hidden');
+    previewPanel.classList.add('tab-hidden');
+    tabForm.classList.add('active');
+    tabPreview.classList.remove('active');
+  } else {
+    previewPanel.classList.remove('tab-hidden');
+    formPanel.classList.add('tab-hidden');
+    tabPreview.classList.add('active');
+    tabForm.classList.remove('active');
+    // Ricalcola preview al primo switch (potrebbe essere collassata)
+    aggiorna();
+  }
+}
 
 // ── Render contatti form ──
 function renderContatti() {
