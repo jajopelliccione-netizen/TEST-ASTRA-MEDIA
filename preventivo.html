@@ -886,6 +886,12 @@ let contatti = [
   { nome: '', email: '', phone: '' }
 ];
 
+// ── Layout editor state (dichiarato in cima per evitare temporal dead zone) ──
+const LAYOUT_KEY = 'astra-preventivo-layout';
+const DS_IDS     = ['ds-header','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
+let   editMode   = false;
+let   dragState  = null;
+
 function fmt(n) {
   return '€ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
@@ -1077,11 +1083,6 @@ function aggiorna() {
 }
 
 // ── Layout editor drag & drop ──
-const LAYOUT_KEY  = 'astra-preventivo-layout';
-const DS_IDS      = ['ds-header','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
-let   editMode    = false;
-let   dragState   = null;
-
 function toggleEditMode() {
   const docEl = document.getElementById('doc-preview');
   const btn   = document.getElementById('btn-edit-layout');
