@@ -636,12 +636,17 @@
     .desc-elaborata-preview strong { color: var(--purple); }
     .page-label {
       text-align: center;
-      font-size: .68rem;
-      color: rgba(255,255,255,.25);
+      font-size: .68rem; font-weight: 700;
+      color: rgba(255,255,255,.3);
       letter-spacing: .15em;
       text-transform: uppercase;
-      padding: 10px 0;
-      margin-bottom: 16px;
+      padding: 20px 0 12px;
+      margin-bottom: 0;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .page-label::before, .page-label::after {
+      content: ''; flex: 1;
+      height: 1px; background: rgba(255,255,255,.1);
     }
 
     /* ── Una tantum / Primo mese ── */
@@ -803,6 +808,52 @@
     .btn-ai-struttura:hover { opacity: .88; }
     .btn-ai-struttura:disabled { opacity: .5; cursor: not-allowed; }
 
+    /* ── Separatore pagine nel preview ── */
+    #desc-page-preview .doc { margin-bottom: 0; }
+
+    /* ── Pulsante PDF ── */
+    .btn-pdf {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: .85rem; color: var(--text);
+      cursor: pointer; letter-spacing: .03em;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-pdf:hover { background: rgba(255,255,255,.14); }
+
+    /* ── Print / PDF ── */
+    @media print {
+      #auth-overlay, .topbar, .form-panel { display: none !important; }
+      body { background: #fff !important; }
+      .layout { display: block !important; }
+      .preview-panel {
+        padding: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+      .page-label { display: none !important; }
+      #desc-page-preview { width: 100% !important; max-width: 100% !important; }
+      #desc-page-preview .doc, .doc {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        page-break-after: always;
+        break-after: page;
+        margin: 0 !important;
+      }
+      .doc:last-child, #doc-preview {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      #edit-banner { display: none !important; }
+      .drag-section { outline: none !important; }
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -826,9 +877,13 @@
   <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
   <div style="display:flex;align-items:center;gap:12px">
     <span id="topbar-user" style="font-size:.8rem;color:var(--muted);display:none"></span>
+    <button class="btn-pdf" onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Stampa / PDF
+    </button>
     <button class="btn-download" onclick="scaricaWord()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Scarica Word
+      Word
     </button>
     <button id="btn-logout" style="display:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 16px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.85rem;cursor:pointer;transition:background .2s" onmouseenter="this.style.background='rgba(255,255,255,.12)'" onmouseleave="this.style.background='rgba(255,255,255,.07)'">Esci</button>
   </div>
