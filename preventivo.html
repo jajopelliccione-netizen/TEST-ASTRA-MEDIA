@@ -317,21 +317,24 @@
       justify-content: flex-end;
       margin-bottom: 40px;
     }
-    .doc-totals-inner { width: 260px; }
+    .doc-totals-inner { width: 310px; }
     .doc-total-row {
       display: flex;
       justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
       padding: 6px 0;
       font-size: .88rem;
       color: #555;
       border-bottom: 1px solid #ece8ff;
     }
+    .doc-total-row span:last-child { white-space: nowrap; text-align: right; }
     .doc-total-row.grand {
       border-bottom: none;
       border-top: 2px solid #7B5CF0;
       margin-top: 4px; padding-top: 10px;
       font-family: 'Syne', sans-serif;
-      font-size: 1.1rem; font-weight: 800;
+      font-size: 1rem; font-weight: 800;
       color: #1a0a2e;
     }
 
@@ -676,18 +679,20 @@
     /* totale primo mese nel preview */
     .doc-total-row.pm {
       border-top: 2px dashed #FFB800;
+      border-bottom: none;
       margin-top: 6px; padding-top: 10px;
       font-family: 'Syne', sans-serif;
-      font-size: 1rem; font-weight: 800;
+      font-size: .95rem; font-weight: 800;
       color: #7a5500;
     }
 
     /* totale una tantum nel preview */
     .doc-total-row.tantum {
       border-top: 2px dashed #00C8B4;
+      border-bottom: none;
       margin-top: 6px; padding-top: 10px;
       font-family: 'Syne', sans-serif;
-      font-size: 1rem; font-weight: 800;
+      font-size: .95rem; font-weight: 800;
       color: #007a6a;
     }
 
@@ -1329,7 +1334,7 @@ function aggiorna() {
     totHtml = `
       <div class="doc-total-row"><span>Imponibile mensile</span><span>${fmt(sub)}</span></div>
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
-      <div class="doc-total-row grand"><span>MENSILE (dal 2°)</span><span>${fmt(sub + ivaTotal)}</span></div>
+      <div class="doc-total-row grand"><span>MENSILE<br><small style="font-size:.65em;font-weight:400;color:#888;">dal 2° mese</small></span><span>${fmt(sub + ivaTotal)}</span></div>
       <div class="doc-total-row pm"><span>1° MESE</span><span>${fmt(sub1 + iva1)}</span></div>`;
     if (hasTantum) totHtml += `<div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
   } else {
