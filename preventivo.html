@@ -517,6 +517,90 @@
     }
     .btn-bozza-del:hover { color: var(--pink); }
 
+    /* ── Drag sections (layout editor) ── */
+    .drag-section { display: block; }
+
+    #edit-banner {
+      display: none;
+      background: #7B5CF0;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .75rem; font-weight: 700;
+      letter-spacing: .05em;
+      text-align: center;
+      padding: 7px 12px;
+      margin: -60px -64px 28px;
+      border-radius: 4px 4px 0 0;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .doc.edit-mode { position: relative; }
+    .doc.edit-mode #edit-banner { display: block; }
+
+    .doc.edit-mode .drag-section {
+      position: absolute;
+      outline: 2px dashed rgba(123,92,240,.45);
+      border-radius: 3px;
+      cursor: grab;
+      padding: 4px;
+      user-select: none;
+    }
+    .doc.edit-mode .drag-section:hover { outline-color: #7B5CF0; }
+    .doc.edit-mode .drag-section::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -19px; left: 0;
+      background: #7B5CF0;
+      color: #fff;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px 3px 0 0;
+      font-family: 'Space Grotesk', sans-serif;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .doc.edit-mode .drag-section.dragging {
+      cursor: grabbing !important;
+      outline: 2px solid #FF2D78;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+      background: rgba(255,255,255,.98);
+    }
+    .doc.edit-mode .drag-section.dragging::before { background: #FF2D78; }
+
+    .btn-edit-layout {
+      width: 100%;
+      background: rgba(123,92,240,.1);
+      border: 1px solid rgba(123,92,240,.3);
+      border-radius: 8px;
+      padding: 9px 14px;
+      color: var(--purple);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .85rem; font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .btn-edit-layout:hover { background: rgba(123,92,240,.2); }
+    .btn-edit-layout.active {
+      background: rgba(255,45,120,.12);
+      border-color: rgba(255,45,120,.35);
+      color: var(--pink);
+    }
+    .btn-reset-layout {
+      width: 100%; margin-top: 8px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .8rem; font-weight: 600;
+      cursor: pointer; transition: background .2s;
+    }
+    .btn-reset-layout:hover { background: rgba(255,255,255,.1); }
+
     /* ── MOBILE ── */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -641,6 +725,17 @@
       <button class="btn-predefinito" onclick="salvaPredefinitoLogo()">💾 Salva come predefinito</button>
     </div>
 
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Layout documento</div>
+      <button class="btn-edit-layout" id="btn-edit-layout" onclick="toggleEditMode()">⊹ Modifica layout</button>
+      <div id="layout-actions" style="display:none">
+        <button class="btn-predefinito" onclick="salvaLayoutPredefinito()" style="margin-top:8px">💾 Salva layout predefinito</button>
+        <button class="btn-reset-layout" onclick="ripristinaLayout()">↺ Ripristina layout originale</button>
+      </div>
+    </div>
+
     <div class="bozze-section">
       <div class="bozze-header">
         <div class="form-section-title" style="margin:0">Bozze</div>
@@ -655,78 +750,97 @@
   <div class="preview-panel">
     <div class="doc" id="doc-preview">
 
+      <div id="edit-banner">✎ Trascina le sezioni per riposizionarle</div>
+
       <!-- Header -->
-      <div class="doc-header">
-        <div class="doc-logo-wrap">
-          <img src="logo.png" alt="Astra Agency" id="doc-logo"
-            onerror="this.style.display='none'; document.getElementById('doc-logo-text').style.display='block'" />
-          <div id="doc-logo-text" style="display:none">
-            <div class="doc-logo-name">ASTRA AGENCY</div>
-            <div class="doc-logo-sub">Social Media Agency</div>
+      <div class="drag-section" id="ds-header" data-label="Logo + Numero">
+        <div class="doc-header">
+          <div class="doc-logo-wrap">
+            <img src="logo.png" alt="Astra Agency" id="doc-logo"
+              onerror="this.style.display='none'; document.getElementById('doc-logo-text').style.display='block'" />
+            <div id="doc-logo-text" style="display:none">
+              <div class="doc-logo-name">ASTRA AGENCY</div>
+              <div class="doc-logo-sub">Social Media Agency</div>
+            </div>
           </div>
-        </div>
-        <div class="doc-meta">
-          <div class="doc-meta-num">PREVENTIVO N. <span id="p-num">001</span></div>
-          <div class="doc-meta-date" id="p-date"></div>
+          <div class="doc-meta">
+            <div class="doc-meta-num">PREVENTIVO N. <span id="p-num">001</span></div>
+            <div class="doc-meta-date" id="p-date"></div>
+          </div>
         </div>
       </div>
 
-      <div class="doc-title">Proposta Commerciale</div>
+      <!-- Titolo -->
+      <div class="drag-section" id="ds-title" data-label="Titolo">
+        <div class="doc-title">Proposta Commerciale</div>
+      </div>
 
       <!-- Parti -->
-      <div class="doc-parties">
-        <div>
-          <div class="doc-party-label">Da</div>
-          <div class="doc-party-name">Astra Agency</div>
-          <div class="doc-party-detail">info@astragency.it</div>
-          <div class="doc-party-detail">astragency.it</div>
-        </div>
-        <div>
-          <div class="doc-party-label">A</div>
-          <div class="doc-party-detail" id="p-ccompany" style="font-weight:600;color:#555;margin-bottom:6px"></div>
-          <div id="p-contatti"></div>
+      <div class="drag-section" id="ds-parties" data-label="Da / A">
+        <div class="doc-parties">
+          <div>
+            <div class="doc-party-label">Da</div>
+            <div class="doc-party-name">Astra Agency</div>
+            <div class="doc-party-detail">info@astragency.it</div>
+            <div class="doc-party-detail">astragency.it</div>
+          </div>
+          <div>
+            <div class="doc-party-label">A</div>
+            <div class="doc-party-detail" id="p-ccompany" style="font-weight:600;color:#555;margin-bottom:6px"></div>
+            <div id="p-contatti"></div>
+          </div>
         </div>
       </div>
 
       <!-- Tabella servizi -->
-      <table class="doc-table">
-        <thead>
-          <tr>
-            <th>Descrizione</th>
-            <th>Qtà</th>
-            <th>Prezzo Unit.</th>
-            <th>IVA</th>
-            <th>Totale</th>
-          </tr>
-        </thead>
-        <tbody id="p-rows"></tbody>
-      </table>
+      <div class="drag-section" id="ds-table" data-label="Servizi">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Descrizione</th>
+              <th>Qtà</th>
+              <th>Prezzo Unit.</th>
+              <th>IVA</th>
+              <th>Totale</th>
+            </tr>
+          </thead>
+          <tbody id="p-rows"></tbody>
+        </table>
+      </div>
 
       <!-- Totali -->
-      <div class="doc-totals">
-        <div class="doc-totals-inner">
-          <div class="doc-total-row"><span>Imponibile</span><span id="p-sub">€ 0,00</span></div>
-          <div class="doc-total-row"><span>IVA</span><span id="p-iva">€ 0,00</span></div>
-          <div class="doc-total-row grand"><span>TOTALE</span><span id="p-total">€ 0,00</span></div>
+      <div class="drag-section" id="ds-totals" data-label="Totali">
+        <div class="doc-totals">
+          <div class="doc-totals-inner">
+            <div class="doc-total-row"><span>Imponibile</span><span id="p-sub">€ 0,00</span></div>
+            <div class="doc-total-row"><span>IVA</span><span id="p-iva">€ 0,00</span></div>
+            <div class="doc-total-row grand"><span>TOTALE</span><span id="p-total">€ 0,00</span></div>
+          </div>
         </div>
       </div>
 
       <!-- Validità -->
-      <div class="doc-validity" id="p-validity-box">
-        ⏱ <span>Questo preventivo è valido per <strong id="p-validity">30 giorni</strong> dalla data di emissione.</span>
+      <div class="drag-section" id="ds-validity" data-label="Validità">
+        <div class="doc-validity" id="p-validity-box">
+          ⏱ <span>Questo preventivo è valido per <strong id="p-validity">30 giorni</strong> dalla data di emissione.</span>
+        </div>
       </div>
 
       <!-- Note -->
-      <div class="doc-notes" id="p-notes-box">
-        <div class="doc-notes-label">Note e condizioni di pagamento</div>
-        <div class="doc-notes-text" id="p-notes"></div>
+      <div class="drag-section" id="ds-notes" data-label="Note">
+        <div class="doc-notes" id="p-notes-box">
+          <div class="doc-notes-label">Note e condizioni di pagamento</div>
+          <div class="doc-notes-text" id="p-notes"></div>
+        </div>
       </div>
 
       <!-- Footer -->
-      <div class="doc-footer">
-        <div class="doc-footer-brand">ASTRA AGENCY</div>
-        <div class="doc-footer-contacts">
-          info@astragency.it &nbsp;·&nbsp; astragency.it
+      <div class="drag-section" id="ds-footer" data-label="Footer">
+        <div class="doc-footer">
+          <div class="doc-footer-brand">ASTRA AGENCY</div>
+          <div class="doc-footer-contacts">
+            info@astragency.it &nbsp;·&nbsp; astragency.it
+          </div>
         </div>
       </div>
 
@@ -802,6 +916,7 @@ renderContatti();
 renderRighe();
 aggiorna();
 aggiornaLogo();
+caricaLayoutSalvato();
 renderBozze();
 
 // ── Render contatti form ──
@@ -960,6 +1075,154 @@ function aggiorna() {
   document.getElementById('p-sub').textContent   = fmt(sub);
   document.getElementById('p-iva').textContent   = fmt(ivaTotal);
   document.getElementById('p-total').textContent = fmt(sub + ivaTotal);
+}
+
+// ── Layout editor drag & drop ──
+const LAYOUT_KEY  = 'astra-preventivo-layout';
+const DS_IDS      = ['ds-header','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
+let   editMode    = false;
+let   dragState   = null;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const docEl  = document.getElementById('doc-preview');
+  const btn    = document.getElementById('btn-edit-layout');
+  const acts   = document.getElementById('layout-actions');
+
+  if (editMode) {
+    // Cattura posizioni nel flusso corrente prima di switchare ad absolute
+    const docRect = docEl.getBoundingClientRect();
+    const savedH  = docRect.height;
+
+    DS_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.width  = r.width  + 'px';
+      el.style.top    = (r.top  - docRect.top)  + 'px';
+      el.style.left   = (r.left - docRect.left) + 'px';
+    });
+
+    docEl.style.height = savedH + 'px';
+    docEl.classList.add('edit-mode');
+    setupDragHandlers(true);
+    btn.textContent = '✓ Fine modifica';
+    btn.classList.add('active');
+    acts.style.display = '';
+  } else {
+    setupDragHandlers(false);
+    docEl.classList.remove('edit-mode');
+    // Mantieni le posizioni absolute se sono state salvate, altrimenti torna al flusso
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    if (!saved) ripristinaLayout();
+    btn.textContent = '⊹ Modifica layout';
+    btn.classList.remove('active');
+    acts.style.display = 'none';
+  }
+}
+
+function setupDragHandlers(on) {
+  DS_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (on) {
+      el.addEventListener('mousedown', onMouseDown);
+      el.addEventListener('touchstart', onTouchStart, { passive: false });
+    } else {
+      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('touchstart', onTouchStart);
+    }
+  });
+}
+
+function onMouseDown(e) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  startDrag(this, e.clientX, e.clientY);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup',   onMouseUp);
+}
+function onMouseMove(e) { moveDrag(e.clientX, e.clientY); }
+function onMouseUp()    { endDrag(); document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+
+function onTouchStart(e) {
+  e.preventDefault();
+  const t = e.touches[0];
+  startDrag(this, t.clientX, t.clientY);
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend',  onTouchEnd);
+}
+function onTouchMove(e) { e.preventDefault(); const t = e.touches[0]; moveDrag(t.clientX, t.clientY); }
+function onTouchEnd()   { endDrag(); document.removeEventListener('touchmove', onTouchMove); document.removeEventListener('touchend', onTouchEnd); }
+
+function startDrag(el, cx, cy) {
+  el.classList.add('dragging');
+  dragState = {
+    el,
+    startCX: cx, startCY: cy,
+    startTop:  parseFloat(el.style.top)  || 0,
+    startLeft: parseFloat(el.style.left) || 0,
+  };
+}
+
+function moveDrag(cx, cy) {
+  if (!dragState) return;
+  const { el, startCX, startCY, startTop, startLeft } = dragState;
+  el.style.top  = (startTop  + cy - startCY) + 'px';
+  el.style.left = (startLeft + cx - startCX) + 'px';
+}
+
+function endDrag() {
+  if (!dragState) return;
+  dragState.el.classList.remove('dragging');
+  dragState = null;
+}
+
+function salvaLayoutPredefinito() {
+  const docEl = document.getElementById('doc-preview');
+  const layout = { _h: docEl.style.height };
+  DS_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    layout[id] = { top: el.style.top, left: el.style.left, width: el.style.width };
+  });
+  localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+  const btn = document.querySelector('.btn-predefinito');
+  const prev = btn.textContent;
+  btn.textContent = '✓ Layout salvato!';
+  setTimeout(() => { btn.textContent = prev; }, 1800);
+}
+
+function caricaLayoutSalvato() {
+  const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+  if (!saved) return;
+  const docEl = document.getElementById('doc-preview');
+  if (saved._h) docEl.style.height = saved._h;
+  docEl.classList.add('edit-mode');
+  DS_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !saved[id]) return;
+    el.style.top   = saved[id].top;
+    el.style.left  = saved[id].left;
+    el.style.width = saved[id].width;
+  });
+}
+
+function ripristinaLayout() {
+  const docEl = document.getElementById('doc-preview');
+  docEl.classList.remove('edit-mode');
+  docEl.style.height = '';
+  DS_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.top = el.style.left = el.style.width = el.style.position = '';
+  });
+  localStorage.removeItem(LAYOUT_KEY);
+  editMode = false;
+  const btn  = document.getElementById('btn-edit-layout');
+  const acts = document.getElementById('layout-actions');
+  if (btn)  { btn.textContent = '⊹ Modifica layout'; btn.classList.remove('active'); }
+  if (acts) acts.style.display = 'none';
 }
 
 // ── Logo ──
