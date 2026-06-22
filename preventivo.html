@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -878,9 +879,9 @@
   <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
   <div style="display:flex;align-items:center;gap:12px">
     <span id="topbar-user" style="font-size:.8rem;color:var(--muted);display:none"></span>
-    <button class="btn-pdf" onclick="window.print()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      Stampa / PDF
+    <button class="btn-pdf" id="btn-pdf" onclick="scaricaPDF()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Scarica PDF
     </button>
     <button class="btn-download" onclick="scaricaWord()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2429,6 +2430,60 @@ async function scaricaWord() {
 
   btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Scarica Word`;
   btn.disabled = false;
+}
+
+/* ── SCARICA PDF (html2pdf – rendering diretto del preview) ── */
+async function scaricaPDF() {
+  const btn = document.getElementById('btn-pdf');
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = 'Generando…';
+  btn.disabled = true;
+
+  const num       = document.getElementById('f-num').value || '001';
+  const firstName = (contatti.find(c => c.nome)?.nome || 'Cliente').replace(/\s+/g, '-');
+
+  // Contenitore temporaneo fuori-schermo
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;width:794px;background:#fff;';
+
+  const noShadow = 'box-shadow:none!important;border-radius:0!important;margin:0!important;';
+
+  // Pagina descrizione (se presente)
+  const descEl = document.getElementById('desc-page-preview');
+  if (descEl && descEl.style.display !== 'none' && descEl.firstElementChild) {
+    const dc = descEl.firstElementChild.cloneNode(true);
+    dc.setAttribute('style', (dc.getAttribute('style') || '') + ';' + noShadow + 'page-break-after:always;break-after:page;');
+    wrap.appendChild(dc);
+  }
+
+  // Pagina preventivo
+  const docEl   = document.getElementById('doc-preview');
+  const docClone = docEl.cloneNode(true);
+  docClone.querySelector('#edit-banner')?.remove();
+  docClone.querySelectorAll('.drag-handle,.drag-section').forEach(el => { el.style.outline = 'none'; el.style.cursor = 'default'; });
+  docClone.setAttribute('style', (docClone.getAttribute('style') || '') + ';' + noShadow);
+  wrap.appendChild(docClone);
+
+  document.body.appendChild(wrap);
+
+  await document.fonts.ready;
+
+  try {
+    await html2pdf().set({
+      margin:      0,
+      filename:    `Preventivo-${num}-${firstName}-AstraAgency.pdf`,
+      image:       { type: 'jpeg', quality: 0.97 },
+      html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:   { mode: ['css', 'legacy'] }
+    }).from(wrap).save();
+  } catch(err) {
+    alert('Errore PDF: ' + err.message);
+  }
+
+  document.body.removeChild(wrap);
+  btn.innerHTML = origHTML;
+  btn.disabled  = false;
 }
 </script>
 </body>
