@@ -1695,27 +1695,30 @@ async function strutturaConAI() {
   btn.textContent = '✦ AI sta elaborando…';
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
-      })
+    // Prova i modelli in ordine finché uno risponde (salta i 404 = modello non disponibile)
+    const MODELS = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    const reqBody = JSON.stringify({
+      contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
     });
+    let resp;
+    for (const model of MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
+      if (resp.status !== 404) break;
+    }
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       if (resp.status === 429) {
-        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche secondo e riprova, oppure controlla la quota giornaliera su aistudio.google.com.');
+        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche minuto e riprova (la quota gratuita è limitata).');
       }
       if (resp.status === 400 || resp.status === 403) {
         localStorage.removeItem(AI_KEY_STORAGE);
         const el = document.getElementById('ai-key-status');
         const kb = document.getElementById('btn-ai-key');
         el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; kb.textContent = 'Imposta';
-        throw new Error('API Key non valida. Riconfigurala con il pulsante "Imposta".');
+        throw new Error('API Key non valida o scaduta. Riconfigurala su aistudio.google.com e usa il pulsante "Imposta".');
       }
       throw new Error(err.error?.message || `Errore ${resp.status}`);
     }
