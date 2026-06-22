@@ -693,7 +693,7 @@ function aggiorna() {
   document.getElementById('p-validity').textContent = validity;
   document.getElementById('p-notes-box').style.display = notes ? '' : 'none';
 
-  // Contatti nel preview
+  // Contatti nel preview — prima tutti i nomi, poi tutte le mail, poi tutti i telefoni
   const pCont = document.getElementById('p-contatti');
   pCont.innerHTML = '';
   const hasAny = contatti.some(c => c.nome || c.email || c.phone);
@@ -704,16 +704,23 @@ function aggiorna() {
     el.textContent = '—';
     pCont.appendChild(el);
   } else {
-    contatti.forEach(c => {
-      if (!c.nome && !c.email && !c.phone) return;
-      const div = document.createElement('div');
-      div.className = 'p-contatto';
-      div.innerHTML = `
-        ${c.nome ? `<div class="p-contatto-name">${c.nome}</div>` : ''}
-        ${c.email ? `<div class="p-contatto-detail">${c.email}</div>` : ''}
-        ${c.phone ? `<div class="p-contatto-detail">${c.phone}</div>` : ''}
-      `;
-      pCont.appendChild(div);
+    contatti.filter(c => c.nome).forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'p-contatto-name';
+      el.textContent = c.nome;
+      pCont.appendChild(el);
+    });
+    contatti.filter(c => c.email).forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'p-contatto-detail';
+      el.textContent = c.email;
+      pCont.appendChild(el);
+    });
+    contatti.filter(c => c.phone).forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'p-contatto-detail';
+      el.textContent = c.phone;
+      pCont.appendChild(el);
     });
   }
 
@@ -861,15 +868,9 @@ async function scaricaWord() {
                 children: [
                   new Paragraph({ children: [new TextRun({ text: 'A', size: 16, bold: true, color: colorPurple })] }),
                   ...(ccompany ? [new Paragraph({ children: [new TextRun({ text: ccompany, size: 22, bold: true, color: colorDark })] })] : []),
-                  ...contatti.flatMap(c => {
-                    if (!c.nome && !c.email && !c.phone) return [];
-                    return [
-                      ...(c.nome  ? [new Paragraph({ children: [new TextRun({ text: c.nome,  size: 20, bold: true, color: colorDark })] })] : []),
-                      ...(c.email ? [new Paragraph({ children: [new TextRun({ text: c.email, size: 18, color: colorMuted })] })] : []),
-                      ...(c.phone ? [new Paragraph({ children: [new TextRun({ text: c.phone, size: 18, color: colorMuted })] })] : []),
-                      new Paragraph({ children: [new TextRun({ text: '' })] }),
-                    ];
-                  }),
+                  ...contatti.filter(c => c.nome).map(c => new Paragraph({ children: [new TextRun({ text: c.nome, size: 20, bold: true, color: colorDark })] })),
+                  ...contatti.filter(c => c.email).map(c => new Paragraph({ children: [new TextRun({ text: c.email, size: 18, color: colorMuted })] })),
+                  ...contatti.filter(c => c.phone).map(c => new Paragraph({ children: [new TextRun({ text: c.phone, size: 18, color: colorMuted })] })),
                 ],
                 borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
               }),
