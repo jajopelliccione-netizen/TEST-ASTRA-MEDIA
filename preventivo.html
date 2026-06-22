@@ -830,28 +830,38 @@
 
     /* ── Print / PDF ── */
     @media print {
-      #auth-overlay, .topbar, .form-panel { display: none !important; }
-      body { background: #fff !important; }
+      html, body { background: #fff !important; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      #auth-overlay, .topbar, .form-panel, .page-label { display: none !important; }
+
       .layout { display: block !important; }
       .preview-panel {
         padding: 0 !important;
         overflow: visible !important;
         display: block !important;
+        background: #fff !important;
       }
-      .page-label { display: none !important; }
+
+      /* Ogni .doc interno alla pagina descrizione → page break DOPO */
       #desc-page-preview { width: 100% !important; max-width: 100% !important; }
-      #desc-page-preview .doc, .doc {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        max-width: 100% !important;
-        page-break-after: always;
-        break-after: page;
-        margin: 0 !important;
+      #desc-page-preview .doc {
+        box-shadow: none !important; border-radius: 0 !important;
+        max-width: 100% !important; margin: 0 !important;
+        page-break-after: always; break-after: page;
       }
-      .doc:last-child, #doc-preview {
-        page-break-after: auto;
-        break-after: auto;
+      /* Pagina preventivo → no page break dopo */
+      #doc-preview {
+        box-shadow: none !important; border-radius: 0 !important;
+        max-width: 100% !important; margin: 0 !important;
+        page-break-after: auto; break-after: auto;
       }
+
+      /* Evita tagli a metà elemento */
+      .doc-notes, .doc-validity, .doc-parties,
+      .doc-totals, .doc-footer, .doc-detail-card,
+      tr, li { page-break-inside: avoid; break-inside: avoid; }
+
       #edit-banner { display: none !important; }
       .drag-section { outline: none !important; }
     }
