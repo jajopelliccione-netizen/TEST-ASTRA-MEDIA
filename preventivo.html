@@ -1695,7 +1695,7 @@ async function strutturaConAI() {
   btn.textContent = '✦ AI sta elaborando…';
 
   try {
-    // Prova i modelli in ordine finché uno risponde (salta i 404 = modello non disponibile)
+    // Prova i modelli in ordine; salta 404 (non disponibile) e 429 (quota esaurita)
     const MODELS = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
     const reqBody = JSON.stringify({
       contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
@@ -1705,13 +1705,14 @@ async function strutturaConAI() {
     for (const model of MODELS) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
-      if (resp.status !== 404) break;
+      if (resp.status === 404 || resp.status === 429) continue; // prova modello successivo
+      break; // risposta definitiva
     }
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       if (resp.status === 429) {
-        throw new Error('Limite richieste Gemini raggiunto. Aspetta qualche minuto e riprova (la quota gratuita è limitata).');
+        throw new Error('Quota Gemini esaurita su tutti i modelli disponibili. Aspetta qualche minuto o genera una nuova API key su aistudio.google.com.');
       }
       if (resp.status === 400 || resp.status === 403) {
         localStorage.removeItem(AI_KEY_STORAGE);
