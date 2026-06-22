@@ -807,7 +807,7 @@
         <span class="ai-title">Descrivi il progetto — l'AI compila il preventivo</span>
       </div>
       <div class="ai-key-row">
-        <span class="ai-key-label">Gemini Key:</span>
+        <span class="ai-key-label">AI Key:</span>
         <span class="ai-key-status" id="ai-key-status">Non configurata</span>
         <button class="btn-ai-key" id="btn-ai-key" onclick="impostaApiKey()">Imposta</button>
       </div>
@@ -1629,12 +1629,13 @@ function renderBozze() {
 // ── AI ──
 const AI_KEY_STORAGE = 'astra-gemini-key';
 
-(function aggiornaStatoKey() {
+function _refreshKeyUI() {
   const k = localStorage.getItem(AI_KEY_STORAGE);
   const el = document.getElementById('ai-key-status');
   const btn = document.getElementById('btn-ai-key');
   if (k) {
-    el.textContent = '••••' + k.slice(-4);
+    const provider = k.startsWith('gsk_') ? 'Groq' : 'Gemini';
+    el.textContent = provider + ' ••••' + k.slice(-4);
     el.className = 'ai-key-status ok';
     btn.textContent = 'Cambia';
   } else {
@@ -1642,19 +1643,25 @@ const AI_KEY_STORAGE = 'astra-gemini-key';
     el.className = 'ai-key-status err';
     btn.textContent = 'Imposta';
   }
-})();
+}
+_refreshKeyUI();
 
 function impostaApiKey() {
   const attuale = localStorage.getItem(AI_KEY_STORAGE) || '';
-  const key = prompt('Incolla la tua Google Gemini API Key (gratuita su aistudio.google.com):\n(viene salvata solo nel browser)', attuale);
+  const key = prompt(
+    'Incolla la tua API Key AI:\n\n' +
+    '★ GROQ (consigliato — gratuita, 14.400 req/giorno):\n' +
+    '  console.groq.com → API Keys → Create API key\n' +
+    '  La key inizia con "gsk_"\n\n' +
+    '  GEMINI (Google — gratuita ma limiti molto bassi):\n' +
+    '  aistudio.google.com → Get API key\n\n' +
+    '(salvata solo nel tuo browser, mai inviata ai server)',
+    attuale
+  );
   if (key === null) return;
   if (!key.trim()) { localStorage.removeItem(AI_KEY_STORAGE); }
   else             { localStorage.setItem(AI_KEY_STORAGE, key.trim()); }
-  const el = document.getElementById('ai-key-status');
-  const btn = document.getElementById('btn-ai-key');
-  const k = localStorage.getItem(AI_KEY_STORAGE);
-  if (k) { el.textContent = '••••' + k.slice(-4); el.className = 'ai-key-status ok'; btn.textContent = 'Cambia'; }
-  else   { el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; btn.textContent = 'Imposta'; }
+  _refreshKeyUI();
 }
 
 const AI_PROMPT = `Sei l'assistente interno di Astra Agency, un'agenzia di social media marketing italiana.
@@ -1683,13 +1690,9 @@ REGOLE:
 async function strutturaConAI() {
   let apiKey = localStorage.getItem(AI_KEY_STORAGE);
   if (!apiKey) {
-    const key = prompt('Inserisci la tua Google Gemini API Key (gratuita su aistudio.google.com):\n(salvata solo nel browser)');
-    if (!key?.trim()) return;
-    apiKey = key.trim();
-    localStorage.setItem(AI_KEY_STORAGE, apiKey);
-    const el = document.getElementById('ai-key-status');
-    const kb = document.getElementById('btn-ai-key');
-    el.textContent = '••••' + apiKey.slice(-4); el.className = 'ai-key-status ok'; kb.textContent = 'Cambia';
+    impostaApiKey();
+    apiKey = localStorage.getItem(AI_KEY_STORAGE);
+    if (!apiKey) return;
   }
 
   const testo = document.getElementById('f-ai-input').value.trim();
@@ -1699,57 +1702,97 @@ async function strutturaConAI() {
   btn.disabled = true;
   btn.textContent = '✦ AI sta elaborando…';
 
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
   try {
-    // Prova più modelli e versioni API; su 429 riprova dopo 4s, poi passa al successivo
-    const ATTEMPTS = [
-      { v: 'v1beta', m: 'gemini-2.0-flash' },
-      { v: 'v1beta', m: 'gemini-2.0-flash-lite' },
-      { v: 'v1beta', m: 'gemini-1.5-flash' },
-      { v: 'v1beta', m: 'gemini-1.5-flash-8b' },
-      { v: 'v1beta', m: 'gemini-1.5-pro' },
-      { v: 'v1',     m: 'gemini-pro' },
-      { v: 'v1beta', m: 'gemini-pro' },
-    ];
-    const reqBody = JSON.stringify({
-      contents: [{ parts: [{ text: AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
-    });
-    const delay = ms => new Promise(r => setTimeout(r, ms));
-    let resp;
-    for (const { v, m } of ATTEMPTS) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`.replace('v1beta/v1beta', v);
-      // costruiamo l'URL con la versione corretta
-      const realUrl = `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${apiKey}`;
-      resp = await fetch(realUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
-      if (resp.status === 404) continue; // modello non disponibile
-      if (resp.status === 429) {
-        btn.textContent = '✦ Quota piena, riprovo…';
-        await delay(4000);
-        resp = await fetch(realUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
-        if (resp.status === 429 || resp.status === 404) { btn.textContent = '✦ AI sta elaborando…'; continue; }
+    const prompt = AI_PROMPT + '\n\nNOTE PROGETTO:\n' + testo;
+    let rawText = '';
+
+    if (apiKey.startsWith('gsk_')) {
+      // ── GROQ (llama) — 14.400 req/giorno gratis ──
+      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama3-8b-8192', 'gemma2-9b-it', 'mixtral-8x7b-32768'];
+      let resp;
+      for (const model of GROQ_MODELS) {
+        resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+            max_tokens: 1200,
+          })
+        });
+        if (resp.status === 404) continue;
+        if (resp.status === 429) {
+          btn.textContent = '✦ Quota piena, riprovo…';
+          await delay(3000);
+          btn.textContent = '✦ AI sta elaborando…';
+          resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.2, max_tokens: 1200 })
+          });
+          if (resp.status === 429 || resp.status === 404) continue;
+        }
+        break;
       }
-      break; // risposta definitiva
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        if (resp.status === 401) {
+          localStorage.removeItem(AI_KEY_STORAGE); _refreshKeyUI();
+          throw new Error('API Key Groq non valida. Riconfigurala su console.groq.com → API Keys.');
+        }
+        if (resp.status === 429) throw new Error('Quota Groq raggiunta. Aspetta qualche secondo e riprova (limite: 30 req/min).');
+        throw new Error(err.error?.message || `Errore Groq ${resp.status}`);
+      }
+      const data = await resp.json();
+      rawText = data.choices?.[0]?.message?.content || '';
+
+    } else {
+      // ── GEMINI (fallback) ──
+      const ATTEMPTS = [
+        { v: 'v1beta', m: 'gemini-2.0-flash' },
+        { v: 'v1beta', m: 'gemini-2.0-flash-lite' },
+        { v: 'v1beta', m: 'gemini-1.5-flash' },
+        { v: 'v1beta', m: 'gemini-1.5-flash-8b' },
+        { v: 'v1beta', m: 'gemini-1.5-pro' },
+        { v: 'v1',     m: 'gemini-pro' },
+        { v: 'v1beta', m: 'gemini-pro' },
+      ];
+      const reqBody = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
+      });
+      let resp;
+      for (const { v, m } of ATTEMPTS) {
+        const url = `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${apiKey}`;
+        resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
+        if (resp.status === 404) continue;
+        if (resp.status === 429) {
+          btn.textContent = '✦ Quota piena, riprovo…';
+          await delay(4000);
+          btn.textContent = '✦ AI sta elaborando…';
+          resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
+          if (resp.status === 429 || resp.status === 404) continue;
+        }
+        break;
+      }
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        if (resp.status === 429) throw new Error('Quota Gemini esaurita su tutti i modelli.\nUsa Groq: console.groq.com → API Keys (gratuito, 14.400 req/giorno).');
+        if (resp.status === 400 || resp.status === 403) {
+          localStorage.removeItem(AI_KEY_STORAGE); _refreshKeyUI();
+          throw new Error('API Key Gemini non valida. Usa Groq: console.groq.com → API Keys (gratuito).');
+        }
+        throw new Error(err.error?.message || `Errore Gemini ${resp.status}`);
+      }
+      const data = await resp.json();
+      rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      if (resp.status === 429) {
-        throw new Error('Quota Gemini esaurita. Crea una nuova API key gratuita su aistudio.google.com → "Get API key".');
-      }
-      if (resp.status === 400 || resp.status === 403) {
-        localStorage.removeItem(AI_KEY_STORAGE);
-        const el = document.getElementById('ai-key-status');
-        const kb = document.getElementById('btn-ai-key');
-        el.textContent = 'Non configurata'; el.className = 'ai-key-status err'; kb.textContent = 'Imposta';
-        throw new Error('API Key non valida o scaduta. Riconfigurala su aistudio.google.com e usa il pulsante "Imposta".');
-      }
-      throw new Error(err.error?.message || `Errore ${resp.status}`);
-    }
-
-    const data = await resp.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Risposta AI non valida.');
+    if (!jsonMatch) throw new Error('Risposta AI non valida (JSON non trovato).');
     const parsed = JSON.parse(jsonMatch[0]);
 
     if (parsed.azienda) document.getElementById('f-ccompany').value = parsed.azienda;
