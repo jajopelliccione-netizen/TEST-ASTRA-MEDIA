@@ -228,8 +228,8 @@
       overflow: visible;
       display: flex;
       align-items: flex-start;
-      justify-content: center;
-      text-align: center;
+      justify-content: flex-start;
+      text-align: left;
     }
     .doc-logo-wrap img { height: 52px; object-fit: contain; }
     .doc-logo-name {
@@ -359,6 +359,12 @@
       color: #7B5CF0; margin-bottom: 6px;
     }
     .doc-notes-text { font-size: .85rem; color: #444; line-height: 1.6; white-space: pre-wrap; }
+
+    /* Compattazione applicata SOLO durante la generazione del PDF
+       (non tocca l'anteprima) per far entrare tutto in modo ordinato */
+    .doc.pdf-compact .doc-notes      { padding: 13px 18px; margin-bottom: 26px; }
+    .doc.pdf-compact .doc-notes-text { font-size: .78rem; line-height: 1.5; }
+    .doc.pdf-compact .doc-validity   { margin-bottom: 24px; }
 
     /* Footer doc */
     .doc-footer {
@@ -2467,6 +2473,7 @@ async function scaricaPDF() {
     pages.forEach(el => {
       el.style.boxShadow = 'none';
       el.style.borderRadius = '0';
+      el.classList.add('pdf-compact');   // compatta note/condizioni solo nel PDF
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
     });
@@ -2548,6 +2555,7 @@ async function scaricaPDF() {
     pages.forEach((el, i) => {
       el.style.boxShadow    = origStyles[i].boxShadow;
       el.style.borderRadius = origStyles[i].borderRadius;
+      el.classList.remove('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = '';
     });
