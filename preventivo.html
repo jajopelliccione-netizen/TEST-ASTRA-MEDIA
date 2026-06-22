@@ -2442,83 +2442,78 @@ async function scaricaWord() {
   btn.disabled = false;
 }
 
-/* ── SCARICA PDF – rende il preview panel già visibile nel DOM ── */
+/* ── SCARICA PDF – clona ogni pagina separatamente, niente spazi vuoti ── */
 async function scaricaPDF() {
   const btn = document.getElementById('btn-pdf');
   const origHTML = btn.innerHTML;
-  btn.textContent = 'Generando…';
+  btn.textContent = '⏳ Generando PDF…';
   btn.disabled = true;
 
-  const num       = document.getElementById('f-num').value || '001';
-  const firstName = (contatti.find(c => c.nome)?.nome || 'Cliente').replace(/\s+/g, '-');
-
-  const panel    = document.querySelector('.preview-panel');
-  const docEl    = document.getElementById('doc-preview');
-  const descEl   = document.getElementById('desc-page-preview');
-  const labelEl  = document.getElementById('desc-page-label');
-  const banner   = document.getElementById('edit-banner');
-
-  // --- Salva stili originali ---
-  const snap = {
-    panelStyle:   panel.getAttribute('style') || '',
-    docShadow:    docEl.style.boxShadow,
-    docRadius:    docEl.style.borderRadius,
-    docMargin:    docEl.style.margin,
-    bannerDisp:   banner ? banner.style.display : '',
-    labelDisp:    labelEl ? labelEl.style.display : '',
-    descPBAfter:  descEl ? descEl.style.pageBreakAfter : '',
-    descBreakAfter: descEl ? descEl.style.breakAfter : '',
-  };
-
-  // --- Prepara il panel per il rendering ---
-  panel.style.cssText = 'display:block;padding:0;overflow:visible;background:#fff;align-items:unset;';
-  docEl.style.boxShadow    = 'none';
-  docEl.style.borderRadius = '0';
-  docEl.style.margin       = '0';
-  if (banner)  banner.style.display  = 'none';
-  if (labelEl) labelEl.style.display = 'none';
-
-  if (descEl && descEl.firstElementChild) {
-    descEl.style.pageBreakAfter = 'always';
-    descEl.style.breakAfter     = 'page';
-    const descDoc = descEl.firstElementChild;
-    descDoc.style.boxShadow    = 'none';
-    descDoc.style.borderRadius = '0';
-    descDoc.style.margin       = '0';
-  }
-
-  // Breve pausa per layout + fonts
-  await document.fonts.ready;
-  await new Promise(r => setTimeout(r, 120));
-
   try {
+    // Raccoglie le pagine visibili nell'ordine corretto
+    const pages = [];
+    const descContainer = document.getElementById('desc-page-preview');
+    if (descContainer && descContainer.style.display !== 'none') {
+      const descDoc = descContainer.querySelector('.doc');
+      if (descDoc) pages.push(descDoc);
+    }
+    pages.push(document.getElementById('doc-preview'));
+
+    // Crea un wrapper off-screen che contiene cloni delle pagine
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;';
+
+    pages.forEach((pageEl, i) => {
+      const clone = pageEl.cloneNode(true);
+      // Rimuove effetti visivi del preview (ombre, bordi arrotondati)
+      clone.style.boxShadow    = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.margin       = '0';
+      clone.style.width        = '794px';
+      clone.style.maxWidth     = '794px';
+      // Nasconde banner edit-mode se presente nel clone
+      const banner = clone.querySelector('#edit-banner');
+      if (banner) banner.style.display = 'none';
+      // Page break dopo ogni pagina tranne l'ultima
+      if (i < pages.length - 1) {
+        clone.style.pageBreakAfter = 'always';
+        clone.style.breakAfter     = 'page';
+      }
+      wrapper.appendChild(clone);
+    });
+
+    document.body.appendChild(wrapper);
+
+    // Attende fonts e layout
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 180));
+
+    const num   = document.getElementById('f-num').value || '001';
+    const cname = (document.getElementById('f-ccompany').value || 'Cliente').replace(/\s+/g, '-');
+
     await html2pdf().set({
       margin:      0,
-      filename:    `Preventivo-${num}-${firstName}-AstraAgency.pdf`,
+      filename:    `Preventivo-${num}-${cname}-AstraAgency.pdf`,
       image:       { type: 'jpeg', quality: 0.97 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' },
-      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:   { mode: ['css', 'legacy'], avoid: ['tr', 'td', 'img'] }
-    }).from(panel).save();
-  } catch(err) {
-    alert('Errore PDF: ' + err.message);
-  }
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      },
+      jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        avoid: ['tr', 'li', '.doc-notes', '.doc-validity', '.doc-parties', '.doc-totals', '.doc-footer']
+      }
+    }).from(wrapper).save();
 
-  // --- Ripristina stili ---
-  panel.setAttribute('style', snap.panelStyle);
-  docEl.style.boxShadow    = snap.docShadow;
-  docEl.style.borderRadius = snap.docRadius;
-  docEl.style.margin       = snap.docMargin;
-  if (banner)  banner.style.display  = snap.bannerDisp;
-  if (labelEl) labelEl.style.display = snap.labelDisp;
-  if (descEl) {
-    descEl.style.pageBreakAfter = snap.descPBAfter;
-    descEl.style.breakAfter     = snap.descBreakAfter;
-    if (descEl.firstElementChild) {
-      descEl.firstElementChild.style.boxShadow    = '';
-      descEl.firstElementChild.style.borderRadius = '';
-      descEl.firstElementChild.style.margin       = '';
-    }
+    document.body.removeChild(wrapper);
+
+  } catch(e) {
+    console.error(e);
+    alert('Errore PDF: ' + e.message);
   }
 
   btn.innerHTML = origHTML;
