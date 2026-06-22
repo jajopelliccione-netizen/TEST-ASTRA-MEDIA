@@ -340,6 +340,31 @@
       display: flex; gap: 8px; align-items: center;
     }
 
+    /* ── Contatto card ── */
+    .contatto-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .contatto-remove {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: none;
+      color: rgba(255,45,120,.45); cursor: pointer;
+      font-size: 1rem; padding: 2px 5px;
+      transition: color .2s;
+    }
+    .contatto-remove:hover { color: var(--pink); }
+    .contatto-card .form-row { margin-top: 6px; }
+
+    /* preview contatti */
+    .p-contatto { margin-bottom: 10px; }
+    .p-contatto:last-child { margin-bottom: 0; }
+    .p-contatto-name { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 800; color: #1a0a2e; }
+    .p-contatto-detail { font-size: .82rem; color: #555; }
+
     /* ── MOBILE ── */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -386,25 +411,14 @@
       <div class="form-section-title">Cliente</div>
       <div class="form-row full">
         <div class="field">
-          <label>Nome e Cognome</label>
-          <input type="text" id="f-cname" placeholder="Mario Rossi" oninput="aggiorna()" />
-        </div>
-      </div>
-      <div class="form-row full" style="margin-top:10px">
-        <div class="field">
           <label>Azienda / Attività</label>
           <input type="text" id="f-ccompany" placeholder="Nome Attività Srl" oninput="aggiorna()" />
         </div>
       </div>
-      <div class="form-row" style="margin-top:10px">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="f-cemail" placeholder="cliente@email.it" oninput="aggiorna()" />
-        </div>
-        <div class="field">
-          <label>Telefono</label>
-          <input type="text" id="f-cphone" placeholder="+39 000 000 0000" oninput="aggiorna()" />
-        </div>
+      <div style="margin-top:14px">
+        <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Contatti</div>
+        <div id="contatti-list"></div>
+        <button class="btn-add-svc" style="margin-top:8px" onclick="aggiungiContatto()">+ Aggiungi contatto</button>
       </div>
     </div>
 
@@ -489,10 +503,8 @@
         </div>
         <div>
           <div class="doc-party-label">A</div>
-          <div class="doc-party-name" id="p-cname">—</div>
-          <div class="doc-party-detail" id="p-ccompany"></div>
-          <div class="doc-party-detail" id="p-cemail"></div>
-          <div class="doc-party-detail" id="p-cphone"></div>
+          <div class="doc-party-detail" id="p-ccompany" style="font-weight:600;color:#555;margin-bottom:6px"></div>
+          <div id="p-contatti"></div>
         </div>
       </div>
 
@@ -549,6 +561,10 @@ let righe = [
   { desc: 'Creazione Sito Web', qty: 1, price: 800, iva: 22 },
 ];
 
+let contatti = [
+  { nome: '', email: '', phone: '' }
+];
+
 function fmt(n) {
   return '€ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
@@ -567,8 +583,51 @@ document.getElementById('f-date').value = isoOggi();
 document.getElementById('f-notes').value =
   'Il pagamento è da effettuarsi al 50% all\'accettazione del preventivo e il restante 50% alla consegna del lavoro finito.\n\nI contenuti, materiali e accessi necessari saranno forniti dal cliente entro i tempi concordati.';
 
+renderContatti();
 renderRighe();
 aggiorna();
+
+// ── Render contatti form ──
+function renderContatti() {
+  const list = document.getElementById('contatti-list');
+  list.innerHTML = '';
+  contatti.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'contatto-card';
+    div.innerHTML = `
+      ${contatti.length > 1 ? `<button class="contatto-remove" onclick="rimuoviContatto(${i})" title="Rimuovi">✕</button>` : ''}
+      <div class="form-row full">
+        <div class="field">
+          <label>Nome e Cognome</label>
+          <input type="text" value="${c.nome}" placeholder="Mario Rossi" oninput="contatti[${i}].nome=this.value;aggiorna()" />
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:6px">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" value="${c.email}" placeholder="email@esempio.it" oninput="contatti[${i}].email=this.value;aggiorna()" />
+        </div>
+        <div class="field">
+          <label>Telefono</label>
+          <input type="text" value="${c.phone}" placeholder="+39 000 000 0000" oninput="contatti[${i}].phone=this.value;aggiorna()" />
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function aggiungiContatto() {
+  contatti.push({ nome: '', email: '', phone: '' });
+  renderContatti();
+  aggiorna();
+}
+
+function rimuoviContatto(i) {
+  contatti.splice(i, 1);
+  renderContatti();
+  aggiorna();
+}
 
 // ── Render righe form ──
 function renderRighe() {
@@ -604,10 +663,7 @@ function rimuoviRiga(i) {
 function aggiorna() {
   const num      = document.getElementById('f-num').value || '001';
   const dateVal  = document.getElementById('f-date').value;
-  const cname    = document.getElementById('f-cname').value;
   const ccompany = document.getElementById('f-ccompany').value;
-  const cemail   = document.getElementById('f-cemail').value;
-  const cphone   = document.getElementById('f-cphone').value;
   const notes    = document.getElementById('f-notes').value;
   const validity = document.getElementById('f-validity').value;
 
@@ -615,13 +671,34 @@ function aggiorna() {
   const d = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
   document.getElementById('p-date').textContent = d;
 
-  document.getElementById('p-cname').textContent    = cname || '—';
   document.getElementById('p-ccompany').textContent = ccompany;
-  document.getElementById('p-cemail').textContent   = cemail;
-  document.getElementById('p-cphone').textContent   = cphone;
   document.getElementById('p-notes').textContent    = notes;
   document.getElementById('p-validity').textContent = validity;
   document.getElementById('p-notes-box').style.display = notes ? '' : 'none';
+
+  // Contatti nel preview
+  const pCont = document.getElementById('p-contatti');
+  pCont.innerHTML = '';
+  const hasAny = contatti.some(c => c.nome || c.email || c.phone);
+  if (!hasAny && !ccompany) {
+    const el = document.createElement('div');
+    el.className = 'p-contatto-name';
+    el.style.color = '#999';
+    el.textContent = '—';
+    pCont.appendChild(el);
+  } else {
+    contatti.forEach(c => {
+      if (!c.nome && !c.email && !c.phone) return;
+      const div = document.createElement('div');
+      div.className = 'p-contatto';
+      div.innerHTML = `
+        ${c.nome ? `<div class="p-contatto-name">${c.nome}</div>` : ''}
+        ${c.email ? `<div class="p-contatto-detail">${c.email}</div>` : ''}
+        ${c.phone ? `<div class="p-contatto-detail">${c.phone}</div>` : ''}
+      `;
+      pCont.appendChild(div);
+    });
+  }
 
   // Tabella
   const tbody = document.getElementById('p-rows');
@@ -661,12 +738,10 @@ async function scaricaWord() {
     const num      = document.getElementById('f-num').value || '001';
     const dateVal  = document.getElementById('f-date').value;
     const d        = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
-    const cname    = document.getElementById('f-cname').value || '—';
     const ccompany = document.getElementById('f-ccompany').value;
-    const cemail   = document.getElementById('f-cemail').value;
-    const cphone   = document.getElementById('f-cphone').value;
     const notes    = document.getElementById('f-notes').value;
     const validity = document.getElementById('f-validity').value;
+    const firstNome = contatti.find(c => c.nome)?.nome || 'Cliente';
 
     // Calcola totali
     let sub = 0, ivaTotal = 0;
@@ -768,10 +843,16 @@ async function scaricaWord() {
                 width: { size: 50, type: WidthType.PERCENTAGE },
                 children: [
                   new Paragraph({ children: [new TextRun({ text: 'A', size: 16, bold: true, color: colorPurple })] }),
-                  new Paragraph({ children: [new TextRun({ text: cname, size: 24, bold: true, color: colorDark })] }),
-                  ...(ccompany ? [new Paragraph({ children: [new TextRun({ text: ccompany, size: 18, color: colorMuted })] })] : []),
-                  ...(cemail   ? [new Paragraph({ children: [new TextRun({ text: cemail,   size: 18, color: colorMuted })] })] : []),
-                  ...(cphone   ? [new Paragraph({ children: [new TextRun({ text: cphone,   size: 18, color: colorMuted })] })] : []),
+                  ...(ccompany ? [new Paragraph({ children: [new TextRun({ text: ccompany, size: 22, bold: true, color: colorDark })] })] : []),
+                  ...contatti.flatMap(c => {
+                    if (!c.nome && !c.email && !c.phone) return [];
+                    return [
+                      ...(c.nome  ? [new Paragraph({ children: [new TextRun({ text: c.nome,  size: 20, bold: true, color: colorDark })] })] : []),
+                      ...(c.email ? [new Paragraph({ children: [new TextRun({ text: c.email, size: 18, color: colorMuted })] })] : []),
+                      ...(c.phone ? [new Paragraph({ children: [new TextRun({ text: c.phone, size: 18, color: colorMuted })] })] : []),
+                      new Paragraph({ children: [new TextRun({ text: '' })] }),
+                    ];
+                  }),
                 ],
                 borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
               }),
@@ -865,7 +946,7 @@ async function scaricaWord() {
     });
 
     const blob = await Packer.toBlob(doc);
-    const cname2 = document.getElementById('f-cname').value.replace(/\s+/g, '-') || 'Cliente';
+    const cname2 = firstNome.replace(/\s+/g, '-');
     saveAs(blob, `Preventivo-${num}-${cname2}-AstraAgency.docx`);
 
   } catch(e) {
