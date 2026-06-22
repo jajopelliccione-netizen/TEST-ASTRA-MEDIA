@@ -2459,109 +2459,90 @@ async function scaricaPDF() {
     }
     pages.push(document.getElementById('doc-preview'));
 
-    // Rimuove ombre/bordi visivi temporaneamente per cattura pulita
     const origStyles = pages.map(el => ({
-      boxShadow:    el.style.boxShadow,
-      borderRadius: el.style.borderRadius
+      boxShadow: el.style.boxShadow, borderRadius: el.style.borderRadius
     }));
     pages.forEach(el => {
-      el.style.boxShadow    = 'none';
+      el.style.boxShadow = 'none';
       el.style.borderRadius = '0';
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
     });
 
-    // html2canvas non renderizza filter:drop-shadow → bake l'ombra nei pixel via Canvas 2D.
-    // Il canvas deve avere PADDING attorno al logo, altrimenti l'ombra finisce fuori
-    // dai bordi e viene ritagliata (questo era il bug: ombra invisibile).
-    const _lgImg  = document.getElementById('doc-logo');
-    const _lgFilterStr = (_lgImg && _lgImg.style.filter) || '';
-    let _lgRestore = null;
-
-    if (_lgImg && _lgImg.complete && _lgImg.naturalWidth > 0 && _lgFilterStr.includes('drop-shadow')) {
-      const shadows = [];
-      const re = /drop-shadow\(\s*([-\d.]+)px\s+([-\d.]+)px\s+([\d.]+)px\s+(rgba?\([^)]+\))\s*\)/g;
-      let sm;
-      while ((sm = re.exec(_lgFilterStr)) !== null) {
-        shadows.push({ x: +sm[1], y: +sm[2], blur: +sm[3], color: sm[4] });
-      }
-      if (shadows.length > 0) {
-        const rect      = _lgImg.getBoundingClientRect();
-        const origDispW = rect.width  || _lgImg.naturalWidth;
-        const origDispH = rect.height || _lgImg.naturalHeight;
-        const nW = _lgImg.naturalWidth, nH = _lgImg.naturalHeight;
-        const scale = nH / origDispH;            // px naturali per px visualizzati
-
-        // Padding necessario (in px display) per contenere offset + sfocatura di ogni ombra
-        let maxExt = 0;
-        shadows.forEach(s => {
-          maxExt = Math.max(maxExt, Math.abs(s.x) + s.blur * 2, Math.abs(s.y) + s.blur * 2);
-        });
-        const pDisp = Math.ceil(maxExt) + 6;     // px display
-        const p     = Math.round(pDisp * scale); // px naturali
-
-        const cv  = document.createElement('canvas');
-        cv.width  = nW + p * 2;
-        cv.height = nH + p * 2;
-        const ctx = cv.getContext('2d');
-        // Ogni ombra: disegna l'immagine con shadowColor/Blur (segue il canale alpha come drop-shadow CSS)
-        shadows.forEach(sh => {
-          ctx.save();
-          ctx.shadowOffsetX = sh.x * scale;
-          ctx.shadowOffsetY = sh.y * scale;
-          ctx.shadowBlur    = sh.blur * scale * 2;
-          ctx.shadowColor   = sh.color;
-          ctx.drawImage(_lgImg, p, p, nW, nH);
-          ctx.restore();
-        });
-        ctx.drawImage(_lgImg, p, p, nW, nH);     // logo nitido sopra le ombre
-
-        // Salva stili inline da ripristinare dopo
-        _lgRestore = {
-          src:      _lgImg.src,
-          filter:   _lgImg.style.filter,
-          height:   _lgImg.style.height,
-          width:    _lgImg.style.width,
-          maxWidth: _lgImg.style.maxWidth,
-          margin:   _lgImg.style.margin
-        };
-
-        // Mostra il canvas con padding, ma riposiziona/ridimensiona così il LOGO resta
-        // identico per posizione e dimensione: ingrandisco di 2*pDisp e sposto di -pDisp.
-        _lgImg.style.filter   = '';
-        _lgImg.style.height   = (origDispH + pDisp * 2) + 'px';
-        _lgImg.style.width    = (origDispW + pDisp * 2) + 'px';
-        _lgImg.style.maxWidth = 'none';
-        _lgImg.style.margin   = `${-pDisp}px ${-pDisp}px ${-pDisp}px ${-pDisp}px`;
-        _lgImg.src = cv.toDataURL('image/png');
-        try { await _lgImg.decode(); } catch (e) {}
-      }
-    }
-
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 200));
 
-    // Screenshot ogni elemento .doc direttamente a schermo
+    // html2canvas rifetcha le immagini via XHR ignorando img.src modificato.
+    // Unica soluzione garantita: iniettare un <canvas> nel DOM clonato via onclone()
+    // – html2canvas legge i pixel del canvas direttamente, senza fetch né CORS.
+    function bakeLogoInClone(clonedDoc) {
+      const origLogo   = document.getElementById('doc-logo'); // img originale (caricata)
+      const clonedLogo = clonedDoc.getElementById('doc-logo');
+      if (!origLogo || !clonedLogo || !origLogo.naturalWidth) return;
+
+      const filterStr = origLogo.style.filter || '';
+      if (!filterStr.includes('drop-shadow')) return;
+
+      const shadows = [];
+      const re = /drop-shadow\(\s*([-\d.]+)px\s+([-\d.]+)px\s+([\d.]+)px\s+(rgba?\([^)]+\))\s*\)/g;
+      let sm;
+      while ((sm = re.exec(filterStr)) !== null) {
+        shadows.push({ x: +sm[1], y: +sm[2], blur: +sm[3], color: sm[4] });
+      }
+      if (!shadows.length) return;
+
+      const nW = origLogo.naturalWidth, nH = origLogo.naturalHeight;
+      const rect  = origLogo.getBoundingClientRect();
+      const dispH = rect.height || parseFloat(origLogo.style.height) || 52;
+      const dispW = rect.width  || Math.round(dispH * nW / nH);
+      const sc    = nH / dispH; // pixel naturali per pixel display
+
+      const maxExt = Math.max(...shadows.flatMap(s =>
+        [Math.abs(s.x) + s.blur * 2.5, Math.abs(s.y) + s.blur * 2.5]
+      ));
+      const pDisp = Math.ceil(maxExt) + 6; // padding display px (spazio per l'ombra)
+      const p     = Math.round(pDisp * sc); // padding pixel naturali
+
+      // Canvas con ombra baked-in, disegnata dall'img originale (sempre caricata)
+      const cv = document.createElement('canvas');
+      cv.width  = nW + p * 2;
+      cv.height = nH + p * 2;
+      const ctx = cv.getContext('2d');
+      shadows.forEach(sh => {
+        ctx.save();
+        ctx.shadowOffsetX = sh.x * sc;
+        ctx.shadowOffsetY = sh.y * sc;
+        ctx.shadowBlur    = sh.blur * sc * 2;
+        ctx.shadowColor   = sh.color;
+        ctx.drawImage(origLogo, p, p, nW, nH);
+        ctx.restore();
+      });
+      ctx.drawImage(origLogo, p, p, nW, nH); // logo sopra le ombre
+
+      // Wrapper div: occupa lo stesso spazio del logo originale nel flex layout
+      const wrap = clonedDoc.createElement('div');
+      wrap.style.cssText = `position:relative;display:inline-block;width:${dispW}px;height:${dispH}px;overflow:visible;flex-shrink:0;`;
+
+      // Canvas posizionato in assoluto dentro il wrapper, esteso di pDisp su ogni lato
+      // così l'ombra fuoriesce visivamente ma il layout non si sposta
+      cv.style.cssText = `position:absolute;left:${-pDisp}px;top:${-pDisp}px;width:${dispW + pDisp*2}px;height:${dispH + pDisp*2}px;`;
+
+      wrap.appendChild(cv);
+      clonedLogo.parentNode.insertBefore(wrap, clonedLogo);
+      clonedLogo.style.display = 'none';
+    }
+
     const canvases = await Promise.all(pages.map(el =>
       html2canvas(el, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: false
+        logging: false,
+        onclone: bakeLogoInClone
       })
     ));
 
-    // Ripristina logo originale
-    if (_lgRestore) {
-      _lgImg.src             = _lgRestore.src;
-      _lgImg.style.filter    = _lgRestore.filter;
-      _lgImg.style.height    = _lgRestore.height;
-      _lgImg.style.width     = _lgRestore.width;
-      _lgImg.style.maxWidth  = _lgRestore.maxWidth;
-      _lgImg.style.margin    = _lgRestore.margin;
-    }
-    // Ripristina stili .doc
     pages.forEach((el, i) => {
       el.style.boxShadow    = origStyles[i].boxShadow;
       el.style.borderRadius = origStyles[i].borderRadius;
@@ -2569,7 +2550,6 @@ async function scaricaPDF() {
       if (banner) banner.style.display = '';
     });
 
-    // Costruisce PDF con dimensioni personalizzate che corrispondono esattamente al contenuto
     const { jsPDF } = window.jspdf;
     let pdf = null;
     canvases.forEach((canvas, i) => {
