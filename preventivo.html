@@ -10,7 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -2442,7 +2443,7 @@ async function scaricaWord() {
   btn.disabled = false;
 }
 
-/* ── SCARICA PDF – clona ogni pagina separatamente, niente spazi vuoti ── */
+/* ── SCARICA PDF – screenshot diretto di ogni .doc, identico all'anteprima ── */
 async function scaricaPDF() {
   const btn = document.getElementById('btn-pdf');
   const origHTML = btn.innerHTML;
@@ -2450,7 +2451,6 @@ async function scaricaPDF() {
   btn.disabled = true;
 
   try {
-    // Raccoglie le pagine visibili nell'ordine corretto
     const pages = [];
     const descContainer = document.getElementById('desc-page-preview');
     if (descContainer && descContainer.style.display !== 'none') {
@@ -2459,57 +2459,57 @@ async function scaricaPDF() {
     }
     pages.push(document.getElementById('doc-preview'));
 
-    // Crea un wrapper off-screen che contiene cloni delle pagine
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;';
-
-    pages.forEach((pageEl, i) => {
-      const clone = pageEl.cloneNode(true);
-      // Rimuove effetti visivi del preview (ombre, bordi arrotondati)
-      clone.style.boxShadow    = 'none';
-      clone.style.borderRadius = '0';
-      clone.style.margin       = '0';
-      clone.style.width        = '794px';
-      clone.style.maxWidth     = '794px';
-      // Nasconde banner edit-mode se presente nel clone
-      const banner = clone.querySelector('#edit-banner');
+    // Rimuove ombre/bordi visivi temporaneamente per cattura pulita
+    const origStyles = pages.map(el => ({
+      boxShadow:    el.style.boxShadow,
+      borderRadius: el.style.borderRadius
+    }));
+    pages.forEach(el => {
+      el.style.boxShadow    = 'none';
+      el.style.borderRadius = '0';
+      const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
-      // Page break dopo ogni pagina tranne l'ultima
-      if (i < pages.length - 1) {
-        clone.style.pageBreakAfter = 'always';
-        clone.style.breakAfter     = 'page';
-      }
-      wrapper.appendChild(clone);
     });
 
-    document.body.appendChild(wrapper);
-
-    // Attende fonts e layout
     await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 180));
+    await new Promise(r => setTimeout(r, 200));
 
-    const num   = document.getElementById('f-num').value || '001';
-    const cname = (document.getElementById('f-ccompany').value || 'Cliente').replace(/\s+/g, '-');
-
-    await html2pdf().set({
-      margin:      0,
-      filename:    `Preventivo-${num}-${cname}-AstraAgency.pdf`,
-      image:       { type: 'jpeg', quality: 0.97 },
-      html2canvas: {
+    // Screenshot ogni elemento .doc direttamente a schermo (cattura filter:drop-shadow)
+    const canvases = await Promise.all(pages.map(el =>
+      html2canvas(el, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false
-      },
-      jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: {
-        mode: ['css', 'legacy'],
-        avoid: ['tr', 'li', '.doc-notes', '.doc-validity', '.doc-parties', '.doc-totals', '.doc-footer']
-      }
-    }).from(wrapper).save();
+      })
+    ));
 
-    document.body.removeChild(wrapper);
+    // Ripristina stili originali
+    pages.forEach((el, i) => {
+      el.style.boxShadow    = origStyles[i].boxShadow;
+      el.style.borderRadius = origStyles[i].borderRadius;
+      const banner = el.querySelector('#edit-banner');
+      if (banner) banner.style.display = '';
+    });
+
+    // Costruisce PDF con dimensioni personalizzate che corrispondono esattamente al contenuto
+    const { jsPDF } = window.jspdf;
+    let pdf = null;
+    canvases.forEach((canvas, i) => {
+      const mmW = (canvas.width  / 2) * 25.4 / 96;
+      const mmH = (canvas.height / 2) * 25.4 / 96;
+      if (i === 0) {
+        pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
+      } else {
+        pdf.addPage([mmW, mmH], 'portrait');
+      }
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
+    });
+
+    const num   = document.getElementById('f-num').value || '001';
+    const cname = (document.getElementById('f-ccompany').value || 'Cliente').replace(/\s+/g, '-');
+    pdf.save(`Preventivo-${num}-${cname}-AstraAgency.pdf`);
 
   } catch(e) {
     console.error(e);
