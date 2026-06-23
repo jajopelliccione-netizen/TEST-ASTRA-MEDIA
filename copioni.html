@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Copioni — Astra Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --bg:     #0d0d1a;
+    --bg2:    #12121f;
+    --border: rgba(255,255,255,.08);
+    --text:   #f0eeff;
+    --muted:  #7a7a9a;
+    --purple: #7B5CF0;
+    --pink:   #ff2d78;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+  }
+
+  /* ── AUTH OVERLAY ── */
+  #auth-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    color: var(--muted); font-size: .9rem;
+  }
+  .spin {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 13px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-brand { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; letter-spacing: .06em; }
+  .topbar-brand span { color: var(--purple); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-pdf {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px; padding: 9px 18px;
+    color: var(--text); font-family: 'Space Grotesk', sans-serif;
+    font-size: .85rem; font-weight: 600; cursor: pointer;
+    transition: background .2s; white-space: nowrap;
+  }
+  .btn-pdf:hover { background: rgba(255,255,255,.14); }
+  #btn-logout {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px; padding: 8px 14px;
+    color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+    font-size: .82rem; cursor: pointer; transition: background .2s;
+  }
+  #btn-logout:hover { background: rgba(255,255,255,.12); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 53px);
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 22px 20px;
+    overflow-y: auto;
+    height: calc(100vh - 53px);
+    position: sticky; top: 53px;
+  }
+  .form-section { margin-bottom: 24px; }
+  .form-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .7rem; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 14px;
+  }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block; font-size: .7rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 5px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; font-size: .85rem;
+    outline: none; transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select, .field textarea:focus { border-color: var(--purple); }
+  .field select { cursor: pointer; }
+  .field select option { background: #1a1a2e; }
+  .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* ── SEZIONI COPIONE ── */
+  .sezione-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    margin-bottom: 10px; position: relative;
+  }
+  .sezione-card .btn-rm {
+    position: absolute; top: 10px; right: 10px;
+    background: none; border: none;
+    color: rgba(255,45,120,.45); font-size: .95rem;
+    cursor: pointer; padding: 2px 6px;
+    transition: color .2s;
+  }
+  .sezione-card .btn-rm:hover { color: var(--pink); }
+  .sezione-nome {
+    width: 100%; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; font-size: .8rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    outline: none; margin-bottom: 8px; transition: border-color .2s;
+  }
+  .sezione-nome:focus { border-color: var(--purple); }
+  .sezione-testo {
+    width: 100%; background: rgba(255,255,255,.04);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; font-size: .82rem;
+    outline: none; resize: vertical; min-height: 70px;
+    line-height: 1.6; transition: border-color .2s;
+  }
+  .sezione-testo:focus { border-color: var(--purple); }
+  .sezione-note {
+    width: 100%; background: transparent;
+    border: none; border-top: 1px dashed rgba(255,255,255,.1);
+    padding: 7px 0 0; margin-top: 8px;
+    color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+    font-size: .75rem; font-style: italic;
+    outline: none; resize: vertical; min-height: 36px;
+    line-height: 1.5;
+  }
+  .sezione-note::placeholder { color: rgba(122,122,154,.5); }
+  .btn-add-sez {
+    width: 100%; margin-top: 4px;
+    background: rgba(123,92,240,.1);
+    border: 1px dashed rgba(123,92,240,.3);
+    border-radius: 8px; padding: 9px;
+    color: var(--purple); font-family: 'Space Grotesk', sans-serif;
+    font-size: .82rem; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-add-sez:hover { background: rgba(123,92,240,.2); }
+  .form-divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+  /* ── PREVIEW PANEL ── */
+  .preview-panel {
+    padding: 36px 32px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── DOCUMENTO COPIONE ── */
+  .doc {
+    width: 100%; max-width: 794px;
+    background: #fff; color: #1a1a2e;
+    padding: 56px 60px;
+    box-shadow: 0 8px 60px rgba(0,0,0,.4);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13.5px; line-height: 1.65;
+    border-radius: 4px;
+  }
+  /* Header doc */
+  .doc-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 36px;
+  }
+  .doc-brand-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem; font-weight: 800;
+    color: #1a0a2e; letter-spacing: .04em;
+    line-height: 1;
+  }
+  .doc-brand-sub {
+    font-size: .65rem; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: #7B5CF0; margin-top: 4px;
+  }
+  .doc-meta-wrap { text-align: right; }
+  .doc-meta-label {
+    font-family: 'Syne', sans-serif;
+    font-size: .7rem; font-weight: 800;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: #7B5CF0;
+  }
+  .doc-meta-num {
+    font-size: 1.05rem; font-weight: 700; color: #1a0a2e;
+  }
+  .doc-meta-date { font-size: .78rem; color: #888; }
+  /* Separator */
+  .doc-sep {
+    border: none; border-top: 2px solid #7B5CF0;
+    margin-bottom: 30px; opacity: .35;
+  }
+  /* Title */
+  .doc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem; font-weight: 800;
+    color: #1a0a2e; line-height: 1.15; margin-bottom: 16px;
+  }
+  /* Info strip */
+  .doc-info-strip {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 32px; padding-bottom: 18px;
+    border-bottom: 1px solid #ece8ff;
+  }
+  .doc-info-item { }
+  .doc-info-label {
+    font-size: .64rem; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: #7B5CF0; margin-bottom: 2px;
+  }
+  .doc-info-value { font-size: .88rem; font-weight: 600; color: #1a0a2e; }
+  /* Sezioni */
+  .doc-sezione { margin-bottom: 26px; }
+  .doc-sez-nome {
+    font-size: .65rem; font-weight: 800;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: #7B5CF0; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .doc-sez-nome::after {
+    content: ''; flex: 1;
+    height: 1px; background: rgba(123,92,240,.2);
+  }
+  .doc-sez-testo {
+    font-size: .9rem; line-height: 1.75;
+    color: #1a1a2e; white-space: pre-wrap;
+  }
+  .doc-sez-note {
+    margin-top: 8px;
+    font-size: .78rem; color: #888;
+    font-style: italic; line-height: 1.55;
+    padding: 6px 12px;
+    background: #f9f7ff;
+    border-radius: 4px;
+    white-space: pre-wrap;
+  }
+  /* Footer */
+  .doc-footer {
+    margin-top: 48px; padding-top: 16px;
+    border-top: 1px solid #ece8ff;
+    display: flex; justify-content: space-between;
+    align-items: center;
+  }
+  .doc-footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: .7rem; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; color: #7B5CF0;
+  }
+  .doc-footer-contacts { font-size: .7rem; color: #aaa; }
+
+  /* ── MOBILE TAB SWITCHER ── */
+  .mobile-tabs {
+    display: none; position: sticky; top: 53px; z-index: 98;
+    background: var(--bg2); border-bottom: 2px solid var(--border);
+  }
+  .mobile-tab {
+    flex: 1; padding: 12px 8px; background: none;
+    border: none; border-bottom: 3px solid transparent; margin-bottom: -2px;
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: .78rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; cursor: pointer; transition: color .2s, border-color .2s;
+  }
+  .mobile-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .layout { grid-template-columns: 280px 1fr; }
+    .form-panel { padding: 18px 14px; }
+    .btn-label { display: none; }
+    #btn-logout { padding: 7px 10px; font-size: .75rem; }
+  }
+  @media (max-width: 768px) {
+    .mobile-tabs { display: flex; }
+    .layout { grid-template-columns: 1fr; min-height: auto; }
+    .form-panel { height: auto; position: static; padding: 16px 12px; overflow-y: visible; border-right: none; }
+    .form-panel.tab-hidden, .preview-panel.tab-hidden { display: none !important; }
+    .preview-panel { padding: 14px 8px; }
+    .doc { padding: 28px 18px; font-size: 12.5px; }
+    .btn-label { display: none; }
+    .topbar { padding: 10px 12px; }
+    input, select, textarea { font-size: 16px !important; }
+    .sezione-nome, .sezione-testo { font-size: 14px !important; }
+    .doc-info-strip { gap: 14px; }
+  }
+
+  @media print {
+    #auth-overlay, .topbar, .form-panel, .mobile-tabs { display: none !important; }
+    .layout { display: block !important; }
+    .preview-panel { padding: 0 !important; }
+    .doc { box-shadow: none !important; border-radius: 0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-overlay">
+  <div class="spin"></div>
+  <span>Verifica accesso…</span>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">ASTRA<span>.</span> Copioni</div>
+  <div class="topbar-actions">
+    <span id="topbar-user" style="font-size:.78rem;color:var(--muted);display:none"></span>
+    <button class="btn-pdf" onclick="scaricaPDF()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      <span class="btn-label">Scarica PDF</span>
+    </button>
+    <button id="btn-logout" style="display:none" onclick="">Esci</button>
+  </div>
+</div>
+
+<!-- Mobile tabs -->
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mobile-tab active" id="tab-form" onclick="switchTab('form')">✎ Modulo</button>
+  <button class="mobile-tab" id="tab-preview" onclick="switchTab('preview')">👁 Anteprima</button>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout" id="main-layout" style="display:none">
+
+  <!-- ── FORM PANEL ── -->
+  <div class="form-panel" id="form-panel">
+
+    <div class="form-section">
+      <div class="form-section-title">Informazioni</div>
+      <div class="field-row">
+        <div class="field">
+          <label>N° copione</label>
+          <input type="text" id="f-num" value="001" oninput="aggiorna()" />
+        </div>
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="f-date" oninput="aggiorna()" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="f-cliente" placeholder="Es: Shock Male Grooming" oninput="aggiorna()" />
+      </div>
+      <div class="field">
+        <label>Titolo copione</label>
+        <input type="text" id="f-titolo" placeholder="Es: Reel Lancio Gel Fissante" oninput="aggiorna()" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Piattaforma</label>
+          <select id="f-piattaforma" onchange="aggiorna()">
+            <option>Instagram Reel</option>
+            <option>TikTok</option>
+            <option>YouTube Short</option>
+            <option>Storia Instagram</option>
+            <option>Post Carosello</option>
+            <option>Video YouTube</option>
+            <option>Facebook Reel</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Durata</label>
+          <input type="text" id="f-durata" placeholder="Es: 30 sec" oninput="aggiorna()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Sezioni del copione</div>
+      <div id="sezioni-body"></div>
+      <button class="btn-add-sez" onclick="aggiungiSezione()">+ Aggiungi sezione</button>
+    </div>
+
+  </div>
+
+  <!-- ── PREVIEW PANEL ── -->
+  <div class="preview-panel" id="preview-panel">
+    <div class="doc" id="doc-preview">
+
+      <div class="doc-header">
+        <div>
+          <div class="doc-brand-name">ASTRA AGENCY</div>
+          <div class="doc-brand-sub">Social Media Agency</div>
+        </div>
+        <div class="doc-meta-wrap">
+          <div class="doc-meta-label">Copione</div>
+          <div class="doc-meta-num" id="p-num">001</div>
+          <div class="doc-meta-date" id="p-date"></div>
+        </div>
+      </div>
+
+      <hr class="doc-sep" />
+
+      <div class="doc-title" id="p-titolo">Titolo del copione</div>
+
+      <div class="doc-info-strip">
+        <div class="doc-info-item">
+          <div class="doc-info-label">Cliente</div>
+          <div class="doc-info-value" id="p-cliente">—</div>
+        </div>
+        <div class="doc-info-item">
+          <div class="doc-info-label">Piattaforma</div>
+          <div class="doc-info-value" id="p-piattaforma">Instagram Reel</div>
+        </div>
+        <div class="doc-info-item" id="p-durata-wrap">
+          <div class="doc-info-label">Durata</div>
+          <div class="doc-info-value" id="p-durata"></div>
+        </div>
+      </div>
+
+      <div id="p-sezioni"></div>
+
+      <div class="doc-footer">
+        <div class="doc-footer-brand">ASTRA AGENCY</div>
+        <div class="doc-footer-contacts">info@astragency.it · astragency.it</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Stato ──
+let sezioni = [
+  { nome: 'HOOK', testo: '', note: '' },
+  { nome: 'CORPO', testo: '', note: '' },
+  { nome: 'CALL TO ACTION', testo: '', note: '' },
+];
+
+function oggi() {
+  return new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+function isoOggi() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── Aggiorna preview ──
+function aggiorna() {
+  const num        = document.getElementById('f-num').value || '001';
+  const dateVal    = document.getElementById('f-date').value;
+  const cliente    = document.getElementById('f-cliente').value;
+  const titolo     = document.getElementById('f-titolo').value;
+  const piattaforma= document.getElementById('f-piattaforma').value;
+  const durata     = document.getElementById('f-durata').value;
+
+  document.getElementById('p-num').textContent         = num;
+  document.getElementById('p-date').textContent        = dateVal ? new Date(dateVal + 'T12:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }) : oggi();
+  document.getElementById('p-titolo').textContent      = titolo || 'Titolo del copione';
+  document.getElementById('p-cliente').textContent     = cliente || '—';
+  document.getElementById('p-piattaforma').textContent = piattaforma;
+
+  const durataWrap = document.getElementById('p-durata-wrap');
+  if (durata) {
+    document.getElementById('p-durata').textContent = durata;
+    durataWrap.style.display = '';
+  } else {
+    durataWrap.style.display = 'none';
+  }
+
+  // Sezioni
+  const container = document.getElementById('p-sezioni');
+  container.innerHTML = sezioni.map(s => `
+    <div class="doc-sezione">
+      <div class="doc-sez-nome">${s.nome || 'SEZIONE'}</div>
+      <div class="doc-sez-testo">${escHtml(s.testo) || '<span style="color:#ccc;font-style:italic">—</span>'}</div>
+      ${s.note ? `<div class="doc-sez-note">📽 ${escHtml(s.note)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Render sezioni form ──
+function renderSezioni() {
+  const body = document.getElementById('sezioni-body');
+  body.innerHTML = '';
+  sezioni.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'sezione-card';
+    div.innerHTML = `
+      ${sezioni.length > 1 ? `<button class="btn-rm" onclick="rimuoviSezione(${i})" title="Rimuovi sezione">✕</button>` : ''}
+      <input class="sezione-nome" value="${escHtml(s.nome)}" placeholder="Nome sezione (es. HOOK)"
+        oninput="sezioni[${i}].nome=this.value;aggiorna()" />
+      <textarea class="sezione-testo" placeholder="Testo / dialogo…"
+        oninput="sezioni[${i}].testo=this.value;aggiorna()" rows="3">${escHtml(s.testo)}</textarea>
+      <textarea class="sezione-note" placeholder="Note di regia (opzionale)…"
+        oninput="sezioni[${i}].note=this.value;aggiorna()" rows="2">${escHtml(s.note)}</textarea>
+    `;
+    body.appendChild(div);
+  });
+}
+
+function aggiungiSezione() {
+  sezioni.push({ nome: '', testo: '', note: '' });
+  renderSezioni();
+  aggiorna();
+}
+function rimuoviSezione(i) {
+  sezioni.splice(i, 1);
+  renderSezioni();
+  aggiorna();
+}
+
+// ── Mobile tab ──
+function switchTab(tab) {
+  const fp = document.getElementById('form-panel');
+  const pp = document.getElementById('preview-panel');
+  document.getElementById('tab-form').classList.toggle('active', tab === 'form');
+  document.getElementById('tab-preview').classList.toggle('active', tab === 'preview');
+  fp.classList.toggle('tab-hidden', tab !== 'form');
+  pp.classList.toggle('tab-hidden', tab !== 'preview');
+  if (tab === 'preview') aggiorna();
+}
+
+// ── PDF ──
+async function scaricaPDF() {
+  const btn = document.querySelector('.btn-pdf');
+  const orig = btn.innerHTML;
+  btn.textContent = '⏳ PDF…';
+  btn.disabled = true;
+  try {
+    const doc = document.getElementById('doc-preview');
+    const origBS = doc.style.boxShadow;
+    const origBR = doc.style.borderRadius;
+    doc.style.boxShadow    = 'none';
+    doc.style.borderRadius = '0';
+
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 150));
+
+    const canvas = await html2canvas(doc, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: '#ffffff', logging: false
+    });
+
+    doc.style.boxShadow    = origBS;
+    doc.style.borderRadius = origBR;
+
+    const { jsPDF } = window.jspdf;
+    const mmW = (canvas.width  / 2) * 25.4 / 96;
+    const mmH = (canvas.height / 2) * 25.4 / 96;
+    const pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
+
+    const num     = document.getElementById('f-num').value || '001';
+    const cliente = (document.getElementById('f-cliente').value || 'Cliente').replace(/\s+/g, '-');
+    pdf.save(`Copione-${num}-${cliente}-AstraAgency.pdf`);
+  } catch(e) {
+    alert('Errore PDF: ' + e.message);
+  }
+  btn.innerHTML = orig;
+  btn.disabled  = false;
+}
+
+// ── Init ──
+document.getElementById('f-date').value = isoOggi();
+renderSezioni();
+aggiorna();
+</script>
+
+<!-- Auth Firebase -->
+<script type="module">
+  import { auth, db } from '/js/firebase-config.js';
+  import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = '/admin/login.html'; return; }
+    try {
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+      const name = snap.data()?.name || user.email;
+      const userEl = document.getElementById('topbar-user');
+      userEl.textContent = name;
+      userEl.style.display = '';
+      const logoutBtn = document.getElementById('btn-logout');
+      logoutBtn.style.display = '';
+      logoutBtn.onclick = async () => { await signOut(auth); window.location.href = '/admin/login.html'; };
+    } catch(e) {
+      window.location.href = '/admin/login.html';
+    }
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('main-layout').style.display  = '';
+  });
+</script>
+
+</body>
+</html>
