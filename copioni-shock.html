@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Copioni Shock — Astra Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#0d0d1a;--bg2:#12121f;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:#7a7a9a;--purple:#7B5CF0;--pink:#ff2d78;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;}
+
+#auth-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted);font-size:.9rem;}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.06em;}
+.topbar-brand span{color:var(--purple);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-dl{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:10px;padding:10px 20px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+.btn-dl:hover{opacity:.88;}
+.btn-dl:disabled{opacity:.5;cursor:not-allowed;}
+#btn-logout{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 14px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.82rem;cursor:pointer;transition:background .2s;}
+#btn-logout:hover{background:rgba(255,255,255,.12);}
+
+.preview-panel{padding:36px 32px;display:flex;flex-direction:column;align-items:center;gap:32px;}
+
+.cat-header{width:100%;max-width:794px;display:flex;align-items:center;gap:16px;margin-top:8px;}
+.cat-label{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);white-space:nowrap;}
+.cat-line{flex:1;height:1px;background:var(--border);}
+
+/* ── DOCUMENTO ── */
+.doc{width:100%;max-width:794px;background:#fff;color:#1a1a2e;padding:52px 58px;box-shadow:0 8px 60px rgba(0,0,0,.4);font-family:'Space Grotesk',sans-serif;font-size:13.5px;line-height:1.65;border-radius:4px;}
+.doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;}
+.doc-brand-name{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#1a0a2e;letter-spacing:.04em;line-height:1;}
+.doc-brand-sub{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7B5CF0;margin-top:4px;}
+.doc-meta-wrap{text-align:right;}
+.doc-meta-badge{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;background:#f3efff;color:#7B5CF0;border-radius:4px;padding:3px 8px;margin-bottom:4px;}
+.doc-meta-cat{font-size:.65rem;font-weight:700;color:#999;letter-spacing:.08em;text-transform:uppercase;}
+.doc-sep{border:none;border-top:2px solid #7B5CF0;margin-bottom:26px;opacity:.3;}
+.doc-title{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;color:#1a0a2e;line-height:1.1;margin-bottom:6px;}
+.doc-title-emoji{margin-right:6px;}
+.doc-info-strip{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid #ece8ff;}
+.doc-info-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7B5CF0;margin-bottom:2px;}
+.doc-info-value{font-size:.82rem;font-weight:600;color:#1a0a2e;}
+
+/* Sezioni */
+.doc-sez{margin-bottom:22px;}
+.doc-sez-nome{font-size:.62rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7B5CF0;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.doc-sez-nome::after{content:'';flex:1;height:1px;background:rgba(123,92,240,.2);}
+.script-body{font-size:.88rem;line-height:1.8;color:#1a1a2e;}
+.script-line{margin-bottom:2px;}
+.char{font-weight:700;color:#1a0a2e;}
+.dir{font-style:italic;color:#999;font-size:.83rem;}
+
+.doc-footer{margin-top:40px;padding-top:14px;border-top:1px solid #ece8ff;display:flex;justify-content:space-between;align-items:center;}
+.doc-footer-brand{font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#7B5CF0;}
+.doc-footer-contacts{font-size:.68rem;color:#aaa;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){.preview-panel{padding:14px 8px;}.doc{padding:26px 18px;font-size:12px;}.topbar{padding:10px 12px;}.btn-dl{padding:8px 12px;font-size:.78rem;}.btn-label-long{display:none;}}
+@media print{#auth-overlay,.topbar{display:none!important;}.doc{box-shadow:none!important;border-radius:0!important;}}
+</style>
+</head>
+<body>
+
+<div id="auth-overlay"><div class="spin"></div><span>Verifica accesso…</span></div>
+
+<div class="topbar">
+  <div class="topbar-brand">ASTRA<span>.</span> <span style="opacity:.6">Copioni Shock 💇🏽‍♂️</span></div>
+  <div class="topbar-right">
+    <span id="topbar-user" style="font-size:.78rem;color:var(--muted);display:none"></span>
+    <button class="btn-dl" id="btn-pdf" onclick="scaricaTuttiPDF()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      <span class="btn-label-long">Scarica tutti in PDF</span><span>PDF</span>
+    </button>
+    <button id="btn-logout" style="display:none">Esci</button>
+  </div>
+</div>
+
+<div id="main-layout" style="display:none">
+  <div class="preview-panel" id="preview-panel"></div>
+</div>
+
+<script>
+const DATA_OGG = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+
+const COPIONI = [
+  // ────────────── DIVERTENTI ──────────────
+  {
+    cat:'DIVERTENTE', n:'01', titolo:'CARTELLO', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Cliente legge il cartello: "UNA CERA 20€ — DUE 50€". Ghigna.]
+CLIENTE: mo lo fotto a questo.` },
+      { nome:'SVOLGIMENTO', testo:
+`CLIENTE: Ciao mi dai una cera.
+BARBIERE: Sicuro? Due in promozione fanno cinquanta.
+CLIENTE: No no, una.
+[Barbiere gliela dà.]
+CLIENTE: [paga, ci ripensa] …Vabbè dai, dammene un'altra.
+[Barbiere gliene dà un'altra.]
+CLIENTE: [ride mentre dà i soldi] una sempre 15 giusto?
+BARBIERE: Si.
+CLIENTE: [nella sua testa ad alta voce] Mazza che affare c'ho fatto. [se ne va]` },
+      { nome:'FINALE', testo:
+`[Rewind — bianco e nero.]
+BARBIERE: Gabriel, riappiccica il cartello, che mo' ce casca n'altro coglione.` }
+    ]
+  },
+  {
+    cat:'DIVERTENTE', n:'02', titolo:'MANO SCHIACCIATA', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Inquadratura da fuori. Barbiere 1 fischietta sulla porta. Cliente seduto fuori che piange disperato.]
+BARBIERE 2: Oh Gabriel, ma che c'ha questo?
+BARBIERE 1: Boh… ma, si sarà lasciato co' la ragazza.` },
+      { nome:'SVOLGIMENTO', testo:
+`BARBIERE 2: [tira fuori il Sea Salt Spray] Vabbè dai, dagli regalalo, magari si rallegra.
+BARBIERE 1: [si avvicina al cliente, tono dolce] Non devi soffrì per una donna, prenditi questo che ti rende più sicuro e più felice di quella.` },
+      { nome:'FINALE', testo:
+`CLIENTE: [piangendo, senza nemmeno guardarlo] A coglione ma voi levare il piede dalla mano mia.
+[Silenzio.]` }
+    ]
+  },
+  {
+    cat:'DIVERTENTE', n:'03', titolo:'PREZZO DIVERSO', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Cliente arriva in cassa, indica il Curl Design sul bancone.]
+CLIENTE: Ciao, questo quanto viene?` },
+      { nome:'SVOLGIMENTO', testo:
+`BARBIERE 1: Ciao caro aspetta che chiedo. [urla verso l'altra stanza] MARCOOO! Quanto il Curl Design?
+BARBIERE 2: [da fuori campo, mentre spazza] VENTI!
+BARBIERE 1: [tranquillo verso il cliente, con un sorrisino] Dieci caro.
+CLIENTE: [incredulo] 10, sei sicuro?
+BARBIERE 1: Sì. Vuoi che vado a controllare?
+CLIENTE: [agitato, tira fuori i soldi di fretta e li getta sul banco] No no no, tranquillo! Dai grazie, ciao ciao!` },
+      { nome:'FINALE', testo:
+`[Marco spazza per terra, Gabriel accanto a lui.]
+BARBIERE 2 (Marco): [continua a spazzare senza alzare lo sguardo] Aó… ce cascano sempre.` }
+    ]
+  },
+  {
+    cat:'DIVERTENTE', n:'04', titolo:'COCA', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Cliente 1 è seduto sulla sedia. Il barbiere si gira un secondo. Il cliente vede una striscia di polvere sul bancone.]
+CLIENTE 1: [sottovoce, occhi spalancati] oh… sembra bona.
+[La annusa. Ne prende troppa. Striscia bianca sotto il naso.]
+CLIENTE 1: [euforico, tra sé] porco due.` },
+      { nome:'SVOLGIMENTO', testo:
+`[Entra un altro Cliente 2, capelli tutti mosci, si siede ad aspettare.]
+BARBIERE: [si rigira, vede il ragazzo con il naso sporco di bianco] …ma che hai fatto?!
+CLIENTE 1: [con aria da intenditore] Frate, non so do l'hai trovata sta roba, ma è na bomba.
+BARBIERE: A fra ma sei coglione? Quella è cera pe' i capelli!!
+[Ripresa sulla scatola della cera per capelli aperta — logo ben visibile.]
+CLIENTE 1: [pausa lunga. Si guarda allo specchio. Si tocca il naso] …Ah.` },
+      { nome:'FINALE', testo:
+`[Silenzio. 1 secondo di sguardo fisso allo specchio. Poi il naso inizia a prudere.]
+CLIENTE 1: A… a… a…
+BARBIERE: No aspè bono oh—
+CLIENTE 1: AAACCIÙ!! 💨
+[Nuvola di polvere bianca esplode in faccia al Cliente 2 in attesa. Tutti gelati. Silenzio.]
+[Cliente 2 si guarda lentamente allo specchio — i capelli sono perfettamente pettinati, effetto mat impeccabile.]
+CLIENTE 2: [annuisce serio] ...Quanto costa?` }
+    ]
+  },
+  {
+    cat:'DIVERTENTE', n:'05', titolo:'LADRO DE BORSE', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Ragazza fuori dal barbiere, guarda il telefono mentre aspetta il ragazzo.]
+[Arriva un ragazzo coi capelli mosci e spettinati. Si guarda intorno e punta la borsa.]
+LADRO: Damme la borsa.
+[Le afferra la borsa e comincia a strapparla.]
+RAGAZZA: Oh ma che stai a fa'?!` },
+      { nome:'SVOLGIMENTO', testo:
+`[La ragazza apre la borsa e tira fuori il Sea Salt Spray.]
+RAGAZZA: Levate!
+[Spruzza in faccia al ladro. Pausa 2 secondi. Tutti fermi. Silenzio.]
+RAGAZZA: Cazzo ma questo non è lo spray al peperoncino.
+[Il ladro ora ha i capelli perfettamente volumizzati e sistemati.]
+LADRO: Ma che m'hai fatto?
+[Si tocca i capelli allo specchio di una macchina.]
+LADRO: Ammazza ao da paura.
+LADRO: Scusa pe' la borsa. Anzi grazie, m'hai cambiato la vita.` },
+      { nome:'FINALE', testo:
+`[In quel momento esce il fidanzato dal barbiere.]
+FIDANZATO: Ao lascia sta' la pischella mia.
+[PUGNO.]
+[Ladro steso per terra si guarda i capelli sullo schermo del telefono.]
+LADRO: Oh… i capelli so' rimasti perfetti.` }
+    ]
+  },
+  {
+    cat:'DIVERTENTE', n:'06', titolo:'ER CIECO', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Cliente sulla poltrona mentre si taglia i capelli.]
+RAGAZZA: Amo, io mi faccio qualche foto allo specchio.
+BARBIERE: Va bene amore.
+[Dietro, la ragazza del barbiere si fa foto allo specchio. Cliente in attesa guarda di striscio e con un cenno di approvazione si mette lentamente gli occhiali da sole.]` },
+      { nome:'SVOLGIMENTO', testo:
+`[Cliente fissa palesemente nella direzione della ragazza.]
+[Dopo 2 secondi il barbiere lo vede dallo specchio e si gira.]
+BARBIERE: Ao ma che stai a guardà?!
+[Il barbiere gli strappa gli occhiali.]
+[Il cliente afferra al volo una stecca/appoggio e comincia a tastare il pavimento.]
+BARBIERE: Oddio perdoname fra.
+CLIENTE: Tranquillo fra nessun problema. [con un sorriso di soddisfazione]
+BARBIERE: Me sento na merda.
+[Prende dei soldi dal portafoglio.]
+BARBIERE: Me voglia fa perdonà. Prendi sti 50 euro.
+[Gli mette in mano una banconota da 20€, spacciandola per 50€.]
+CLIENTE: Grazie fra veramente.
+[Pausa mentre guarda i soldi.]
+CLIENTE: Ma so' 20.
+[Silenzio. Il cliente realizza quello che ha detto. Il barbiere lo guarda malissimo.]` },
+      { nome:'FINALE', testo:
+`[Scena del cliente che viene cacciato dal negozio.]` }
+    ]
+  },
+
+  // ────────────── SERI / INFORMATIVI ──────────────
+  {
+    cat:'INFORMATIVO', n:'07', titolo:'SAI FARE SOLO TU', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`[Il cliente entra agitato.]
+CLIENTE: Ho un problema, non riesco a farmi il middle part con quell'effetto lì, come lo sai fare solo tu.
+BARBIERE: Dai, vieni qua che ti faccio vedere io.` },
+      { nome:'CORPO', testo:
+`[Il barbiere fa il middle part con le mani mentre spiega come lo fa e con quali prodotti, parlando dei prodotti Shock e paragonandoli alla concorrenza.]
+
+BARBIERE: Non sei stufo dei soliti prodotti pieni di silicone che ti appesantiscono i capelli?
+
+[Mostra il prodotto Shock, spiega la differenza, applica e mostra il risultato.]` },
+      { nome:'FINALE — verso camera', testo:
+`BARBIERE: E tu, che prodotti usi per i tuoi capelli?` }
+    ]
+  },
+  {
+    cat:'INFORMATIVO', n:'08', titolo:'GLI SHAMPOO NON SONO UGUALI', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`BARBIERE: Pensi ancora che qualsiasi tipo di shampoo vada bene per i tuoi capelli?` },
+      { nome:'CORPO', testo:
+`[Spiega la differenza tra i vari tipi di capello e illustra i prodotti Shock adatti a ciascuno, mostrando quale prodotto serve per quale esigenza.]
+
+[Spingi sul confronto con la concorrenza ed esalta il prodotto Shock rispetto agli shampoo comuni.]` },
+      { nome:'FINALE — verso camera', testo:
+`BARBIERE: Quindi ora che fai, continui a comprare quelle cose?` }
+    ]
+  },
+  {
+    cat:'INFORMATIVO', n:'09', titolo:'CIUFFO GRAFFIATO IN 3 STEP', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`BARBIERE: Ciuffo graffiato perfetto in 3 semplici step. Vieni con me che ti faccio vedere.` },
+      { nome:'CORPO — i 3 step', testo:
+`[Step 1] Pettinata iniziale — spiega come impostare la direzione del ciuffo con le mani.
+
+[Step 2] Applicazione del prodotto Shock — mostra il prodotto, la quantità giusta, come si distribuisce.
+
+[Step 3] Asciugatura — tecnica con il phon per fissare il volume e la direzione graffiata.
+
+[Tutto spiegato in modo naturale mentre lo mostri in diretta.]` },
+      { nome:'FINALE — verso camera', testo:
+`BARBIERE: Quindi pensi ancora che farlo da solo a casa sia difficile?` }
+    ]
+  },
+  {
+    cat:'INFORMATIVO', n:'10', titolo:'MA COSA È IL PALO FUORI DAI BARBIERI', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`BARBIERE: Vedi quel palo fuori dalla barberia? Rosso e bianco. Lo sai che è una decorazione.` },
+      { nome:'CORPO', testo:
+`BARBIERE: Il rosso rappresentava il sangue. Il bianco le bende. Secoli fa il barbiere non tagliava solo capelli — faceva salassi, estraeva denti, cuciva ferite. Era proprio il medico del popolo. Quello che non potevi permetterti dal dottore vero, lo risolvevi dal barbiere di quartiere.
+
+Il palo girava su se stesso per far capire da lontano che era aperto. Come un'insegna luminosa, ma nel 1300.` },
+      { nome:'CHIUSURA (20-25 sec)', testo:
+`BARBIERE: Oggi per fortuna ci limitiamo ai capelli. E lo facciamo bene.
+
+E tu, ti faresti mai curare dal tuo barbiere?` }
+    ]
+  },
+  {
+    cat:'INFORMATIVO', n:'11', titolo:'MA LO SAI CHE', cliente:'Shock Male Grooming',
+    sezioni:[
+      { nome:'HOOK', testo:
+`BARBIERE: Ma lo sai che 100 anni fa gli uomini si svegliavano la domenica mattina e la prima cosa che facevano… era andare dal barbiere?` },
+      { nome:'CORPO', testo:
+`BARBIERE: Era l'unico giorno libero dal lavoro. Fabbriche, cantieri, botteghe — tutta la settimana. La domenica era il giorno in cui finalmente ti rimettevi a posto. Non era vanità, era rispetto. Per te stesso, per la famiglia, per la messa.
+
+[CAMBIO INQUADRATURA]
+
+La barberia non era solo un posto dove tagliarsi i capelli. Era il posto dove ti sentivi uomo. Dove si parlava, si scherzava, si stava insieme.` },
+      { nome:'FINALE', testo:
+`BARBIERE: E tu, che ne pensi? È ancora così?` }
+    ]
+  }
+];
+
+// ── Render script text (bold char names, italic stage dirs) ──
+function renderTesto(text) {
+  return text.split('\n').map(line => {
+    if (!line.trim()) return '';
+    let h = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\[([^\]]+)\]/g,'<span class="dir">[$1]</span>')
+      .replace(/^([A-ZÀÈÉÌÒÙ][A-ZÀÈÉÌÒÙ0-9\s\-()]+):\s/,'<span class="char">$1:</span> ');
+    return `<div class="script-line">${h}</div>`;
+  }).filter(Boolean).join('');
+}
+
+// ── Build docs ──
+function buildDocs() {
+  const panel = document.getElementById('preview-panel');
+  let lastCat = null;
+
+  COPIONI.forEach((c, idx) => {
+    if (c.cat !== lastCat) {
+      const sep = document.createElement('div');
+      sep.className = 'cat-header';
+      sep.innerHTML = `<div class="cat-line"></div><div class="cat-label">— ${c.cat === 'DIVERTENTE' ? 'Copioni Divertenti' : 'Video Informativi'} —</div><div class="cat-line"></div>`;
+      panel.appendChild(sep);
+      lastCat = c.cat;
+    }
+
+    const doc = document.createElement('div');
+    doc.className = 'doc';
+    doc.id = `doc-${idx}`;
+    doc.innerHTML = `
+      <div class="doc-header">
+        <div>
+          <div class="doc-brand-name">ASTRA AGENCY</div>
+          <div class="doc-brand-sub">Social Media Agency</div>
+        </div>
+        <div class="doc-meta-wrap">
+          <div class="doc-meta-badge">${c.cat}</div>
+          <div class="doc-meta-cat">SHOCK MALE GROOMING</div>
+        </div>
+      </div>
+      <hr class="doc-sep"/>
+      <div class="doc-title">🎬 ${c.titolo}</div>
+      <div class="doc-info-strip">
+        <div><div class="doc-info-label">Cliente</div><div class="doc-info-value">${c.cliente}</div></div>
+        <div><div class="doc-info-label">N° copione</div><div class="doc-info-value">${c.n}</div></div>
+        <div><div class="doc-info-label">Data</div><div class="doc-info-value">${DATA_OGG}</div></div>
+      </div>
+      ${c.sezioni.map(s => `
+        <div class="doc-sez">
+          <div class="doc-sez-nome">${s.nome}</div>
+          <div class="script-body">${renderTesto(s.testo)}</div>
+        </div>`).join('')}
+      <div class="doc-footer">
+        <div class="doc-footer-brand">ASTRA AGENCY</div>
+        <div class="doc-footer-contacts">info@astragency.it · astragency.it</div>
+      </div>`;
+    panel.appendChild(doc);
+  });
+}
+
+// ── Scarica PDF multi-pagina ──
+async function scaricaTuttiPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+
+  await document.fonts.ready;
+
+  const { jsPDF } = window.jspdf;
+  let pdf = null;
+
+  for (let i = 0; i < COPIONI.length; i++) {
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="2" x2="12" y2="22"/></svg> ${i+1}/${COPIONI.length}…`;
+
+    const el = document.getElementById(`doc-${i}`);
+    const origBS = el.style.boxShadow;
+    const origBR = el.style.borderRadius;
+    el.style.boxShadow = 'none';
+    el.style.borderRadius = '0';
+
+    await new Promise(r => setTimeout(r, 80));
+
+    const canvas = await html2canvas(el, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: '#ffffff', logging: false
+    });
+
+    el.style.boxShadow = origBS;
+    el.style.borderRadius = origBR;
+
+    const mmW = (canvas.width  / 2) * 25.4 / 96;
+    const mmH = (canvas.height / 2) * 25.4 / 96;
+
+    if (i === 0) {
+      pdf = new jsPDF({ unit:'mm', format:[mmW, mmH], orientation:'portrait' });
+    } else {
+      pdf.addPage([mmW, mmH], 'portrait');
+    }
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
+  }
+
+  pdf.save('Copioni-Shock-AstraAgency.pdf');
+
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> <span class="btn-label-long">Scarica tutti in PDF</span><span>PDF</span>`;
+  btn.disabled = false;
+}
+
+buildDocs();
+</script>
+
+<!-- Auth Firebase -->
+<script type="module">
+  import { auth, db } from '/js/firebase-config.js';
+  import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = '/admin/login.html'; return; }
+    try {
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+      const name = snap.data()?.name || user.email;
+      const uel = document.getElementById('topbar-user');
+      uel.textContent = name; uel.style.display = '';
+      const lb = document.getElementById('btn-logout');
+      lb.style.display = '';
+      lb.onclick = async () => { await signOut(auth); window.location.href = '/admin/login.html'; };
+    } catch(e) { window.location.href = '/admin/login.html'; }
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('main-layout').style.display  = '';
+  });
+</script>
+</body>
+</html>
