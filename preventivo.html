@@ -2943,10 +2943,9 @@ async function scaricaPDF() {
 
       if (bestAfterGap >= 0) return startY + bestAfterGap;
 
-      // Fallback: prima riga bianca singola guardando indietro dal taglio
-      for (let row = scanH - 1; row >= 0; row--) {
-        if (white[row]) return startY + row;
-      }
+      // Nessun gap inter-sezione trovato: taglia al punto nominale.
+      // NON usare righe bianche singole come fallback — causerebbero snap
+      // su padding/margini minimi (es. 4px tra righe del totale).
       return nominalEnd;
     }
 
