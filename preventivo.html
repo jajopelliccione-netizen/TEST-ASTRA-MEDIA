@@ -1326,7 +1326,8 @@
       document.getElementById('auth-overlay').style.display = 'none';
       document.getElementById('main-layout').style.display = '';
       document.getElementById('btn-logout').style.display = '';
-      // Carica bozze da Firestore dopo autenticazione
+      // Migra bozze locali → Firestore (una volta sola), poi carica
+      await migraBozzeLegacy();
       renderBozze();
     } catch {
       await signOut(auth);
@@ -2019,6 +2020,24 @@ function salvaPredefinitoLogo() {
   const btn = document.querySelector('.btn-predefinito');
   btn.textContent = '✓ Salvato!';
   setTimeout(() => { btn.textContent = '💾 Salva come predefinito'; }, 1800);
+}
+
+// ── Migrazione bozze localStorage → Firestore (eseguita una volta per dispositivo) ──
+async function migraBozzeLegacy() {
+  const raw = localStorage.getItem('astra-preventivi-bozze');
+  if (!raw) return;
+  const bozze = JSON.parse(raw);
+  if (!bozze.length) { localStorage.removeItem('astra-preventivi-bozze'); return; }
+
+  const fb = window._fb;
+  await Promise.all(bozze.map(b =>
+    fb.addDoc(fb.collection(fb.db, 'preventivi_bozze'), {
+      nome:    b.nome,
+      savedAt: b.savedAt ? new Date(b.savedAt) : new Date(),
+      data:    b.data
+    })
+  ));
+  localStorage.removeItem('astra-preventivi-bozze');
 }
 
 // ── Bozze (Firestore – condivise tra tutti i dispositivi) ──
