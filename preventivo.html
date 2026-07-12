@@ -1349,6 +1349,7 @@ function isoOggi() {
 // ── Init ──
 document.getElementById('f-date').value = isoOggi();
 document.getElementById('f-notes').value =
+  'DOPO IL PRIMO MESE IL PAGAMENTO DEI MESI SUCCESSIVI VERRÀ FATTO RISPETTIVAMENTE, PER OGNI MESE, IL GIORNO DELL\'ACCETTAZIONE DEL CONTRATTO.\n\n' +
   'I costi pubblicitari (ads Meta, Google, TikTok ecc.) e le eventuali collaborazioni con creator, influencer o altri professionisti esterni sono da intendersi come spese aggiuntive interamente a carico del cliente, separate dal presente preventivo.\n\n' +
   'I prezzi indicati possono subire variazioni mensili che verranno comunicate al cliente con congruo anticipo. Nel corso del mese possono rendersi necessarie spese straordinarie (es. boost post, licenze software, materiali creativi) che saranno sempre a carico del cliente e preventivamente concordate.';
 
@@ -1520,7 +1521,8 @@ FORMATO:
   "sezioni": [
     {
       "nome": "Nome categoria (es: 'Gestione Contenuti')",
-      "voci": ["Voce concisa 1", "Voce concisa 2"]
+      "voci": ["Voce concisa 1", "Voce concisa 2"],
+      "gratuito": false
     }
   ],
   "chiusura": "1 frase finale motivante sul valore del pacchetto"
@@ -1530,6 +1532,7 @@ REGOLE:
 - titolo: commerciale, accattivante, max 5 parole
 - sezioni: raggruppa logicamente (Contenuti, Community, Analisi, ecc.), max 4 sezioni
 - voci: frasi brevi e concrete, max 6 per sezione
+- gratuito: true SOLO se l'utente specifica esplicitamente che quel gruppo di servizi è gratuito/gratis/incluso senza costo
 - tono: professionale ma caldo, moderno`;
 
 async function elaboraDescPacchetto() {
@@ -1639,7 +1642,10 @@ function renderDescPacchetto() {
       ${p.intro ? `<div style="font-size:.88rem;color:#444;line-height:1.75;margin-bottom:28px;padding:14px 20px;background:#f8f6ff;border-left:3px solid #7B5CF0;border-radius:0 6px 6px 0">${p.intro}</div>` : ''}
       ${(p.sezioni||[]).map(s => `
         <div style="margin-bottom:22px">
-          <div style="font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;color:#1a0a2e;padding-bottom:7px;border-bottom:1px solid #ece8ff;margin-bottom:10px">${s.nome||''}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;color:#1a0a2e;padding-bottom:7px;border-bottom:1px solid #ece8ff;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+            <span>${s.nome||''}</span>
+            ${s.gratuito ? `<span style="background:#16a34a;color:#fff;font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:4px;font-family:'Space Grotesk',sans-serif;flex-shrink:0">GRATUITO</span>` : ''}
+          </div>
           <ul style="margin:0;padding-left:20px">
             ${(s.voci||[]).map(v=>`<li style="font-size:.85rem;color:#2a2a3e;margin-bottom:5px;line-height:1.5">${v}</li>`).join('')}
           </ul>
@@ -2623,6 +2629,27 @@ async function scaricaPDF() {
       if (banner) banner.style.display = 'none';
     });
 
+    // Espandi la pagina descrizione a multipli interi di A4 — riempie l'ultima pagina
+    const _mainDocEl = document.getElementById('doc-preview');
+    const _descEl = pages.find(el => el !== _mainDocEl);
+    let _descExpand = null;
+    if (_descEl) {
+      const _a4Px = _descEl.offsetWidth * 297 / 210;
+      const _n    = Math.max(1, Math.ceil(_descEl.scrollHeight / _a4Px));
+      const _tgt  = _n * _a4Px;
+      if (_tgt - _descEl.scrollHeight > 10) {
+        const _lc = _descEl.lastElementChild;
+        _descExpand = { el: _descEl, lc: _lc,
+          mh: _descEl.style.minHeight, d: _descEl.style.display,
+          fd: _descEl.style.flexDirection,
+          mt: _lc ? _lc.style.marginTop : null };
+        _descEl.style.minHeight     = _tgt + 'px';
+        _descEl.style.display       = 'flex';
+        _descEl.style.flexDirection = 'column';
+        if (_lc) _lc.style.marginTop = 'auto';
+      }
+    }
+
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 200));
 
@@ -2697,6 +2724,13 @@ async function scaricaPDF() {
       })
     ));
 
+    // Ripristina stili desc page
+    if (_descExpand) {
+      const { el, lc, mh, d, fd, mt } = _descExpand;
+      el.style.minHeight = mh; el.style.display = d; el.style.flexDirection = fd;
+      if (lc && mt !== null) lc.style.marginTop = mt;
+    }
+
     pages.forEach((el, i) => {
       el.style.boxShadow    = origStyles[i].boxShadow;
       el.style.borderRadius = origStyles[i].borderRadius;
@@ -2705,17 +2739,28 @@ async function scaricaPDF() {
       if (banner) banner.style.display = '';
     });
 
-    const { jsPDF } = window.jspdf;
-    let pdf = null;
-    canvases.forEach((canvas, i) => {
-      const mmW = (canvas.width  / 2) * 25.4 / 96;
-      const mmH = (canvas.height / 2) * 25.4 / 96;
-      if (i === 0) {
-        pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
-      } else {
-        pdf.addPage([mmW, mmH], 'portrait');
+    // Suddividi ogni canvas in fogli A4 (297×210mm) — l'ultimo foglio viene riempito col bianco
+    const _A4R = 297 / 210;
+    const _pdfPages = [];
+    canvases.forEach(canvas => {
+      const a4H = Math.round(canvas.width * _A4R);
+      const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
+      for (let p = 0; p < nP; p++) {
+        const ch = document.createElement('canvas');
+        ch.width = canvas.width; ch.height = a4H;
+        const cx = ch.getContext('2d');
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, ch.width, ch.height);
+        cx.drawImage(canvas, 0, -p * a4H);
+        _pdfPages.push(ch);
       }
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
+    });
+    const { jsPDF } = window.jspdf;
+    const mmW = (_pdfPages[0].width  / 2) * 25.4 / 96;
+    const mmH = (_pdfPages[0].height / 2) * 25.4 / 96;
+    let pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
+    _pdfPages.forEach((ch, i) => {
+      if (i > 0) pdf.addPage([mmW, mmH], 'portrait');
+      pdf.addImage(ch.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
     });
 
     const num   = document.getElementById('f-num').value || '001';
