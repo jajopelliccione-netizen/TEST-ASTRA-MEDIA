@@ -783,6 +783,14 @@
       color: #007a6a;
     }
 
+    /* sotto-dettaglio pagamento unico (riga piccola sotto 1° MESE) */
+    .doc-total-row.pm-detail {
+      font-size: .72rem; font-weight: 400;
+      color: #a07000;
+      padding-top: 4px;
+      opacity: .85;
+    }
+
     /* ── AI Section ── */
     .ai-section {
       background: linear-gradient(135deg, rgba(123,92,240,.10), rgba(255,45,120,.06));
@@ -1814,12 +1822,13 @@ function aggiorna() {
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTantum)}</span></div>
       <div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
   } else if (hasPm) {
+    const pm1Total = sub1 + iva1 + (hasTantum ? subTantum + ivaTantum : 0);
     totHtml = `
       <div class="doc-total-row"><span>Imponibile mensile</span><span>${fmt(sub)}</span></div>
       <div class="doc-total-row"><span>IVA</span><span>${fmt(ivaTotal)}</span></div>
       <div class="doc-total-row grand"><span>MENSILE<br><small style="font-size:.65em;font-weight:400;color:#888;">dal 2° mese</small></span><span>${fmt(sub + ivaTotal)}</span></div>
-      <div class="doc-total-row pm"><span>1° MESE</span><span>${fmt(sub1 + iva1)}</span></div>`;
-    if (hasTantum) totHtml += `<div class="doc-total-row tantum"><span>UNA TANTUM</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
+      <div class="doc-total-row pm"><span>1° MESE</span><span>${fmt(pm1Total)}</span></div>`;
+    if (hasTantum) totHtml += `<div class="doc-total-row pm-detail"><span>Pagamento unico</span><span>${fmt(subTantum + ivaTantum)}</span></div>`;
   } else {
     totHtml = `
       <div class="doc-total-row"><span>Imponibile${hasTantum ? ' mensile' : ''}</span><span>${fmt(sub)}</span></div>
@@ -2621,9 +2630,13 @@ async function scaricaWord() {
                 ]}),
                 ...(hasPmWord ? [new TableRow({ children: [
                   mkCell([new Paragraph({children:[new TextRun({text:'1° MESE',size:24,bold:true,color:'B07800'})]})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'FFB800',size:6}},shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:60}),
-                  mkCell([new Paragraph({children:[new TextRun({text:fmt(wSub1+wIva1),size:24,bold:true,color:'B07800'})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'FFB800',size:6}},shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:40}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(wSub1+wIva1+(hasTantumWord&&!onlyTantum?wSubT+wIvaT:0)),size:24,bold:true,color:'B07800'})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'FFB800',size:6}},shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:40}),
                 ]})] : []),
-                ...(!onlyTantum && hasTantumWord ? [new TableRow({ children: [
+                ...(hasPmWord && hasTantumWord && !onlyTantum ? [new TableRow({ children: [
+                  mkCell([new Paragraph({children:[new TextRun({text:'Pagamento unico',size:17,color:'B07800'})]})], {borders:noBorder,shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:60}),
+                  mkCell([new Paragraph({children:[new TextRun({text:fmt(wSubT+wIvaT),size:17,color:'B07800'})],alignment:AlignmentType.RIGHT})], {borders:noBorder,shading:{fill:'FFF8E6',type:ShadingType.CLEAR},w:40}),
+                ]})] : []),
+                ...(!hasPmWord && !onlyTantum && hasTantumWord ? [new TableRow({ children: [
                   mkCell([new Paragraph({children:[new TextRun({text:'UNA TANTUM',size:24,bold:true,color:'007A6A'})]})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'00C8B4',size:6}},shading:{fill:'EDFAF8',type:ShadingType.CLEAR},w:60}),
                   mkCell([new Paragraph({children:[new TextRun({text:fmt(wSubT+wIvaT),size:24,bold:true,color:'007A6A'})],alignment:AlignmentType.RIGHT})], {borders:{...noBorder,top:{style:BorderStyle.SINGLE,color:'00C8B4',size:6}},shading:{fill:'EDFAF8',type:ShadingType.CLEAR},w:40}),
                 ]})] : []),
@@ -2848,11 +2861,14 @@ async function scaricaPDF() {
       return out;
     }
 
-    // Taglia in fogli A4 con respiro (BREATH) all'inizio delle pagine successive.
-    // BREATH = 80px @scale:2 ≈ 10 mm — lascia margine bianco in cima a ogni foglio
-    // tranne il primo, rendendo la stampa visivamente più ariosa.
-    const _A4R   = 297 / 210;
-    const BREATH = 80; // pixel @scale:2
+    // Taglia in fogli A4 con respiro in cima E in fondo ai fogli non-estremi.
+    // BREATH_TOP = 90px @scale:2 ≈ 11 mm — bianco all'inizio dei fogli 2+
+    // BREATH_BOT = 90px @scale:2 ≈ 11 mm — bianco alla fine dei fogli non-ultimi;
+    //   i pixel "spostati" riappaiono in cima al foglio successivo (dopo BREATH_TOP),
+    //   quindi nessun contenuto viene perso ma i tagli cadono in aree più bianche.
+    const _A4R      = 297 / 210;
+    const BREATH_TOP = 90; // pixel @scale:2
+    const BREATH_BOT = 90; // pixel @scale:2
     const _pdfPages = [];
     canvases.forEach((canvas) => {
       const processed = _scaleToFit(canvas);
@@ -2862,9 +2878,10 @@ async function scaricaPDF() {
       while (srcY < processed.height) {
         const remaining = processed.height - srcY;
         if (remaining < a4H * 0.05) break; // salta slice quasi-vuota
-        const topPad  = pIdx > 0 ? BREATH : 0;
-        const contentH = a4H - topPad;
-        const drawH   = Math.min(contentH, remaining);
+        const topPad  = pIdx > 0 ? BREATH_TOP : 0;
+        const netH    = a4H - topPad; // spazio disponibile per contenuto su questo foglio
+        const isLast  = remaining <= netH;
+        const drawH   = isLast ? remaining : netH - BREATH_BOT;
         const ch = document.createElement('canvas');
         ch.width  = processed.width;
         ch.height = a4H;
@@ -2873,7 +2890,7 @@ async function scaricaPDF() {
         cx.fillRect(0, 0, ch.width, ch.height);
         cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
         _pdfPages.push(ch);
-        srcY += contentH;
+        srcY += drawH; // avanza solo di quanto disegnato: i px BREATH_BOT passano al foglio dopo
         pIdx++;
       }
     });
