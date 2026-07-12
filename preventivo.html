@@ -362,9 +362,13 @@
 
     /* Compattazione applicata SOLO durante la generazione del PDF
        (non tocca l'anteprima) per far entrare tutto in modo ordinato */
-    .doc.pdf-compact .doc-notes      { padding: 13px 18px; margin-bottom: 26px; }
+    .doc.pdf-compact               { padding-top: 44px; padding-bottom: 44px; }
+    .doc.pdf-compact .doc-notes    { padding: 13px 18px; margin-bottom: 18px; }
     .doc.pdf-compact .doc-notes-text { font-size: .78rem; line-height: 1.5; }
-    .doc.pdf-compact .doc-validity   { margin-bottom: 24px; }
+    .doc.pdf-compact .doc-validity { margin-bottom: 18px; }
+    .doc.pdf-compact .doc-totals   { margin-bottom: 22px; }
+    .doc.pdf-compact .doc-firma    { margin-bottom: 18px; margin-top: 4px; }
+    .doc.pdf-compact .doc-footer   { padding-top: 10px; }
 
     /* Firma */
     .doc-firma {
@@ -898,6 +902,14 @@
       .doc-notes, .doc-validity, .doc-parties,
       .doc-totals, .doc-footer, .doc-firma, .doc-detail-card,
       tr, li { page-break-inside: avoid; break-inside: avoid; }
+
+      /* Compatta spaziatura per far stare tutto sul minor numero di pagine */
+      .doc          { padding: 38px 48px !important; }
+      .doc-totals   { margin-bottom: 22px !important; }
+      .doc-notes    { padding: 12px 16px !important; margin-bottom: 18px !important; }
+      .doc-validity { margin-bottom: 16px !important; }
+      .doc-firma    { margin-bottom: 18px !important; margin-top: 4px !important; }
+      .doc-footer   { padding-top: 10px !important; }
 
       #edit-banner { display: none !important; }
       .drag-section { outline: none !important; }
