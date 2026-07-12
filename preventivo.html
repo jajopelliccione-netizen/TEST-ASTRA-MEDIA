@@ -1150,6 +1150,13 @@
         <textarea id="f-desc-pacchetto" rows="5" style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.83rem;line-height:1.5;outline:none;resize:vertical;width:100%;transition:border-color .2s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor=''" placeholder="Es: gestiamo instagram e facebook, 3 post a settimana, 2 storie al giorno, risposta a commenti e DM, analisi mensile con report, ottimizzazione profilo, grafica coordinata…"></textarea>
       </div>
       <button class="btn-elabora-desc" id="btn-elabora-desc" onclick="elaboraDescPacchetto()">✦ Elabora con AI</button>
+      <div id="desc-titolo-box" style="display:none;margin-top:10px">
+        <div class="field">
+          <label>Titolo pacchetto (modificabile)</label>
+          <input type="text" id="desc-titolo-input" placeholder="Es: Gestione Social Premium"
+            oninput="if(_elaboratoPacchetto){_elaboratoPacchetto.titolo=this.value;renderDescPacchetto()}" />
+        </div>
+      </div>
       <div id="desc-elaborata-box" style="display:none" class="desc-elaborata-preview"></div>
     </div>
 
@@ -1595,6 +1602,14 @@ async function elaboraDescPacchetto() {
     _elaboratoPacchetto = JSON.parse(jsonMatch[0]);
     renderDescPacchetto();
 
+    // Mostra e popola il campo titolo modificabile
+    const _titoloBox = document.getElementById('desc-titolo-box');
+    const _titoloInput = document.getElementById('desc-titolo-input');
+    if (_titoloBox && _titoloInput) {
+      _titoloBox.style.display = '';
+      _titoloInput.value = _elaboratoPacchetto.titolo || '';
+    }
+
     btn.textContent = '✓ Elaborata!';
     document.getElementById('btn-reset-desc').style.display = '';
     setTimeout(() => { btn.textContent = '✦ Rielabora con AI'; btn.disabled = false; }, 1800);
@@ -1611,6 +1626,7 @@ function resetDescPacchetto() {
   document.getElementById('desc-page-preview').style.display = 'none';
   document.getElementById('desc-page-label').style.display = 'none';
   document.getElementById('desc-elaborata-box').style.display = 'none';
+  document.getElementById('desc-titolo-box').style.display = 'none';
   document.getElementById('btn-reset-desc').style.display = 'none';
 }
 
@@ -2629,26 +2645,7 @@ async function scaricaPDF() {
       if (banner) banner.style.display = 'none';
     });
 
-    // Espandi la pagina descrizione a multipli interi di A4 — riempie l'ultima pagina
     const _mainDocEl = document.getElementById('doc-preview');
-    const _descEl = pages.find(el => el !== _mainDocEl);
-    let _descExpand = null;
-    if (_descEl) {
-      const _a4Px = _descEl.offsetWidth * 297 / 210;
-      const _n    = Math.max(1, Math.ceil(_descEl.scrollHeight / _a4Px));
-      const _tgt  = _n * _a4Px;
-      if (_tgt - _descEl.scrollHeight > 10) {
-        const _lc = _descEl.lastElementChild;
-        _descExpand = { el: _descEl, lc: _lc,
-          mh: _descEl.style.minHeight, d: _descEl.style.display,
-          fd: _descEl.style.flexDirection,
-          mt: _lc ? _lc.style.marginTop : null };
-        _descEl.style.minHeight     = _tgt + 'px';
-        _descEl.style.display       = 'flex';
-        _descEl.style.flexDirection = 'column';
-        if (_lc) _lc.style.marginTop = 'auto';
-      }
-    }
 
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 200));
@@ -2724,13 +2721,6 @@ async function scaricaPDF() {
       })
     ));
 
-    // Ripristina stili desc page
-    if (_descExpand) {
-      const { el, lc, mh, d, fd, mt } = _descExpand;
-      el.style.minHeight = mh; el.style.display = d; el.style.flexDirection = fd;
-      if (lc && mt !== null) lc.style.marginTop = mt;
-    }
-
     pages.forEach((el, i) => {
       el.style.boxShadow    = origStyles[i].boxShadow;
       el.style.borderRadius = origStyles[i].borderRadius;
@@ -2739,27 +2729,41 @@ async function scaricaPDF() {
       if (banner) banner.style.display = '';
     });
 
-    // Suddividi ogni canvas in fogli A4 (297×210mm) — l'ultimo foglio viene riempito col bianco
+    // Pagina descrizione → split in fogli A4, salta chunk quasi-vuoti (<8% contenuto)
+    // Preventivo → pagina singola a altezza naturale (non viene tagliato)
     const _A4R = 297 / 210;
     const _pdfPages = [];
-    canvases.forEach(canvas => {
-      const a4H = Math.round(canvas.width * _A4R);
-      const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
-      for (let p = 0; p < nP; p++) {
-        const ch = document.createElement('canvas');
-        ch.width = canvas.width; ch.height = a4H;
-        const cx = ch.getContext('2d');
-        cx.fillStyle = '#fff'; cx.fillRect(0, 0, ch.width, ch.height);
-        cx.drawImage(canvas, 0, -p * a4H);
-        _pdfPages.push(ch);
+    canvases.forEach((canvas, idx) => {
+      const isDesc = pages[idx] !== _mainDocEl;
+      if (isDesc) {
+        const a4H = Math.round(canvas.width * _A4R);
+        const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
+        for (let p = 0; p < nP; p++) {
+          // Salta se il contenuto reale del canvas riempie meno dell'8% di questo chunk
+          if (canvas.height - p * a4H < a4H * 0.08) continue;
+          const ch = document.createElement('canvas');
+          ch.width = canvas.width; ch.height = a4H;
+          const cx = ch.getContext('2d');
+          cx.fillStyle = '#fff'; cx.fillRect(0, 0, ch.width, ch.height);
+          cx.drawImage(canvas, 0, -p * a4H);
+          _pdfPages.push(ch);
+        }
+      } else {
+        // Preventivo: una singola pagina alla sua altezza naturale
+        _pdfPages.push(canvas);
       }
     });
     const { jsPDF } = window.jspdf;
     const mmW = (_pdfPages[0].width  / 2) * 25.4 / 96;
-    const mmH = (_pdfPages[0].height / 2) * 25.4 / 96;
-    let pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
+    const mmH_A4 = Math.round(_pdfPages[0].width * _A4R / 2) * 25.4 / 96;
+    let pdf = null;
     _pdfPages.forEach((ch, i) => {
-      if (i > 0) pdf.addPage([mmW, mmH], 'portrait');
+      const mmH = (ch.height / 2) * 25.4 / 96;
+      if (i === 0) {
+        pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
+      } else {
+        pdf.addPage([mmW, mmH], 'portrait');
+      }
       pdf.addImage(ch.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
     });
 
