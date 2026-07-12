@@ -153,6 +153,24 @@
       transition: border-color .2s;
     }
     .svc-card input:focus { border-color: var(--purple); }
+    .svc-card textarea {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 8px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .82rem;
+      width: 100%;
+      outline: none;
+      transition: border-color .2s;
+      resize: none;
+      overflow: hidden;
+      min-height: 36px;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+    .svc-card textarea:focus { border-color: var(--purple); }
     .svc-card-desc { margin-bottom: 8px; }
     .svc-card-row {
       display: grid;
@@ -1464,6 +1482,13 @@ function rimuoviContatto(i) {
   aggiorna();
 }
 
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function descHtml(s) {
+  return escHtml(s || '—').replace(/\n/g, '<br>');
+}
+
 // ── Render righe form ──
 function renderRighe() {
   const body = document.getElementById('svc-body');
@@ -1479,7 +1504,7 @@ function renderRighe() {
     div.innerHTML = `
       ${righe.length > 1 ? `<button class="svc-remove" onclick="rimuoviRiga(${i})" title="Rimuovi">✕</button>` : ''}
       <div class="svc-card-desc">
-        <input value="${r.desc}" placeholder="Descrizione servizio…" oninput="righe[${i}].desc=this.value;aggiorna()" style="padding-right:${righe.length>1?'28px':'8px'}" />
+        <textarea rows="1" placeholder="Descrizione servizio… (Invio = a capo)" oninput="righe[${i}].desc=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px';aggiorna()" style="padding-right:${righe.length>1?'28px':'8px'}">${escHtml(r.desc)}</textarea>
       </div>
       <div class="svc-card-row">
         <div class="svc-card-field">
@@ -1509,6 +1534,8 @@ function renderRighe() {
       <button class="svc-tantum-toggle" onclick="righe[${i}].tantum=true;renderRighe();aggiorna()">○ Segna come una tantum (si paga una sola volta)</button>`}
     `;
     body.appendChild(div);
+    const ta = div.querySelector('textarea');
+    if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
   });
 }
 
@@ -1768,7 +1795,7 @@ function aggiorna() {
       const tr = document.createElement('tr');
       tr.style.background = '#edfaf8';
       tr.innerHTML = `
-        <td>${r.desc || '—'}<br><small style="color:#007a6a;font-size:.75em">Pagamento unico</small></td>
+        <td>${descHtml(r.desc)}<br><small style="color:#007a6a;font-size:.75em">Pagamento unico</small></td>
         <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
         <td><strong>${fmt(tot)}</strong></td>`;
       tbody.appendChild(tr);
@@ -1787,7 +1814,7 @@ function aggiorna() {
         const tr1 = document.createElement('tr');
         tr1.style.background = '#fff8e6';
         tr1.innerHTML = `
-          <td>${r.desc || '—'}<br><small style="color:#9a6800;font-size:.75em">1° mese</small></td>
+          <td>${descHtml(r.desc)}<br><small style="color:#9a6800;font-size:.75em">1° mese</small></td>
           <td>${r.qty}</td><td>${fmt(r.primoMese)}</td><td>${r.iva}%</td>
           <td><strong>${fmt(tot1)}</strong></td>`;
         tbody.appendChild(tr1);
@@ -1795,7 +1822,7 @@ function aggiorna() {
         const tot = imp + ivaA;
         const tr2 = document.createElement('tr');
         tr2.innerHTML = `
-          <td>${r.desc || '—'}<br><small style="color:#888;font-size:.75em">dal 2° mese</small></td>
+          <td>${descHtml(r.desc)}<br><small style="color:#888;font-size:.75em">dal 2° mese</small></td>
           <td>${r.qty}</td><td>${fmt(r.price)}</td><td>${r.iva}%</td>
           <td><strong>${fmt(tot)}</strong></td>`;
         tbody.appendChild(tr2);
@@ -1803,7 +1830,7 @@ function aggiorna() {
         const tot = imp + ivaA;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${r.desc || '—'}</td><td>${r.qty}</td>
+          <td>${descHtml(r.desc)}</td><td>${r.qty}</td>
           <td>${fmt(r.price)}</td><td>${r.iva}%</td>
           <td><strong>${fmt(tot)}</strong></td>`;
         tbody.appendChild(tr);
@@ -2861,14 +2888,35 @@ async function scaricaPDF() {
       return out;
     }
 
-    // Taglia in fogli A4 con respiro in cima E in fondo ai fogli non-estremi.
-    // BREATH_TOP = 90px @scale:2 ≈ 11 mm — bianco all'inizio dei fogli 2+
-    // BREATH_BOT = 90px @scale:2 ≈ 11 mm — bianco alla fine dei fogli non-ultimi;
-    //   i pixel "spostati" riappaiono in cima al foglio successivo (dopo BREATH_TOP),
-    //   quindi nessun contenuto viene perso ma i tagli cadono in aree più bianche.
-    const _A4R      = 297 / 210;
-    const BREATH_TOP = 90; // pixel @scale:2
-    const BREATH_BOT = 90; // pixel @scale:2
+    // Taglia in fogli A4 con smart-snap: trova la riga bianca più vicina
+    // al punto di taglio ideale (cercando all'indietro fino a SNAP_RANGE px)
+    // per evitare che i tagli cadano a metà di un testo o titolo.
+    // BREATH_TOP = 90px @scale:2 ≈ 11mm — margine bianco in cima ai fogli 2+.
+    const _A4R       = 297 / 210;
+    const BREATH_TOP = 90;   // pixel @scale:2
+    const SNAP_RANGE = 320;  // pixel @scale:2 — finestra di ricerca riga bianca
+
+    function _findNaturalBreak(processed, nominalEnd, range) {
+      const cctx = processed.getContext('2d');
+      const w    = processed.width;
+      const scanH = Math.min(range, nominalEnd);
+      if (scanH <= 0) return nominalEnd;
+      const startY = nominalEnd - scanH;
+      const imgData = cctx.getImageData(0, startY, w, scanH);
+      const data    = imgData.data;
+      // Scansiona indietro dal punto di taglio cercando una riga quasi-bianca
+      for (let row = scanH - 1; row >= 0; row--) {
+        const base = row * w * 4;
+        let isWhite = true;
+        for (let x = 0; x < w; x += 3) {  // campiona ogni 3 pixel per velocità
+          const i = base + x * 4;
+          if ((data[i] + data[i+1] + data[i+2]) / 3 < 238) { isWhite = false; break; }
+        }
+        if (isWhite) return startY + row;
+      }
+      return nominalEnd; // fallback: taglia al punto originale
+    }
+
     const _pdfPages = [];
     canvases.forEach((canvas) => {
       const processed = _scaleToFit(canvas);
@@ -2879,9 +2927,16 @@ async function scaricaPDF() {
         const remaining = processed.height - srcY;
         if (remaining < a4H * 0.05) break; // salta slice quasi-vuota
         const topPad  = pIdx > 0 ? BREATH_TOP : 0;
-        const netH    = a4H - topPad; // spazio disponibile per contenuto su questo foglio
+        const netH    = a4H - topPad;
         const isLast  = remaining <= netH;
-        const drawH   = isLast ? remaining : netH - BREATH_BOT;
+        let drawH;
+        if (isLast) {
+          drawH = remaining;
+        } else {
+          const nominalEnd = srcY + netH;
+          const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE);
+          drawH = Math.max(1, snapEnd - srcY); // almeno 1px per evitare loop infiniti
+        }
         const ch = document.createElement('canvas');
         ch.width  = processed.width;
         ch.height = a4H;
@@ -2890,7 +2945,7 @@ async function scaricaPDF() {
         cx.fillRect(0, 0, ch.width, ch.height);
         cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
         _pdfPages.push(ch);
-        srcY += drawH; // avanza solo di quanto disegnato: i px BREATH_BOT passano al foglio dopo
+        srcY += drawH;
         pIdx++;
       }
     });
