@@ -2634,23 +2634,17 @@ async function scaricaPDF() {
     }
     pages.push(document.getElementById('doc-preview'));
 
-    const _mainDocEl = document.getElementById('doc-preview');
-
-    // Salva stili originali (inclusi quelli che modifichiamo per il PDF)
+    // Salva stili originali
     const origStyles = pages.map(el => ({
-      boxShadow:     el.style.boxShadow,
-      borderRadius:  el.style.borderRadius,
-      width:         el.style.width,
-      maxWidth:      el.style.maxWidth,
-      minWidth:      el.style.minWidth,
-      display:       el.style.display,
-      flexDirection: el.style.flexDirection,
-      minHeight:     el.style.minHeight
+      boxShadow:    el.style.boxShadow,
+      borderRadius: el.style.borderRadius,
+      width:        el.style.width,
+      maxWidth:     el.style.maxWidth,
+      minWidth:     el.style.minWidth
     }));
 
     // A4 a 96 dpi = 794 × 1123 px
     const A4W_PX = 794;
-    const A4H_PX = Math.round(A4W_PX * 297 / 210); // 1123
 
     pages.forEach(el => {
       el.style.boxShadow    = 'none';
@@ -2663,23 +2657,6 @@ async function scaricaPDF() {
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
     });
-
-    // Per la pagina descrizione: espandi a N fogli A4 interi e spingi il footer in fondo
-    const _descEl = pages.find(el => el !== _mainDocEl) || null;
-    let _descFooterEl = null, _origFooterMT = null;
-    let _descOrigDisplay = null, _descOrigFlex = null, _descOrigMinH = null;
-    if (_descEl) {
-      const nPages = Math.max(1, Math.ceil(_descEl.scrollHeight / A4H_PX));
-      _descEl.style.display       = 'flex';
-      _descEl.style.flexDirection = 'column';
-      _descEl.style.minHeight     = (nPages * A4H_PX) + 'px';
-      // Spingi l'ultimo figlio (footer/firma) in fondo all'ultima pagina
-      _descFooterEl = _descEl.lastElementChild;
-      if (_descFooterEl) {
-        _origFooterMT = _descFooterEl.style.marginTop;
-        _descFooterEl.style.marginTop = 'auto';
-      }
-    }
 
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 300));
@@ -2747,39 +2724,57 @@ async function scaricaPDF() {
       })
     ));
 
-    // Ripristina tutti gli stili originali
-    if (_descEl && _descFooterEl) _descFooterEl.style.marginTop = _origFooterMT;
+    // Ripristina stili
     pages.forEach((el, i) => {
-      el.style.boxShadow     = origStyles[i].boxShadow;
-      el.style.borderRadius  = origStyles[i].borderRadius;
-      el.style.width         = origStyles[i].width;
-      el.style.maxWidth      = origStyles[i].maxWidth;
-      el.style.minWidth      = origStyles[i].minWidth;
-      el.style.display       = origStyles[i].display;
-      el.style.flexDirection = origStyles[i].flexDirection;
-      el.style.minHeight     = origStyles[i].minHeight;
+      el.style.boxShadow    = origStyles[i].boxShadow;
+      el.style.borderRadius = origStyles[i].borderRadius;
+      el.style.width        = origStyles[i].width;
+      el.style.maxWidth     = origStyles[i].maxWidth;
+      el.style.minWidth     = origStyles[i].minWidth;
       el.classList.remove('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = '';
     });
 
-    // Taglia tutti i canvas in fogli A4 (scale:2 → 1588×2246 px per foglio A4)
+    // Se l'ultima pagina è < 50% piena, scala tutto proporzionalmente
+    // per farlo entrare in un foglio in meno (crea margini laterali simmetrici).
+    function _scaleToFit(canvas) {
+      const a4H = Math.round(canvas.width * 297 / 210);
+      const nPages = Math.ceil(canvas.height / a4H);
+      if (nPages < 2) return canvas;
+      const lastFill = (canvas.height / a4H) % 1 || 1; // frazione ultima pagina (0→1 = 100%)
+      if (lastFill >= 0.50) return canvas;              // ultima pagina ≥ 50% → ok
+      const targetPages = nPages - 1;
+      const sf      = (targetPages * a4H) / canvas.height;
+      const scaledW = Math.round(canvas.width * sf);
+      const scaledH = targetPages * a4H;
+      const xOff    = Math.round((canvas.width - scaledW) / 2);
+      const out = document.createElement('canvas');
+      out.width  = canvas.width;
+      out.height = scaledH;
+      const ctx  = out.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, xOff, 0, scaledW, scaledH);
+      return out;
+    }
+
+    // Taglia in fogli A4, salta slice finale < 5% (evita pagine bianche)
     const _A4R = 297 / 210;
     const _pdfPages = [];
-    canvases.forEach((canvas, idx) => {
-      const a4H = Math.round(canvas.width * _A4R); // altezza A4 in pixel canvas
-      const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
+    canvases.forEach(canvas => {
+      const processed = _scaleToFit(canvas);
+      const a4H = Math.round(processed.width * _A4R);
+      const nP  = Math.max(1, Math.ceil(processed.height / a4H));
       for (let p = 0; p < nP; p++) {
-        // Salta slice finale quasi-vuota (< 5% altezza A4) – evita pagine bianche
-        const remaining = canvas.height - p * a4H;
-        if (remaining < a4H * 0.05) continue;
+        if (processed.height - p * a4H < a4H * 0.05) continue;
         const ch = document.createElement('canvas');
-        ch.width  = canvas.width;
+        ch.width  = processed.width;
         ch.height = a4H;
         const cx  = ch.getContext('2d');
         cx.fillStyle = '#fff';
         cx.fillRect(0, 0, ch.width, ch.height);
-        cx.drawImage(canvas, 0, -p * a4H);
+        cx.drawImage(processed, 0, -p * a4H);
         _pdfPages.push(ch);
       }
     });
