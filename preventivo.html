@@ -2950,8 +2950,15 @@ async function scaricaPDF() {
     }
 
     const _pdfPages = [];
-    canvases.forEach((canvas) => {
+    canvases.forEach((canvas, _cIdx) => {
       const processed = _scaleToFit(canvas);
+      // Il canvas del preventivo (ultimo) ha contenuto denso in fondo (righe totali).
+      // Usare BREATH_BOT pieno spingerebbe nominalEnd PRIMA della riga 1° MESE,
+      // lasciando "Pagamento unico" da sola nel foglio successivo.
+      // Per il preventivo usiamo un margine minimo così lo snap trova il gap naturale
+      // senza essere forzato in mezzo alle righe dei totali.
+      const isLastCanvas   = _cIdx === canvases.length - 1;
+      const thisBREATH_BOT = isLastCanvas ? 40 : BREATH_BOT;
       const a4H = Math.round(processed.width * _A4R);
       let srcY = 0;
       let pIdx = 0;
@@ -2965,8 +2972,8 @@ async function scaricaPDF() {
         if (isLast) {
           drawH = remaining;
         } else {
-          // nominalEnd = punto di taglio massimo che garantisce BREATH_BOT di bianco a fondo
-          const nominalEnd = srcY + netH - BREATH_BOT;
+          // nominalEnd = punto di taglio massimo che garantisce thisBREATH_BOT di bianco a fondo
+          const nominalEnd = srcY + netH - thisBREATH_BOT;
           const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE, 16);
           drawH = Math.max(1, snapEnd - srcY);
         }
