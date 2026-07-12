@@ -2958,7 +2958,11 @@ async function scaricaPDF() {
       // Per il preventivo usiamo un margine minimo così lo snap trova il gap naturale
       // senza essere forzato in mezzo alle righe dei totali.
       const isLastCanvas   = _cIdx === canvases.length - 1;
-      const thisBREATH_BOT = isLastCanvas ? 40 : BREATH_BOT;
+      // Preventivo canvas: BREATH_BOT ridotto (il blocco totali è compatto, margine pieno
+      // sposterebbe nominalEnd dentro le righe totali). SNAP_RANGE aumentato così l'algoritmo
+      // raggiunge il gap tra la tabella servizi e il blocco totali (spesso >500px prima di nominalEnd).
+      const thisBREATH_BOT = isLastCanvas ? 40  : BREATH_BOT;
+      const thisSNAP_RANGE = isLastCanvas ? 900 : SNAP_RANGE;
       const a4H = Math.round(processed.width * _A4R);
       let srcY = 0;
       let pIdx = 0;
@@ -2974,7 +2978,7 @@ async function scaricaPDF() {
         } else {
           // nominalEnd = punto di taglio massimo che garantisce thisBREATH_BOT di bianco a fondo
           const nominalEnd = srcY + netH - thisBREATH_BOT;
-          const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE, 16);
+          const snapEnd    = _findNaturalBreak(processed, nominalEnd, thisSNAP_RANGE, 16);
           drawH = Math.max(1, snapEnd - srcY);
         }
         const ch = document.createElement('canvas');
