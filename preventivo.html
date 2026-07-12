@@ -442,6 +442,51 @@
       display: flex; gap: 8px; align-items: center;
     }
 
+    /* Condizioni generali */
+    .doc-condizioni { margin-bottom: 28px; }
+    .doc-condizioni-title {
+      font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+      color: #7B5CF0; border-bottom: 1px solid #e8e4fa; padding-bottom: 7px; margin-bottom: 14px;
+    }
+    .doc-cond-block { margin-bottom: 11px; }
+    .doc-cond-block:last-child { margin-bottom: 0; }
+    .doc-cond-label {
+      font-size: .67rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .09em; color: #555; margin-bottom: 3px;
+    }
+    .doc-cond-text { font-size: .79rem; color: #555; line-height: 1.5; }
+    .doc-cond-checks { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 5px; }
+    .doc-check-item  { font-size: .79rem; color: #444; display: flex; align-items: center; gap: 6px; }
+    .doc-checkbox {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 13px; height: 13px; border: 1.5px solid #888; border-radius: 2px;
+      font-size: .72rem; flex-shrink: 0; color: #fff; background: transparent;
+    }
+    .doc-checkbox.checked { background: #2d2d5b; border-color: #2d2d5b; }
+
+    /* Accettazione */
+    .doc-accettazione { margin-bottom: 28px; }
+    .doc-accettazione-clause {
+      font-size: .78rem; color: #555; line-height: 1.55;
+      border-left: 3px solid #c0bfe8; padding-left: 12px; margin-bottom: 16px;
+    }
+    .doc-firma-luogo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: #888; margin-bottom: 20px;
+    }
+    .doc-firma-luogo-line { flex: 1; border-bottom: 1.5px solid #c8bfef; }
+
+    /* Form — checkbox metodi pagamento */
+    .pay-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .pay-check-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .8rem; color: var(--text); cursor: pointer;
+      background: rgba(255,255,255,.04); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px;
+    }
+    .pay-check-label input { accent-color: var(--purple); width: 13px; height: 13px; }
+
     /* ── Contatto card ── */
     .contatto-card {
       background: rgba(255,255,255,.04);
@@ -927,6 +972,7 @@
       /* Evita tagli a metà elemento */
       .doc-notes, .doc-validity, .doc-parties,
       .doc-totals, .doc-footer, .doc-firma, .doc-detail-card,
+      .doc-condizioni, .doc-accettazione,
       tr, li { page-break-inside: avoid; break-inside: avoid; }
 
       /* Compatta spaziatura per far stare tutto sul minor numero di pagine */
@@ -1103,6 +1149,16 @@
           <input type="text" id="f-ccompany" placeholder="Nome Attività Srl" oninput="aggiorna()" />
         </div>
       </div>
+      <div class="form-row" style="margin-top:10px">
+        <div class="field">
+          <label>Indirizzo</label>
+          <input type="text" id="f-cindirizzo" placeholder="Via Roma 1, Milano" oninput="aggiorna()" />
+        </div>
+        <div class="field">
+          <label>P.IVA / C.F. <span style="font-weight:400;opacity:.6">(opz.)</span></label>
+          <input type="text" id="f-cpiva" placeholder="IT12345678901" oninput="aggiorna()" />
+        </div>
+      </div>
       <div style="margin-top:14px">
         <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Contatti</div>
         <div id="contatti-list"></div>
@@ -1140,9 +1196,34 @@
     <div class="form-divider"></div>
 
     <div class="form-section">
-      <div class="form-section-title">Note e condizioni</div>
+      <div class="form-section-title">Condizioni</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Giorni consegna</label>
+          <input type="number" id="f-giorni" value="30" min="1" oninput="aggiorna()" />
+        </div>
+        <div class="field">
+          <label>Revisioni incluse</label>
+          <input type="number" id="f-revisioni" value="2" min="0" oninput="aggiorna()" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>Metodo di pagamento</label>
+        <div class="pay-checks">
+          <label class="pay-check-label"><input type="checkbox" id="chk-f-bonifico" onchange="aggiorna()"> Bonifico</label>
+          <label class="pay-check-label"><input type="checkbox" id="chk-f-paypal" onchange="aggiorna()"> PayPal</label>
+          <label class="pay-check-label"><input type="checkbox" id="chk-f-carta" onchange="aggiorna()"> Carta</label>
+          <label class="pay-check-label"><input type="checkbox" id="chk-f-contanti" onchange="aggiorna()"> Contanti</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-section">
+      <div class="form-section-title">Note aggiuntive</div>
       <div class="field">
-        <textarea id="f-notes" rows="5" placeholder="Es: I costi pubblicitari sono a carico del cliente. I prezzi possono subire variazioni mensili." oninput="aggiorna()"></textarea>
+        <textarea id="f-notes" rows="4" placeholder="Es: I costi pubblicitari sono a carico del cliente. I prezzi possono subire variazioni mensili." oninput="aggiorna()"></textarea>
       </div>
     </div>
 
@@ -1254,6 +1335,8 @@
             <div class="doc-party-label">A</div>
             <div class="doc-party-name" id="p-ccompany"></div>
             <div id="p-contatti"></div>
+            <div class="doc-party-detail" id="p-cindirizzo" style="display:none"></div>
+            <div class="doc-party-detail" id="p-cpiva" style="display:none"></div>
           </div>
         </div>
       </div>
@@ -1300,18 +1383,64 @@
         </div>
       </div>
 
-      <!-- Firma -->
-      <div class="drag-section" id="ds-firma" data-label="Firma">
-        <div class="doc-firma">
-          <div class="doc-firma-box">
-            <div class="doc-firma-label">Firma del cliente</div>
-            <div class="doc-firma-line"></div>
-            <div class="doc-firma-sub">Il cliente dichiara di accettare il presente preventivo</div>
+      <!-- Condizioni generali -->
+      <div class="drag-section" id="ds-condizioni" data-label="Condizioni">
+        <div class="doc-condizioni">
+          <div class="doc-condizioni-title">Condizioni generali</div>
+
+          <div class="doc-cond-block">
+            <div class="doc-cond-label">Modalità di pagamento</div>
+            <div class="doc-cond-checks">
+              <span class="doc-check-item"><span class="doc-checkbox" id="p-chk-bonifico"></span> Bonifico bancario</span>
+              <span class="doc-check-item"><span class="doc-checkbox" id="p-chk-paypal"></span> PayPal</span>
+              <span class="doc-check-item"><span class="doc-checkbox" id="p-chk-carta"></span> Carta di credito/debito</span>
+              <span class="doc-check-item"><span class="doc-checkbox" id="p-chk-contanti"></span> Contanti</span>
+            </div>
           </div>
-          <div class="doc-firma-box" style="max-width:160px">
-            <div class="doc-firma-label">Data</div>
-            <div class="doc-firma-line"></div>
-            <div class="doc-firma-sub">&nbsp;</div>
+
+          <div class="doc-cond-block">
+            <div class="doc-cond-label">Tempi di consegna</div>
+            <div class="doc-cond-text">La consegna del progetto è prevista entro <strong id="p-giorni-consegna">30</strong> giorni lavorativi dalla ricezione di tutto il materiale necessario e dal pagamento dell'acconto.</div>
+          </div>
+
+          <div class="doc-cond-block">
+            <div class="doc-cond-label">Modifiche e revisioni</div>
+            <div class="doc-cond-text">Sono comprese fino a <strong id="p-revisioni">2</strong> revisioni per ciascuna fase del progetto. Eventuali modifiche o richieste aggiuntive non comprese nel presente preventivo saranno preventivate separatamente.</div>
+          </div>
+
+          <div class="doc-cond-block">
+            <div class="doc-cond-label">Proprietà dei materiali</div>
+            <div class="doc-cond-text">Tutti i materiali realizzati saranno consegnati al cliente dopo il saldo completo del compenso pattuito.</div>
+          </div>
+
+          <div class="doc-cond-block">
+            <div class="doc-cond-label">Recesso</div>
+            <div class="doc-cond-text">In caso di annullamento del progetto dopo l'avvio dei lavori, l'eventuale acconto versato non sarà rimborsato e saranno fatturate le attività già svolte.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accettazione e firma -->
+      <div class="drag-section" id="ds-firma" data-label="Firma">
+        <div class="doc-accettazione">
+          <div class="doc-accettazione-clause">
+            Con la firma del presente documento il Cliente accetta integralmente la presente proposta commerciale e le condizioni in essa contenute.
+          </div>
+          <div class="doc-firma-luogo">
+            <span>Luogo e data</span>
+            <span class="doc-firma-luogo-line"></span>
+          </div>
+          <div class="doc-firma">
+            <div class="doc-firma-box">
+              <div class="doc-firma-label">Firma Cliente</div>
+              <div class="doc-firma-line"></div>
+              <div class="doc-firma-sub">&nbsp;</div>
+            </div>
+            <div class="doc-firma-box">
+              <div class="doc-firma-label">Firma Astra Agency</div>
+              <div class="doc-firma-line"></div>
+              <div class="doc-firma-sub">&nbsp;</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1382,7 +1511,7 @@ let contatti = [
 
 // ── Layout editor state (dichiarato in cima per evitare temporal dead zone) ──
 const LAYOUT_KEY = 'astra-preventivo-layout';
-const DS_IDS     = ['ds-logo','ds-meta','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
+const DS_IDS     = ['ds-logo','ds-meta','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-condizioni','ds-firma','ds-footer'];
 let   editMode   = false;
 let   dragState  = null;
 
@@ -1746,6 +1875,31 @@ function aggiorna() {
   document.getElementById('p-validity').textContent = validity;
   document.getElementById('p-notes-box').style.display = notes ? '' : 'none';
 
+  // Campi cliente extra
+  const cindirizzo = document.getElementById('f-cindirizzo').value.trim();
+  const cpiva      = document.getElementById('f-cpiva').value.trim();
+  const elInd = document.getElementById('p-cindirizzo');
+  const elPiva = document.getElementById('p-cpiva');
+  elInd.textContent    = cindirizzo;
+  elInd.style.display  = cindirizzo ? '' : 'none';
+  elPiva.textContent   = cpiva ? 'P.IVA: ' + cpiva : '';
+  elPiva.style.display = cpiva ? '' : 'none';
+
+  // Condizioni generali
+  const giorni    = document.getElementById('f-giorni').value    || '30';
+  const revisioni = document.getElementById('f-revisioni').value || '2';
+  document.getElementById('p-giorni-consegna').textContent = giorni;
+  document.getElementById('p-revisioni').textContent       = revisioni;
+
+  // Checkbox metodi di pagamento
+  const methods = ['bonifico','paypal','carta','contanti'];
+  methods.forEach(m => {
+    const checked = document.getElementById('chk-f-' + m).checked;
+    const box = document.getElementById('p-chk-' + m);
+    box.textContent = checked ? '✓' : '';
+    box.classList.toggle('checked', checked);
+  });
+
   // Contatti nel preview — prima tutti i nomi, poi tutte le mail, poi tutti i telefoni
   const pCont = document.getElementById('p-contatti');
   pCont.innerHTML = '';
@@ -2098,11 +2252,19 @@ async function salvaBozza() {
         num:        document.getElementById('f-num').value,
         date:       document.getElementById('f-date').value,
         ccompany,
+        cindirizzo: document.getElementById('f-cindirizzo').value,
+        cpiva:      document.getElementById('f-cpiva').value,
         contatti:   JSON.parse(JSON.stringify(contatti)),
         righe:      JSON.parse(JSON.stringify(righe)),
         iva:        document.getElementById('f-iva').value,
         validity:   document.getElementById('f-validity').value,
         notes:      document.getElementById('f-notes').value,
+        giorni:     document.getElementById('f-giorni').value,
+        revisioni:  document.getElementById('f-revisioni').value,
+        pagBonif:   document.getElementById('chk-f-bonifico').checked,
+        pagPaypal:  document.getElementById('chk-f-paypal').checked,
+        pagCarta:   document.getElementById('chk-f-carta').checked,
+        pagContanti:document.getElementById('chk-f-contanti').checked,
         logoSize:      document.getElementById('logo-size').value,
         logoShadow:    document.getElementById('logo-shadow').value,
         descPacchetto: _elaboratoPacchetto ? JSON.parse(JSON.stringify(_elaboratoPacchetto)) : null,
@@ -2127,14 +2289,22 @@ async function caricaBozza(id) {
   const bozza = snap.data();
   if (!confirm(`Caricare la bozza "${bozza.nome}"?\nI dati attuali non salvati andranno persi.`)) return;
   const d = bozza.data;
-  document.getElementById('f-num').value       = d.num;
-  document.getElementById('f-date').value      = d.date;
-  document.getElementById('f-ccompany').value  = d.ccompany;
-  document.getElementById('f-iva').value       = d.iva;
-  document.getElementById('f-validity').value  = d.validity;
-  document.getElementById('f-notes').value     = d.notes;
-  document.getElementById('logo-size').value   = d.logoSize || 52;
-  document.getElementById('logo-shadow').value = d.logoShadow || 0;
+  document.getElementById('f-num').value        = d.num;
+  document.getElementById('f-date').value       = d.date;
+  document.getElementById('f-ccompany').value   = d.ccompany;
+  document.getElementById('f-cindirizzo').value = d.cindirizzo || '';
+  document.getElementById('f-cpiva').value      = d.cpiva      || '';
+  document.getElementById('f-iva').value        = d.iva;
+  document.getElementById('f-validity').value   = d.validity;
+  document.getElementById('f-notes').value      = d.notes;
+  document.getElementById('f-giorni').value     = d.giorni    || '30';
+  document.getElementById('f-revisioni').value  = d.revisioni || '2';
+  document.getElementById('chk-f-bonifico').checked  = !!d.pagBonif;
+  document.getElementById('chk-f-paypal').checked    = !!d.pagPaypal;
+  document.getElementById('chk-f-carta').checked     = !!d.pagCarta;
+  document.getElementById('chk-f-contanti').checked  = !!d.pagContanti;
+  document.getElementById('logo-size').value    = d.logoSize || 52;
+  document.getElementById('logo-shadow').value  = d.logoShadow || 0;
   contatti = d.contatti;
   righe    = d.righe;
   renderContatti();
