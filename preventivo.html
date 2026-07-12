@@ -2888,12 +2888,15 @@ async function scaricaPDF() {
       return out;
     }
 
-    // Taglia in fogli A4 con smart-snap: trova la riga bianca più vicina
-    // al punto di taglio ideale (cercando all'indietro fino a SNAP_RANGE px)
-    // per evitare che i tagli cadano a metà di un testo o titolo.
-    // BREATH_TOP = 90px @scale:2 ≈ 11mm — margine bianco in cima ai fogli 2+.
+    // Taglia in fogli A4 con smart-snap e margini simmetrici.
+    // BREATH_TOP/BOT = 128px @scale:2 = 64px @96dpi = stesso padding orizzontale del .doc.
+    //   BREATH_BOT si applica come LIMITE di taglio: il taglio avviene a nominalEnd-BREATH_BOT
+    //   così il fondo del foglio ha sempre ≥ 64px di bianco (= margine sinistro del documento).
+    //   BREATH_TOP aggiunge 64px di bianco in cima ai fogli 2+ (stessa simmetria).
+    // SNAP_RANGE: distanza (px) entro cui cercare il gap inter-sezione prima di nominalEnd.
     const _A4R       = 297 / 210;
-    const BREATH_TOP = 90;   // pixel @scale:2
+    const BREATH_TOP = 128;  // pixel @scale:2 = 64px @96dpi ≈ 17mm
+    const BREATH_BOT = 128;  // pixel @scale:2 = 64px @96dpi ≈ 17mm
     const SNAP_RANGE = 500;  // pixel @scale:2 — finestra di ricerca gap inter-sezione
 
     // Cerca la MIGLIORE riga di taglio nella finestra [nominalEnd-range .. nominalEnd].
@@ -2963,7 +2966,8 @@ async function scaricaPDF() {
         if (isLast) {
           drawH = remaining;
         } else {
-          const nominalEnd = srcY + netH;
+          // nominalEnd = punto di taglio massimo che garantisce BREATH_BOT di bianco a fondo
+          const nominalEnd = srcY + netH - BREATH_BOT;
           const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE, 16);
           drawH = Math.max(1, snapEnd - srcY);
         }
