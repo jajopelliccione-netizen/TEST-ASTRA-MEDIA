@@ -1307,7 +1307,13 @@
 <script type="module">
   import { auth, db } from '/js/firebase-config.js';
   import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import {
+    doc, getDoc, collection, addDoc, getDocs, deleteDoc,
+    query, orderBy, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  // Esponi db e funzioni Firestore al contesto non-module
+  window._fb = { db, doc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '/admin/login.html'; return; }
@@ -1320,6 +1326,8 @@
       document.getElementById('auth-overlay').style.display = 'none';
       document.getElementById('main-layout').style.display = '';
       document.getElementById('btn-logout').style.display = '';
+      // Carica bozze da Firestore dopo autenticazione
+      renderBozze();
     } catch {
       await signOut(auth);
       window.location.href = '/admin/login.html';
@@ -1347,7 +1355,6 @@ let contatti = [
 
 // ── Layout editor state (dichiarato in cima per evitare temporal dead zone) ──
 const LAYOUT_KEY = 'astra-preventivo-layout';
-const BOZZE_KEY  = 'astra-preventivi-bozze';
 const DS_IDS     = ['ds-logo','ds-meta','ds-title','ds-parties','ds-table','ds-totals','ds-validity','ds-notes','ds-footer'];
 let   editMode   = false;
 let   dragState  = null;
@@ -1384,7 +1391,6 @@ renderRighe();
 aggiorna();
 aggiornaLogo();
 caricaLayoutSalvato();
-renderBozze();
 
 // ── Mobile tab switcher ──
 function switchTab(tab) {
@@ -2015,53 +2021,62 @@ function salvaPredefinitoLogo() {
   setTimeout(() => { btn.textContent = '💾 Salva come predefinito'; }, 1800);
 }
 
-// ── Bozze ──
-function getBozze() {
-  return JSON.parse(localStorage.getItem(BOZZE_KEY) || '[]');
-}
+// ── Bozze (Firestore – condivise tra tutti i dispositivi) ──
+async function salvaBozza() {
+  const fb = window._fb;
+  if (!fb) { alert('Firebase non pronto, riprova.'); return; }
 
-function salvaBozza() {
-  const bozze = getBozze();
-  const ccompany = document.getElementById('f-ccompany').value;
+  const ccompany  = document.getElementById('f-ccompany').value;
   const primoNome = contatti.find(c => c.nome)?.nome || '';
-  const label = [ccompany, primoNome].filter(Boolean).join(' · ') || 'Senza titolo';
-  const num = document.getElementById('f-num').value || '001';
-  const bozza = {
-    id: Date.now(),
-    nome: `#${num} — ${label}`,
-    savedAt: new Date().toISOString(),
-    data: {
-      num:      document.getElementById('f-num').value,
-      date:     document.getElementById('f-date').value,
-      ccompany,
-      contatti: JSON.parse(JSON.stringify(contatti)),
-      righe:    JSON.parse(JSON.stringify(righe)),
-      iva:      document.getElementById('f-iva').value,
-      validity: document.getElementById('f-validity').value,
-      notes:    document.getElementById('f-notes').value,
-      logoSize:   document.getElementById('logo-size').value,
-      logoShadow: document.getElementById('logo-shadow').value,
-    }
-  };
-  bozze.unshift(bozza);
-  localStorage.setItem(BOZZE_KEY, JSON.stringify(bozze));
-  renderBozze();
+  const label     = [ccompany, primoNome].filter(Boolean).join(' · ') || 'Senza titolo';
+  const num       = document.getElementById('f-num').value || '001';
+
   const btn = document.querySelector('.btn-salva-bozza');
-  btn.textContent = '✓ Salvata!';
-  setTimeout(() => { btn.textContent = '+ Salva bozza'; }, 1600);
+  btn.textContent = '⏳';
+  btn.disabled    = true;
+
+  try {
+    await fb.addDoc(fb.collection(fb.db, 'preventivi_bozze'), {
+      nome:    `#${num} — ${label}`,
+      savedAt: fb.serverTimestamp(),
+      data: {
+        num:        document.getElementById('f-num').value,
+        date:       document.getElementById('f-date').value,
+        ccompany,
+        contatti:   JSON.parse(JSON.stringify(contatti)),
+        righe:      JSON.parse(JSON.stringify(righe)),
+        iva:        document.getElementById('f-iva').value,
+        validity:   document.getElementById('f-validity').value,
+        notes:      document.getElementById('f-notes').value,
+        logoSize:   document.getElementById('logo-size').value,
+        logoShadow: document.getElementById('logo-shadow').value,
+      }
+    });
+    btn.textContent = '✓ Salvata!';
+    setTimeout(() => { btn.textContent = '+ Salva bozza'; }, 1600);
+    renderBozze();
+  } catch(e) {
+    console.error(e);
+    alert('Errore salvataggio: ' + e.message);
+    btn.textContent = '+ Salva bozza';
+  }
+  btn.disabled = false;
 }
 
-function caricaBozza(id) {
-  const bozza = getBozze().find(b => b.id === id);
-  if (!bozza) return;
+async function caricaBozza(id) {
+  const fb = window._fb;
+  if (!fb) return;
+  const snap = await fb.getDoc(fb.doc(fb.db, 'preventivi_bozze', id));
+  if (!snap.exists()) return;
+  const bozza = snap.data();
   if (!confirm(`Caricare la bozza "${bozza.nome}"?\nI dati attuali non salvati andranno persi.`)) return;
   const d = bozza.data;
-  document.getElementById('f-num').value      = d.num;
-  document.getElementById('f-date').value     = d.date;
-  document.getElementById('f-ccompany').value = d.ccompany;
-  document.getElementById('f-iva').value      = d.iva;
-  document.getElementById('f-validity').value = d.validity;
-  document.getElementById('f-notes').value    = d.notes;
+  document.getElementById('f-num').value       = d.num;
+  document.getElementById('f-date').value      = d.date;
+  document.getElementById('f-ccompany').value  = d.ccompany;
+  document.getElementById('f-iva').value       = d.iva;
+  document.getElementById('f-validity').value  = d.validity;
+  document.getElementById('f-notes').value     = d.notes;
   document.getElementById('logo-size').value   = d.logoSize || 52;
   document.getElementById('logo-shadow').value = d.logoShadow || 0;
   contatti = d.contatti;
@@ -2072,34 +2087,47 @@ function caricaBozza(id) {
   aggiornaLogo();
 }
 
-function eliminaBozza(id) {
-  const bozze = getBozze().filter(b => b.id !== id);
-  localStorage.setItem(BOZZE_KEY, JSON.stringify(bozze));
+async function eliminaBozza(id) {
+  const fb = window._fb;
+  if (!fb) return;
+  if (!confirm('Eliminare questa bozza? L\'operazione è permanente.')) return;
+  await fb.deleteDoc(fb.doc(fb.db, 'preventivi_bozze', id));
   renderBozze();
 }
 
-function renderBozze() {
-  const list  = document.getElementById('bozze-list');
-  const bozze = getBozze();
-  if (!bozze.length) {
-    list.innerHTML = '<div class="bozze-empty">Nessuna bozza salvata</div>';
-    return;
+async function renderBozze() {
+  const list = document.getElementById('bozze-list');
+  const fb   = window._fb;
+  if (!fb) { list.innerHTML = '<div class="bozze-empty">Connessione…</div>'; return; }
+
+  list.innerHTML = '<div class="bozze-empty">Caricamento…</div>';
+  try {
+    const q    = fb.query(fb.collection(fb.db, 'preventivi_bozze'), fb.orderBy('savedAt', 'desc'));
+    const snap = await fb.getDocs(q);
+    if (snap.empty) { list.innerHTML = '<div class="bozze-empty">Nessuna bozza salvata</div>'; return; }
+    list.innerHTML = '';
+    snap.docs.forEach(d => {
+      const b       = d.data();
+      const ts      = b.savedAt?.toDate ? b.savedAt.toDate() : new Date();
+      const dataStr = ts.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const div     = document.createElement('div');
+      div.className = 'bozza-item';
+      div.innerHTML = `
+        <div class="bozza-info">
+          <div class="bozza-nome">${b.nome}</div>
+          <div class="bozza-data">${dataStr}</div>
+        </div>
+        <button class="btn-bozza-carica">Carica</button>
+        <button class="btn-bozza-del" title="Elimina">✕</button>
+      `;
+      div.querySelector('.btn-bozza-carica').addEventListener('click', () => caricaBozza(d.id));
+      div.querySelector('.btn-bozza-del').addEventListener('click',    () => eliminaBozza(d.id));
+      list.appendChild(div);
+    });
+  } catch(e) {
+    console.error(e);
+    list.innerHTML = '<div class="bozze-empty">Errore caricamento bozze</div>';
   }
-  list.innerHTML = '';
-  bozze.forEach(b => {
-    const dataStr = new Date(b.savedAt).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const div = document.createElement('div');
-    div.className = 'bozza-item';
-    div.innerHTML = `
-      <div class="bozza-info">
-        <div class="bozza-nome">${b.nome}</div>
-        <div class="bozza-data">${dataStr}</div>
-      </div>
-      <button class="btn-bozza-carica" onclick="caricaBozza(${b.id})">Carica</button>
-      <button class="btn-bozza-del" onclick="eliminaBozza(${b.id})" title="Elimina">✕</button>
-    `;
-    list.appendChild(div);
-  });
 }
 
 // ── AI ──
