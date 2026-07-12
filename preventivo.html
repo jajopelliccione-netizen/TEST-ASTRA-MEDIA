@@ -366,6 +366,32 @@
     .doc.pdf-compact .doc-notes-text { font-size: .78rem; line-height: 1.5; }
     .doc.pdf-compact .doc-validity   { margin-bottom: 24px; }
 
+    /* Firma */
+    .doc-firma {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 36px;
+      margin-top: 8px;
+    }
+    .doc-firma-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .doc-firma-label {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #888;
+    }
+    .doc-firma-line {
+      border-bottom: 1.5px solid #c8bfef;
+      height: 44px;
+    }
+    .doc-firma-sub {
+      font-size: .7rem; color: #aaa;
+    }
+
     /* Footer doc */
     .doc-footer {
       border-top: 1px solid #ece8ff;
@@ -870,7 +896,7 @@
 
       /* Evita tagli a metà elemento */
       .doc-notes, .doc-validity, .doc-parties,
-      .doc-totals, .doc-footer, .doc-detail-card,
+      .doc-totals, .doc-footer, .doc-firma, .doc-detail-card,
       tr, li { page-break-inside: avoid; break-inside: avoid; }
 
       #edit-banner { display: none !important; }
@@ -1226,6 +1252,22 @@
         <div class="doc-notes" id="p-notes-box">
           <div class="doc-notes-label">Note e condizioni di pagamento</div>
           <div class="doc-notes-text" id="p-notes"></div>
+        </div>
+      </div>
+
+      <!-- Firma -->
+      <div class="drag-section" id="ds-firma" data-label="Firma">
+        <div class="doc-firma">
+          <div class="doc-firma-box">
+            <div class="doc-firma-label">Firma del cliente</div>
+            <div class="doc-firma-line"></div>
+            <div class="doc-firma-sub">Il cliente dichiara di accettare il presente preventivo</div>
+          </div>
+          <div class="doc-firma-box" style="max-width:160px">
+            <div class="doc-firma-label">Data</div>
+            <div class="doc-firma-line"></div>
+            <div class="doc-firma-sub">&nbsp;</div>
+          </div>
         </div>
       </div>
 
