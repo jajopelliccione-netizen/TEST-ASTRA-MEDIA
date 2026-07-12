@@ -283,8 +283,8 @@
     }
     .doc-party-name {
       font-family: 'Syne', sans-serif;
-      font-size: 1rem; font-weight: 800;
-      color: #1a0a2e; margin-bottom: 2px;
+      font-size: 1.1rem; font-weight: 800;
+      color: #1a0a2e; margin-bottom: 4px;
     }
     .doc-party-detail { font-size: .82rem; color: #555; }
 
@@ -446,8 +446,8 @@
     /* preview contatti */
     .p-contatto { margin-bottom: 10px; }
     .p-contatto:last-child { margin-bottom: 0; }
-    .p-contatto-name { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 800; color: #1a0a2e; }
-    .p-contatto-detail { font-size: .82rem; color: #555; }
+    .p-contatto-name { font-size: .82rem; font-weight: 500; color: #666; }
+    .p-contatto-detail { font-size: .78rem; color: #888; }
 
     /* ── Range sliders ── */
     input[type=range] {
@@ -1226,7 +1226,7 @@
           </div>
           <div>
             <div class="doc-party-label">A</div>
-            <div class="doc-party-detail" id="p-ccompany" style="font-weight:600;color:#555;margin-bottom:6px"></div>
+            <div class="doc-party-name" id="p-ccompany"></div>
             <div id="p-contatti"></div>
           </div>
         </div>
@@ -1558,7 +1558,7 @@ REGOLE:
 - titolo: commerciale, accattivante, max 5 parole
 - sezioni: raggruppa logicamente (Contenuti, Community, Analisi, ecc.), max 4 sezioni
 - voci: frasi brevi e concrete, max 6 per sezione
-- gratuito: true SOLO se l'utente specifica esplicitamente che quel gruppo di servizi è gratuito/gratis/incluso senza costo
+- gratuito: imposta true per una sezione quando i servizi in essa vengono descritti dall'utente come "gratuito", "gratis", "free", "incluso", "omaggio", "senza costo", "senza costo aggiuntivo" o simili. Anche "servizio gratuito", "viene offerto gratis", "incluso nel pacchetto senza costo" devono produrre gratuito: true per quella sezione. NON impostare gratuito: true se non c'è un'indicazione esplicita di gratuità.
 - tono: professionale ma caldo, moderno`;
 
 async function elaboraDescPacchetto() {
@@ -2824,14 +2824,15 @@ async function scaricaPDF() {
       _docPrevEl.style.minHeight = _savedMinH;
     }
 
-    // Se l'ultima pagina è < 50% piena, scala tutto proporzionalmente
+    // Se l'ultima pagina è < 12% piena, scala tutto proporzionalmente
     // per farlo entrare in un foglio in meno (crea margini laterali simmetrici).
+    // Soglia bassa (12%) per non comprimere quando il contenuto occupa ragionevolmente 2+ fogli.
     function _scaleToFit(canvas) {
       const a4H = Math.round(canvas.width * 297 / 210);
       const nPages = Math.ceil(canvas.height / a4H);
       if (nPages < 2) return canvas;
       const lastFill = (canvas.height / a4H) % 1 || 1; // frazione ultima pagina (0→1 = 100%)
-      if (lastFill >= 0.50) return canvas;              // ultima pagina ≥ 50% → ok
+      if (lastFill >= 0.12) return canvas;              // ultima pagina ≥ 12% → ok, non comprimere
       const targetPages = nPages - 1;
       const sf      = (targetPages * a4H) / canvas.height;
       const scaledW = Math.round(canvas.width * sf);
@@ -2847,26 +2848,33 @@ async function scaricaPDF() {
       return out;
     }
 
-    // Taglia in fogli A4, salta slice finale < 5% (evita pagine bianche)
-    // _scaleToFit applicato SOLO all'ultimo canvas (preventivo):
-    // la pagina desc viene tagliata a grandezza naturale per mantenere
-    // il testo alla stessa dimensione del preventivo.
-    const _A4R = 297 / 210;
+    // Taglia in fogli A4 con respiro (BREATH) all'inizio delle pagine successive.
+    // BREATH = 80px @scale:2 ≈ 10 mm — lascia margine bianco in cima a ogni foglio
+    // tranne il primo, rendendo la stampa visivamente più ariosa.
+    const _A4R   = 297 / 210;
+    const BREATH = 80; // pixel @scale:2
     const _pdfPages = [];
-    canvases.forEach((canvas, _ci) => {
-      const processed = (_ci === canvases.length - 1) ? _scaleToFit(canvas) : canvas;
+    canvases.forEach((canvas) => {
+      const processed = _scaleToFit(canvas);
       const a4H = Math.round(processed.width * _A4R);
-      const nP  = Math.max(1, Math.ceil(processed.height / a4H));
-      for (let p = 0; p < nP; p++) {
-        if (processed.height - p * a4H < a4H * 0.05) continue;
+      let srcY = 0;
+      let pIdx = 0;
+      while (srcY < processed.height) {
+        const remaining = processed.height - srcY;
+        if (remaining < a4H * 0.05) break; // salta slice quasi-vuota
+        const topPad  = pIdx > 0 ? BREATH : 0;
+        const contentH = a4H - topPad;
+        const drawH   = Math.min(contentH, remaining);
         const ch = document.createElement('canvas');
         ch.width  = processed.width;
         ch.height = a4H;
         const cx  = ch.getContext('2d');
         cx.fillStyle = '#fff';
         cx.fillRect(0, 0, ch.width, ch.height);
-        cx.drawImage(processed, 0, -p * a4H);
+        cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
         _pdfPages.push(ch);
+        srcY += contentH;
+        pIdx++;
       }
     });
 
