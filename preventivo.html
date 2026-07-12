@@ -2618,7 +2618,7 @@ async function scaricaWord() {
   btn.disabled = false;
 }
 
-/* ── SCARICA PDF – screenshot diretto di ogni .doc, identico all'anteprima ── */
+/* ── SCARICA PDF – A4 corretto per stampa (210×297 mm) ── */
 async function scaricaPDF() {
   const btn = document.getElementById('btn-pdf');
   const origHTML = btn.innerHTML;
@@ -2634,27 +2634,59 @@ async function scaricaPDF() {
     }
     pages.push(document.getElementById('doc-preview'));
 
+    const _mainDocEl = document.getElementById('doc-preview');
+
+    // Salva stili originali (inclusi quelli che modifichiamo per il PDF)
     const origStyles = pages.map(el => ({
-      boxShadow: el.style.boxShadow, borderRadius: el.style.borderRadius
+      boxShadow:     el.style.boxShadow,
+      borderRadius:  el.style.borderRadius,
+      width:         el.style.width,
+      maxWidth:      el.style.maxWidth,
+      minWidth:      el.style.minWidth,
+      display:       el.style.display,
+      flexDirection: el.style.flexDirection,
+      minHeight:     el.style.minHeight
     }));
+
+    // A4 a 96 dpi = 794 × 1123 px
+    const A4W_PX = 794;
+    const A4H_PX = Math.round(A4W_PX * 297 / 210); // 1123
+
     pages.forEach(el => {
-      el.style.boxShadow = 'none';
+      el.style.boxShadow    = 'none';
       el.style.borderRadius = '0';
-      el.classList.add('pdf-compact');   // compatta note/condizioni solo nel PDF
+      // Forza larghezza A4 esatta → PDF sempre 210 mm
+      el.style.width    = A4W_PX + 'px';
+      el.style.maxWidth = A4W_PX + 'px';
+      el.style.minWidth = A4W_PX + 'px';
+      el.classList.add('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
     });
 
-    const _mainDocEl = document.getElementById('doc-preview');
+    // Per la pagina descrizione: espandi a N fogli A4 interi e spingi il footer in fondo
+    const _descEl = pages.find(el => el !== _mainDocEl) || null;
+    let _descFooterEl = null, _origFooterMT = null;
+    let _descOrigDisplay = null, _descOrigFlex = null, _descOrigMinH = null;
+    if (_descEl) {
+      const nPages = Math.max(1, Math.ceil(_descEl.scrollHeight / A4H_PX));
+      _descEl.style.display       = 'flex';
+      _descEl.style.flexDirection = 'column';
+      _descEl.style.minHeight     = (nPages * A4H_PX) + 'px';
+      // Spingi l'ultimo figlio (footer/firma) in fondo all'ultima pagina
+      _descFooterEl = _descEl.lastElementChild;
+      if (_descFooterEl) {
+        _origFooterMT = _descFooterEl.style.marginTop;
+        _descFooterEl.style.marginTop = 'auto';
+      }
+    }
 
     await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
 
-    // html2canvas rifetcha le immagini via XHR ignorando img.src modificato.
-    // Unica soluzione garantita: iniettare un <canvas> nel DOM clonato via onclone()
-    // – html2canvas legge i pixel del canvas direttamente, senza fetch né CORS.
+    // Bake logo shadow nel clone (html2canvas non applica CSS filter)
     function bakeLogoInClone(clonedDoc) {
-      const origLogo   = document.getElementById('doc-logo'); // img originale (caricata)
+      const origLogo   = document.getElementById('doc-logo');
       const clonedLogo = clonedDoc.getElementById('doc-logo');
       if (!origLogo || !clonedLogo || !origLogo.naturalWidth) return;
 
@@ -2673,15 +2705,14 @@ async function scaricaPDF() {
       const rect  = origLogo.getBoundingClientRect();
       const dispH = rect.height || parseFloat(origLogo.style.height) || 52;
       const dispW = rect.width  || Math.round(dispH * nW / nH);
-      const sc    = nH / dispH; // pixel naturali per pixel display
+      const sc    = nH / dispH;
 
       const maxExt = Math.max(...shadows.flatMap(s =>
         [Math.abs(s.x) + s.blur * 2.5, Math.abs(s.y) + s.blur * 2.5]
       ));
-      const pDisp = Math.ceil(maxExt) + 6; // padding display px (spazio per l'ombra)
-      const p     = Math.round(pDisp * sc); // padding pixel naturali
+      const pDisp = Math.ceil(maxExt) + 6;
+      const p     = Math.round(pDisp * sc);
 
-      // Canvas con ombra baked-in, disegnata dall'img originale (sempre caricata)
       const cv = document.createElement('canvas');
       cv.width  = nW + p * 2;
       cv.height = nH + p * 2;
@@ -2695,16 +2726,11 @@ async function scaricaPDF() {
         ctx.drawImage(origLogo, p, p, nW, nH);
         ctx.restore();
       });
-      ctx.drawImage(origLogo, p, p, nW, nH); // logo sopra le ombre
+      ctx.drawImage(origLogo, p, p, nW, nH);
 
-      // Wrapper div: occupa lo stesso spazio del logo originale nel flex layout
       const wrap = clonedDoc.createElement('div');
       wrap.style.cssText = `position:relative;display:inline-block;width:${dispW}px;height:${dispH}px;overflow:visible;flex-shrink:0;`;
-
-      // Canvas posizionato in assoluto dentro il wrapper, esteso di pDisp su ogni lato
-      // così l'ombra fuoriesce visivamente ma il layout non si sposta
       cv.style.cssText = `position:absolute;left:${-pDisp}px;top:${-pDisp}px;width:${dispW + pDisp*2}px;height:${dispH + pDisp*2}px;`;
-
       wrap.appendChild(cv);
       clonedLogo.parentNode.insertBefore(wrap, clonedLogo);
       clonedLogo.style.display = 'none';
@@ -2721,50 +2747,49 @@ async function scaricaPDF() {
       })
     ));
 
+    // Ripristina tutti gli stili originali
+    if (_descEl && _descFooterEl) _descFooterEl.style.marginTop = _origFooterMT;
     pages.forEach((el, i) => {
-      el.style.boxShadow    = origStyles[i].boxShadow;
-      el.style.borderRadius = origStyles[i].borderRadius;
+      el.style.boxShadow     = origStyles[i].boxShadow;
+      el.style.borderRadius  = origStyles[i].borderRadius;
+      el.style.width         = origStyles[i].width;
+      el.style.maxWidth      = origStyles[i].maxWidth;
+      el.style.minWidth      = origStyles[i].minWidth;
+      el.style.display       = origStyles[i].display;
+      el.style.flexDirection = origStyles[i].flexDirection;
+      el.style.minHeight     = origStyles[i].minHeight;
       el.classList.remove('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = '';
     });
 
-    // Pagina descrizione → split in fogli A4, salta chunk quasi-vuoti (<8% contenuto)
-    // Preventivo → pagina singola a altezza naturale (non viene tagliato)
+    // Taglia tutti i canvas in fogli A4 (scale:2 → 1588×2246 px per foglio A4)
     const _A4R = 297 / 210;
     const _pdfPages = [];
     canvases.forEach((canvas, idx) => {
-      const isDesc = pages[idx] !== _mainDocEl;
-      if (isDesc) {
-        const a4H = Math.round(canvas.width * _A4R);
-        const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
-        for (let p = 0; p < nP; p++) {
-          // Salta se il contenuto reale del canvas riempie meno dell'8% di questo chunk
-          if (canvas.height - p * a4H < a4H * 0.08) continue;
-          const ch = document.createElement('canvas');
-          ch.width = canvas.width; ch.height = a4H;
-          const cx = ch.getContext('2d');
-          cx.fillStyle = '#fff'; cx.fillRect(0, 0, ch.width, ch.height);
-          cx.drawImage(canvas, 0, -p * a4H);
-          _pdfPages.push(ch);
-        }
-      } else {
-        // Preventivo: una singola pagina alla sua altezza naturale
-        _pdfPages.push(canvas);
+      const a4H = Math.round(canvas.width * _A4R); // altezza A4 in pixel canvas
+      const nP  = Math.max(1, Math.ceil(canvas.height / a4H));
+      for (let p = 0; p < nP; p++) {
+        // Salta slice finale quasi-vuota (< 5% altezza A4) – evita pagine bianche
+        const remaining = canvas.height - p * a4H;
+        if (remaining < a4H * 0.05) continue;
+        const ch = document.createElement('canvas');
+        ch.width  = canvas.width;
+        ch.height = a4H;
+        const cx  = ch.getContext('2d');
+        cx.fillStyle = '#fff';
+        cx.fillRect(0, 0, ch.width, ch.height);
+        cx.drawImage(canvas, 0, -p * a4H);
+        _pdfPages.push(ch);
       }
     });
+
+    // Genera PDF con pagine A4 fisse (210×297 mm)
     const { jsPDF } = window.jspdf;
-    const mmW = (_pdfPages[0].width  / 2) * 25.4 / 96;
-    const mmH_A4 = Math.round(_pdfPages[0].width * _A4R / 2) * 25.4 / 96;
-    let pdf = null;
+    let pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     _pdfPages.forEach((ch, i) => {
-      const mmH = (ch.height / 2) * 25.4 / 96;
-      if (i === 0) {
-        pdf = new jsPDF({ unit: 'mm', format: [mmW, mmH], orientation: 'portrait' });
-      } else {
-        pdf.addPage([mmW, mmH], 'portrait');
-      }
-      pdf.addImage(ch.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, mmW, mmH);
+      if (i > 0) pdf.addPage('a4', 'portrait');
+      pdf.addImage(ch.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, 210, 297);
     });
 
     const num   = document.getElementById('f-num').value || '001';
