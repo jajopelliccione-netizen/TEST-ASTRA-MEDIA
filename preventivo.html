@@ -2894,27 +2894,57 @@ async function scaricaPDF() {
     // BREATH_TOP = 90px @scale:2 ≈ 11mm — margine bianco in cima ai fogli 2+.
     const _A4R       = 297 / 210;
     const BREATH_TOP = 90;   // pixel @scale:2
-    const SNAP_RANGE = 320;  // pixel @scale:2 — finestra di ricerca riga bianca
+    const SNAP_RANGE = 500;  // pixel @scale:2 — finestra di ricerca gap inter-sezione
 
-    function _findNaturalBreak(processed, nominalEnd, range) {
-      const cctx = processed.getContext('2d');
-      const w    = processed.width;
+    // Cerca la MIGLIORE riga di taglio nella finestra [nominalEnd-range .. nominalEnd].
+    // Logica: classifica ogni riga come "bianca" (nessun pixel < 238/255).
+    // Poi cerca la ULTIMA run di righe bianche consecutive >= minRunLen:
+    //   run lunga = gap inter-sezione (~44px) → snap qui
+    //   run corta (< minRunLen) = spazio tra bullet (~10px) → ignorata
+    // Restituisce il primo pixel NON-BIANCO dopo la run (= inizio heading nuova sezione):
+    //   il gap entra nella parte finale del foglio corrente, il heading inizia pulito
+    //   sul foglio successivo (dopo BREATH_TOP).
+    function _findNaturalBreak(processed, nominalEnd, range, minRunLen) {
+      const cctx  = processed.getContext('2d');
+      const w     = processed.width;
       const scanH = Math.min(range, nominalEnd);
       if (scanH <= 0) return nominalEnd;
-      const startY = nominalEnd - scanH;
+      const startY  = nominalEnd - scanH;
       const imgData = cctx.getImageData(0, startY, w, scanH);
       const data    = imgData.data;
-      // Scansiona indietro dal punto di taglio cercando una riga quasi-bianca
-      for (let row = scanH - 1; row >= 0; row--) {
+
+      // 1. Segna ogni riga come bianca (1) o non (0)
+      const white = new Uint8Array(scanH);
+      for (let row = 0; row < scanH; row++) {
         const base = row * w * 4;
-        let isWhite = true;
-        for (let x = 0; x < w; x += 3) {  // campiona ogni 3 pixel per velocità
+        let ok = true;
+        for (let x = 0; x < w; x += 3) {
           const i = base + x * 4;
-          if ((data[i] + data[i+1] + data[i+2]) / 3 < 238) { isWhite = false; break; }
+          if (data[i] + data[i+1] + data[i+2] < 714) { ok = false; break; } // 238*3
         }
-        if (isWhite) return startY + row;
+        white[row] = ok ? 1 : 0;
       }
-      return nominalEnd; // fallback: taglia al punto originale
+
+      // 2. Scansiona in avanti: trova L'ULTIMA run >= minRunLen, salva il primo
+      //    pixel NON-BIANCO subito dopo (= dove inizia il blocco seguente).
+      let run = 0, bestAfterGap = -1;
+      for (let row = 0; row < scanH; row++) {
+        if (white[row]) {
+          run++;
+        } else {
+          if (run >= minRunLen) bestAfterGap = row; // prima riga non-bianca dopo il gap
+          run = 0;
+        }
+      }
+      if (run >= minRunLen) bestAfterGap = scanH; // gap arriva fino al bordo dell'area
+
+      if (bestAfterGap >= 0) return startY + bestAfterGap;
+
+      // Fallback: prima riga bianca singola guardando indietro dal taglio
+      for (let row = scanH - 1; row >= 0; row--) {
+        if (white[row]) return startY + row;
+      }
+      return nominalEnd;
     }
 
     const _pdfPages = [];
@@ -2926,16 +2956,16 @@ async function scaricaPDF() {
       while (srcY < processed.height) {
         const remaining = processed.height - srcY;
         if (remaining < a4H * 0.05) break; // salta slice quasi-vuota
-        const topPad  = pIdx > 0 ? BREATH_TOP : 0;
-        const netH    = a4H - topPad;
-        const isLast  = remaining <= netH;
+        const topPad = pIdx > 0 ? BREATH_TOP : 0;
+        const netH   = a4H - topPad;
+        const isLast = remaining <= netH;
         let drawH;
         if (isLast) {
           drawH = remaining;
         } else {
           const nominalEnd = srcY + netH;
-          const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE);
-          drawH = Math.max(1, snapEnd - srcY); // almeno 1px per evitare loop infiniti
+          const snapEnd    = _findNaturalBreak(processed, nominalEnd, SNAP_RANGE, 16);
+          drawH = Math.max(1, snapEnd - srcY);
         }
         const ch = document.createElement('canvas');
         ch.width  = processed.width;
