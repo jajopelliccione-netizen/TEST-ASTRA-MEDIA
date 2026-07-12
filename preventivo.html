@@ -2067,8 +2067,9 @@ async function salvaBozza() {
         iva:        document.getElementById('f-iva').value,
         validity:   document.getElementById('f-validity').value,
         notes:      document.getElementById('f-notes').value,
-        logoSize:   document.getElementById('logo-size').value,
-        logoShadow: document.getElementById('logo-shadow').value,
+        logoSize:      document.getElementById('logo-size').value,
+        logoShadow:    document.getElementById('logo-shadow').value,
+        descPacchetto: _elaboratoPacchetto ? JSON.parse(JSON.stringify(_elaboratoPacchetto)) : null,
       }
     });
     btn.textContent = '✓ Salvata!';
@@ -2104,6 +2105,17 @@ async function caricaBozza(id) {
   renderRighe();
   aggiorna();
   aggiornaLogo();
+
+  // Ripristina pagina AI se era presente nella bozza
+  _elaboratoPacchetto = d.descPacchetto || null;
+  renderDescPacchetto();
+  const _ti = document.getElementById('desc-titolo-input');
+  const _tb = document.getElementById('desc-titolo-box');
+  if (_elaboratoPacchetto && _ti && _tb) {
+    _ti.value = _elaboratoPacchetto.titolo || '';
+    _tb.style.display = '';
+    document.getElementById('btn-reset-desc').style.display = '';
+  }
 }
 
 async function eliminaBozza(id) {
@@ -2705,6 +2717,17 @@ async function scaricaPDF() {
     // A4 a 96 dpi = 794 × 1123 px
     const A4W_PX = 794;
 
+    // Rimuovi temporaneamente il layout personalizzato dal preventivo:
+    // con has-custom-layout le drag-section sono position:absolute, il che
+    // distorce lo screenshot (firma fuori posto, spazi vuoti, minHeight gonfia il doc).
+    const _docPrevEl   = document.getElementById('doc-preview');
+    const _hadCL       = _docPrevEl.classList.contains('has-custom-layout');
+    const _savedMinH   = _docPrevEl.style.minHeight;
+    if (_hadCL) {
+      _docPrevEl.classList.remove('has-custom-layout');
+      _docPrevEl.style.minHeight = '';
+    }
+
     pages.forEach(el => {
       el.style.boxShadow    = 'none';
       el.style.borderRadius = '0';
@@ -2795,6 +2818,12 @@ async function scaricaPDF() {
       if (banner) banner.style.display = '';
     });
 
+    // Ripristina layout personalizzato
+    if (_hadCL) {
+      _docPrevEl.classList.add('has-custom-layout');
+      _docPrevEl.style.minHeight = _savedMinH;
+    }
+
     // Se l'ultima pagina è < 50% piena, scala tutto proporzionalmente
     // per farlo entrare in un foglio in meno (crea margini laterali simmetrici).
     function _scaleToFit(canvas) {
@@ -2819,10 +2848,13 @@ async function scaricaPDF() {
     }
 
     // Taglia in fogli A4, salta slice finale < 5% (evita pagine bianche)
+    // _scaleToFit applicato SOLO all'ultimo canvas (preventivo):
+    // la pagina desc viene tagliata a grandezza naturale per mantenere
+    // il testo alla stessa dimensione del preventivo.
     const _A4R = 297 / 210;
     const _pdfPages = [];
-    canvases.forEach(canvas => {
-      const processed = _scaleToFit(canvas);
+    canvases.forEach((canvas, _ci) => {
+      const processed = (_ci === canvases.length - 1) ? _scaleToFit(canvas) : canvas;
       const a4H = Math.round(processed.width * _A4R);
       const nP  = Math.max(1, Math.ceil(processed.height / a4H));
       for (let p = 0; p < nP; p++) {
