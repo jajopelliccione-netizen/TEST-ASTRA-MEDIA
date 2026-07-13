@@ -3246,10 +3246,13 @@ async function scaricaPDF() {
         if (lastPage && firmaEl) {
           // Spazio bianco rimasto al fondo dell'ultima pagina (in px canvas scale:2)
           const whiteBot = lastPage.height - _lastTopPad - _lastDrawH;
-          const shift    = whiteBot - 24; // 24px margine basso
-          if (shift > 40) {
-            // Posizione firma dentro la pagina canvas
-            const firmaCanvasTop = firmaEl.offsetTop * 2; // DOM→canvas scale:2
+          const shift    = whiteBot - 16; // 16px margine basso
+          if (shift > 20) {
+            // Posizione firma: usa getBoundingClientRect() relativo all'elemento renderizzato
+            // (offsetTop è relativo all'offsetParent CSS, non all'elemento catturato da html2canvas)
+            const pageRect       = pages[_cIdx].getBoundingClientRect();
+            const firmaRect      = firmaEl.getBoundingClientRect();
+            const firmaCanvasTop = (firmaRect.top - pageRect.top) * 2; // scale:2
             const firmaInPage    = _lastTopPad + (firmaCanvasTop - _lastSrcY);
             if (firmaInPage > 10 && firmaInPage < lastPage.height - 60) {
               const firmaH   = (_lastTopPad + _lastDrawH) - firmaInPage;
