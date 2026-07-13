@@ -583,7 +583,7 @@
       background: #7B5CF0;
       border-radius: 4px;
       padding: 5px 18px;
-      margin: 28px auto 22px;
+      margin: 16px auto 18px;
       display: table; /* shrink-wrap to content, still centered */
     }
     .doc-accettazione-clause {
@@ -3415,6 +3415,8 @@ async function scaricaPDF() {
       if (_accett) _accett.style.marginBottom = '0';
       const _dfirma = _accett && _accett.querySelector('.doc-firma');
       if (_dfirma) _dfirma.style.marginBottom = '0';
+      const _copBanner = el.querySelector('.doc-copia-banner');
+      if (_copBanner) _copBanner.style.marginTop = '10px';
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '4px';
     });
@@ -3539,6 +3541,8 @@ async function scaricaPDF() {
       if (_accett) _accett.style.marginBottom = '';
       const _dfirma = _accett && _accett.querySelector('.doc-firma');
       if (_dfirma) _dfirma.style.marginBottom = '';
+      const _copBanner = el.querySelector('.doc-copia-banner');
+      if (_copBanner) _copBanner.style.marginTop = '';
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '';
     });
