@@ -400,6 +400,11 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      /* Sfondo grigio su tutta la box: i gap flex (6px) e la firma-sub (&nbsp;)
+         diventano non-bianchi per lo scanner → nessun taglio dentro la sezione firma */
+      background: rgba(0,0,0,.08);
+      border-radius: 3px;
+      padding: 6px 4px 4px;
     }
     .doc-firma-label {
       font-size: .7rem; font-weight: 700;
@@ -474,12 +479,19 @@
     .doc-accettazione .doc-firma { margin-bottom: 0; }
     .doc-accettazione-clause {
       font-size: .78rem; color: #555; line-height: 1.55;
-      border-left: 3px solid #c0bfe8; padding-left: 12px; margin-bottom: 16px;
+      border-left: 3px solid #c0bfe8; padding-left: 12px; margin-bottom: 6px;
     }
     .doc-firma-luogo {
       display: flex; align-items: center; gap: 10px;
       font-size: .7rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .1em; color: #888; margin-top: 28px; margin-bottom: 20px;
+      letter-spacing: .1em; color: #888;
+      /* padding-top al posto di margin-top: lo spazio visivo resta ma è
+         colorato dal background → non viene rilevato come white-gap dallo scanner */
+      margin-top: 0; margin-bottom: 6px;
+      padding-top: 22px;
+      background: rgba(0,0,0,.08);
+      border-radius: 3px;
+      padding-left: 4px; padding-right: 4px; padding-bottom: 4px;
     }
     .doc-firma-luogo-line { flex: 1; border-bottom: 1.5px solid #c8bfef; }
 
