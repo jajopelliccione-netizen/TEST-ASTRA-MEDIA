@@ -387,18 +387,16 @@
     .doc.pdf-compact .doc-totals   { margin-bottom: 22px; }
     .doc.pdf-compact .doc-firma    { margin-bottom: 0; margin-top: 4px; }
     .doc.pdf-compact .doc-footer   { padding-top: 6px; }
-    /* Condizioni compatte in PDF */
+    /* Condizioni compatte in PDF — solo spaziature, nessuna riduzione di font */
     .doc.pdf-compact .doc-condizioni { margin-bottom: 4px; }
-    .doc.pdf-compact .doc-condizioni-title { font-size: .62rem; margin-bottom: 7px; padding-bottom: 4px; }
+    .doc.pdf-compact .doc-condizioni-title { margin-bottom: 7px; padding-bottom: 4px; }
     .doc.pdf-compact .doc-cond-block { margin-bottom: 5px; }
-    .doc.pdf-compact .doc-cond-label { font-size: .6rem; margin-bottom: 2px; }
-    .doc.pdf-compact .doc-cond-text  { font-size: .68rem; line-height: 1.35; }
+    .doc.pdf-compact .doc-cond-label { margin-bottom: 2px; }
+    .doc.pdf-compact .doc-cond-text  { line-height: 1.38; }
     .doc.pdf-compact .doc-cond-checks { gap: 10px; margin-top: 3px; }
-    .doc.pdf-compact .doc-check-item { font-size: .68rem; }
-    .doc.pdf-compact .doc-accettazione-clause { font-size: .69rem; line-height: 1.4; margin-bottom: 4px; padding-left: 9px; }
-    .doc.pdf-compact .doc-firma-luogo { padding-top: 10px; padding-bottom: 3px; font-size: .63rem; }
+    .doc.pdf-compact .doc-accettazione-clause { line-height: 1.4; margin-bottom: 4px; }
+    .doc.pdf-compact .doc-firma-luogo { padding-top: 10px; padding-bottom: 3px; }
     .doc.pdf-compact .doc-firma-line  { height: 30px; }
-    .doc.pdf-compact .doc-firma-label { font-size: .62rem; }
 
     /* Firma */
     .doc-firma {
@@ -2983,12 +2981,9 @@ async function scaricaPDF() {
       el.style.width    = A4W_PX + 'px';
       el.style.maxWidth = A4W_PX + 'px';
       el.style.minWidth = A4W_PX + 'px';
-      el.classList.add('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
       // Azzera il gap firma→footer via inline style (priorità assoluta su qualsiasi CSS)
-      // così il gap risultante (~6px reale = 12px a scale:2) è sotto minRunLen=16
-      // e l'algoritmo non inserisce un page-break tra firma e footer.
       const _accett = el.querySelector('.doc-accettazione');
       if (_accett) _accett.style.marginBottom = '0';
       const _dfirma = _accett && _accett.querySelector('.doc-firma');
@@ -2998,7 +2993,28 @@ async function scaricaPDF() {
     });
 
     await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 300));
+    // Breve pausa per far stabilizzare il layout con le nuove larghezze A4
+    await new Promise(r => setTimeout(r, 180));
+
+    // Smart compact: misura via DOM se il contenuto tracima su una pagina quasi vuota.
+    // Confronta scrollHeight normale vs. con pdf-compact; se compact risparmia una pagina
+    // E l'ultima pagina è < 40% piena, attiva la compattazione.
+    // Così i font restano invariati: si riducono solo margini e interlinee.
+    const a4H_layout = Math.round(A4W_PX * 297 / 210); // ~1123 px @96dpi
+    let _useCompact = false;
+    pages.forEach(el => {
+      const normalH     = el.scrollHeight;
+      el.classList.add('pdf-compact');
+      const compactH    = el.scrollHeight;
+      el.classList.remove('pdf-compact');
+      const normalPages  = Math.ceil(normalH  / a4H_layout);
+      const compactPages = Math.ceil(compactH / a4H_layout);
+      const lastFill     = (normalH / a4H_layout) % 1 || 1; // 0–1: quanto è piena l'ultima pagina
+      if (compactPages < normalPages && lastFill < 0.40) _useCompact = true;
+    });
+    if (_useCompact) pages.forEach(el => el.classList.add('pdf-compact'));
+
+    await new Promise(r => setTimeout(r, 120));
 
     // Bake logo shadow nel clone (html2canvas non applica CSS filter)
     function bakeLogoInClone(clonedDoc) {
