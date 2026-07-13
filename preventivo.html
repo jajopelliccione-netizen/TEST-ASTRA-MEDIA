@@ -3082,6 +3082,15 @@ async function scaricaPDF() {
       })
     ));
 
+    // Cattura posizione firma PRIMA di ripristinare gli stili A4 → valori coerenti col canvas
+    const _firmaTopInDoc = pages.map(el => {
+      const firmaEl = el.querySelector('#ds-firma');
+      if (!firmaEl) return -1;
+      const pr = el.getBoundingClientRect();
+      const fr = firmaEl.getBoundingClientRect();
+      return (fr.top - pr.top) * 2; // scale:2, relativo all'elemento renderizzato
+    });
+
     // Ripristina stili
     pages.forEach((el, i) => {
       el.style.boxShadow    = origStyles[i].boxShadow;
@@ -3248,11 +3257,8 @@ async function scaricaPDF() {
           const whiteBot = lastPage.height - _lastTopPad - _lastDrawH;
           const shift    = whiteBot - 16; // 16px margine basso
           if (shift > 20) {
-            // Posizione firma: usa getBoundingClientRect() relativo all'elemento renderizzato
-            // (offsetTop è relativo all'offsetParent CSS, non all'elemento catturato da html2canvas)
-            const pageRect       = pages[_cIdx].getBoundingClientRect();
-            const firmaRect      = firmaEl.getBoundingClientRect();
-            const firmaCanvasTop = (firmaRect.top - pageRect.top) * 2; // scale:2
+            // Posizione firma misurata PRIMA del ripristino stili (layout A4 ancora attivo)
+            const firmaCanvasTop = _firmaTopInDoc[_cIdx]; // già in scale:2
             const firmaInPage    = _lastTopPad + (firmaCanvasTop - _lastSrcY);
             if (firmaInPage > 10 && firmaInPage < lastPage.height - 60) {
               const firmaH   = (_lastTopPad + _lastDrawH) - firmaInPage;
