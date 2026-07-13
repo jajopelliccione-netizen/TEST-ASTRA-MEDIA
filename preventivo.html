@@ -971,6 +971,31 @@
     }
     .btn-pdf:hover { background: rgba(255,255,255,.14); }
 
+    /* ── Toggle Copia Cliente / Venditore ── */
+    .copia-toggle {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .copia-toggle button {
+      background: transparent; border: none;
+      padding: 8px 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      color: var(--muted); cursor: pointer;
+      letter-spacing: .04em; transition: background .18s, color .18s;
+      white-space: nowrap;
+    }
+    .copia-toggle button:first-child { border-right: 1px solid rgba(255,255,255,.12); }
+    .copia-toggle button.copia-active {
+      background: rgba(123,92,240,.22);
+      color: #a78bfa;
+    }
+    .copia-toggle button:hover:not(.copia-active) { background: rgba(255,255,255,.09); color: var(--text); }
+
     /* ── Print / PDF ── */
     @media print {
       html, body { background: #fff !important; }
@@ -1064,6 +1089,7 @@
       #topbar-user { display: none !important; }
       #btn-logout { padding: 7px 10px !important; font-size: .75rem !important; }
       .btn-pdf, .btn-download { padding: 9px 12px !important; }
+      .copia-toggle button { padding: 7px 9px !important; font-size: .68rem !important; }
 
       /* Mobile tabs */
       .mobile-tabs { display: flex; }
@@ -1117,6 +1143,10 @@
   <div class="topbar-brand">ASTRA<span>.</span> Preventivi</div>
   <div style="display:flex;align-items:center;gap:10px">
     <span id="topbar-user" style="font-size:.8rem;color:var(--muted);display:none"></span>
+    <div class="copia-toggle" title="Scegli il tipo di copia per il PDF">
+      <button id="btn-copia-cliente" class="copia-active" onclick="setCopia('cliente')">Copia Cliente</button>
+      <button id="btn-copia-venditore" onclick="setCopia('venditore')">Copia Venditore</button>
+    </div>
     <button class="btn-pdf" id="btn-pdf" onclick="scaricaPDF()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       <span class="btn-label">Scarica PDF</span>
@@ -2938,6 +2968,14 @@ async function scaricaWord() {
   btn.disabled = false;
 }
 
+/* ── Copia Cliente / Venditore ── */
+let _cvCopia = 'cliente';
+function setCopia(tipo) {
+  _cvCopia = tipo;
+  document.getElementById('btn-copia-cliente').classList.toggle('copia-active', tipo === 'cliente');
+  document.getElementById('btn-copia-venditore').classList.toggle('copia-active', tipo === 'venditore');
+}
+
 /* ── SCARICA PDF – A4 corretto per stampa (210×297 mm) ── */
 async function scaricaPDF() {
   const btn = document.getElementById('btn-pdf');
@@ -3398,6 +3436,28 @@ async function scaricaPDF() {
             : ''}
           <div style="font-size:.8rem;color:#888;margin-top:10px;letter-spacing:.04em">
             N.&nbsp;${cvNum}&ensp;·&ensp;${cvDate}</div>
+        </div>
+
+        <!-- Sezione firma / tipo copia -->
+        <div style="position:relative;padding:0 18px">
+          <!-- Etichetta tipo copia -->
+          <div style="display:inline-block;background:#7B5CF0;color:#ffffff;
+            font-family:'Syne',sans-serif;font-size:.62rem;font-weight:800;
+            letter-spacing:.22em;text-transform:uppercase;
+            padding:5px 14px;border-radius:4px;margin-bottom:22px">
+            ${_cvCopia === 'venditore' ? 'Copia Venditore' : 'Copia Cliente'}
+          </div>
+          <!-- Righe firma -->
+          <div style="display:flex;gap:48px">
+            <div style="flex:1">
+              <div style="height:1px;background:#1a0a2e;opacity:.25;margin-bottom:7px"></div>
+              <div style="font-size:.62rem;color:#888;letter-spacing:.07em">Firma Cliente</div>
+            </div>
+            <div style="flex:1">
+              <div style="height:1px;background:#1a0a2e;opacity:.25;margin-bottom:7px"></div>
+              <div style="font-size:.62rem;color:#888;letter-spacing:.07em">Firma Astra Agency</div>
+            </div>
+          </div>
         </div>
 
         <!-- Piede pagina -->
