@@ -217,23 +217,41 @@
     .preview-panel {
       padding: 40px;
       overflow-y: auto;
+      overflow-x: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
+    /* ── Linee di taglio pagina A4 ── */
+    .doc-page-wrap { position: relative; width: 794px; flex-shrink: 0; }
+    .doc-page-cut {
+      position: absolute; left: 0; right: 0;
+      height: 0;
+      border-top: 2px dashed rgba(123,92,240,.35);
+      pointer-events: none; z-index: 10;
+    }
+    .doc-page-cut::before {
+      content: attr(data-page);
+      position: absolute; right: 0; top: -18px;
+      font-size: .58rem; font-weight: 700; letter-spacing: .1em;
+      color: rgba(123,92,240,.5); text-transform: uppercase;
+      background: var(--bg); padding: 0 4px;
+    }
+
     /* ── DOCUMENTO PREVENTIVO ── */
     .doc {
-      width: 100%;
-      max-width: 794px; /* A4 */
+      width: 794px;     /* larghezza A4 fissa — identica al PDF */
+      min-width: 794px;
+      max-width: 794px;
       background: #fff;
       color: #1a1a2e;
       padding: 60px 64px;
-      box-shadow: 0 8px 60px rgba(0,0,0,.4);
+      box-shadow: 0 4px 40px rgba(0,0,0,.5);
       font-family: 'Space Grotesk', sans-serif;
       font-size: 14px;
       line-height: 1.6;
-      border-radius: 4px;
+      border-radius: 2px;
     }
 
     /* Logo e Meta affiancati in flow mode */
@@ -676,8 +694,9 @@
     .bozze-header {
       display: flex; align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
     }
+    #autosave-status[data-type="ok"] { color: #4ade80; }
     .btn-salva-bozza {
       background: rgba(255,184,0,.12);
       border: 1px solid rgba(255,184,0,.35);
@@ -1467,6 +1486,7 @@
         <div class="form-section-title" style="margin:0">Bozze</div>
         <button class="btn-salva-bozza" onclick="salvaBozza()">+ Salva bozza</button>
       </div>
+      <div id="autosave-status" style="font-size:.7rem;color:var(--muted);margin-bottom:8px;opacity:0;transition:opacity .4s;min-height:1em"></div>
       <div id="bozze-list"></div>
     </div>
 
@@ -1662,12 +1682,12 @@
   import { auth, db } from '/js/firebase-config.js';
   import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
   import {
-    doc, getDoc, collection, addDoc, getDocs, deleteDoc,
+    doc, getDoc, collection, addDoc, setDoc, getDocs, deleteDoc,
     query, orderBy, serverTimestamp
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   // Esponi db e funzioni Firestore al contesto non-module
-  window._fb = { db, doc, getDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
+  window._fb = { db, doc, getDoc, collection, addDoc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '/admin/login.html'; return; }
@@ -2222,6 +2242,31 @@ function aggiorna() {
   inner.innerHTML = totHtml;
 
   reflowSections();
+  _scheduleAutoSave();
+  _updatePageLines();
+}
+
+// Mostra linee di taglio A4 in anteprima (come il PDF)
+function _updatePageLines() {
+  const A4H = Math.round(794 * 297 / 210); // ~1123px
+  // Raccoglie tutti i .doc visibili nel preview panel
+  const previewPanel = document.querySelector('.preview-panel');
+  if (!previewPanel) return;
+  const docs = previewPanel.querySelectorAll('.doc');
+  docs.forEach(doc => {
+    // Rimuovi linee precedenti
+    doc.querySelectorAll('.doc-page-cut').forEach(l => l.remove());
+    const h = doc.scrollHeight;
+    const pages = Math.ceil(h / A4H);
+    for (let p = 1; p < pages; p++) {
+      const line = document.createElement('div');
+      line.className = 'doc-page-cut';
+      line.style.top = (p * A4H) + 'px';
+      line.dataset.page = 'Pag. ' + p + ' / ' + pages;
+      doc.style.position = 'relative';
+      doc.appendChild(line);
+    }
+  });
 }
 
 function reflowSections() {
@@ -2431,52 +2476,90 @@ async function migraBozzeLegacy() {
   localStorage.removeItem('astra-preventivi-bozze');
 }
 
-// ── Bozze (Firestore – condivise tra tutti i dispositivi) ──
-async function salvaBozza() {
-  const fb = window._fb;
-  if (!fb) { alert('Firebase non pronto, riprova.'); return; }
+// ── Auto-save bozza attiva ──
+let _bozzaAttivaId  = null;
+let _autoSaveTimer  = null;
 
+function _bozzaSnapshot() {
+  const fb = window._fb; if (!fb) return null;
   const ccompany  = document.getElementById('f-ccompany').value;
   const primoNome = contatti.find(c => c.nome)?.nome || '';
   const label     = [ccompany, primoNome].filter(Boolean).join(' · ') || 'Senza titolo';
   const num       = document.getElementById('f-num').value || '001';
+  return {
+    nome:    `#${num} — ${label}`,
+    savedAt: fb.serverTimestamp(),
+    data: {
+      num:        document.getElementById('f-num').value,
+      date:       document.getElementById('f-date').value,
+      ccompany,
+      cindirizzo: document.getElementById('f-cindirizzo').value,
+      cpiva:      document.getElementById('f-cpiva').value,
+      contatti:   JSON.parse(JSON.stringify(contatti)),
+      righe:      JSON.parse(JSON.stringify(righe)),
+      iva:        document.getElementById('f-iva').value,
+      validity:   document.getElementById('f-validity').value,
+      notes:      document.getElementById('f-notes').value,
+      giorni:     document.getElementById('f-giorni').value,
+      revisioni:  document.getElementById('f-revisioni').value,
+      pagBonif:   document.getElementById('chk-f-bonifico').checked,
+      pagPaypal:  document.getElementById('chk-f-paypal').checked,
+      pagCarta:   document.getElementById('chk-f-carta').checked,
+      pagContanti:document.getElementById('chk-f-contanti').checked,
+      logoSize:      document.getElementById('logo-size').value,
+      logoShadow:    document.getElementById('logo-shadow').value,
+      descPacchetto: _elaboratoPacchetto ? JSON.parse(JSON.stringify(_elaboratoPacchetto)) : null,
+    }
+  };
+}
 
-  const btn = document.querySelector('.btn-salva-bozza');
-  btn.textContent = '⏳';
-  btn.disabled    = true;
+function _setAutosaveStatus(msg, type) {
+  const el = document.getElementById('autosave-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.dataset.type = type || '';
+  el.style.opacity = '1';
+  if (type === 'ok') setTimeout(() => { el.style.opacity = '0'; }, 3000);
+}
 
+function _scheduleAutoSave() {
+  if (!_bozzaAttivaId) return;
+  clearTimeout(_autoSaveTimer);
+  _setAutosaveStatus('⏱ Modifiche non salvate…');
+  _autoSaveTimer = setTimeout(_doAutoSave, 2500);
+}
+
+async function _doAutoSave() {
+  const fb = window._fb;
+  if (!_bozzaAttivaId || !fb) return;
   try {
-    await fb.addDoc(fb.collection(fb.db, 'preventivi_bozze'), {
-      nome:    `#${num} — ${label}`,
-      savedAt: fb.serverTimestamp(),
-      data: {
-        num:        document.getElementById('f-num').value,
-        date:       document.getElementById('f-date').value,
-        ccompany,
-        cindirizzo: document.getElementById('f-cindirizzo').value,
-        cpiva:      document.getElementById('f-cpiva').value,
-        contatti:   JSON.parse(JSON.stringify(contatti)),
-        righe:      JSON.parse(JSON.stringify(righe)),
-        iva:        document.getElementById('f-iva').value,
-        validity:   document.getElementById('f-validity').value,
-        notes:      document.getElementById('f-notes').value,
-        giorni:     document.getElementById('f-giorni').value,
-        revisioni:  document.getElementById('f-revisioni').value,
-        pagBonif:   document.getElementById('chk-f-bonifico').checked,
-        pagPaypal:  document.getElementById('chk-f-paypal').checked,
-        pagCarta:   document.getElementById('chk-f-carta').checked,
-        pagContanti:document.getElementById('chk-f-contanti').checked,
-        logoSize:      document.getElementById('logo-size').value,
-        logoShadow:    document.getElementById('logo-shadow').value,
-        descPacchetto: _elaboratoPacchetto ? JSON.parse(JSON.stringify(_elaboratoPacchetto)) : null,
-      }
-    });
+    const snap = _bozzaSnapshot();
+    if (!snap) return;
+    await fb.setDoc(fb.doc(fb.db, 'preventivi_bozze', _bozzaAttivaId), snap);
+    _setAutosaveStatus('✓ Bozza aggiornata', 'ok');
+    renderBozze();
+  } catch(e) {
+    console.error('Auto-save bozza:', e);
+    _setAutosaveStatus('⚠ Errore auto-save');
+  }
+}
+
+// ── Bozze (Firestore – condivise tra tutti i dispositivi) ──
+async function salvaBozza() {
+  const fb = window._fb;
+  if (!fb) { alert('Firebase non pronto, riprova.'); return; }
+  const btn = document.querySelector('.btn-salva-bozza');
+  btn.textContent = '⏳'; btn.disabled = true;
+  try {
+    const snap = _bozzaSnapshot();
+    const ref  = await fb.addDoc(fb.collection(fb.db, 'preventivi_bozze'), snap);
+    _bozzaAttivaId = ref.id; // attiva auto-save su questa bozza
+    _setAutosaveStatus('✓ Bozza salvata — modifiche future auto-salvate', 'ok');
     btn.textContent = '✓ Salvata!';
     setTimeout(() => { btn.textContent = '+ Salva bozza'; }, 1600);
     renderBozze();
   } catch(e) {
-    console.error(e);
-    alert('Errore salvataggio: ' + e.message);
+    console.error(e); alert('Errore salvataggio: ' + e.message);
     btn.textContent = '+ Salva bozza';
   }
   btn.disabled = false;
@@ -2508,10 +2591,12 @@ async function caricaBozza(id) {
   document.getElementById('logo-shadow').value  = d.logoShadow || 0;
   contatti = d.contatti;
   righe    = d.righe;
+  _bozzaAttivaId = id; // abilita auto-save su questa bozza
   renderContatti();
   renderRighe();
   aggiorna();
   aggiornaLogo();
+  _setAutosaveStatus('📂 Bozza attiva — modifiche auto-salvate', 'ok');
 
   // Ripristina pagina AI se era presente nella bozza
   _elaboratoPacchetto = d.descPacchetto || null;
