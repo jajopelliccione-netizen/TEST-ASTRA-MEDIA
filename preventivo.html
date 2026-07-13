@@ -409,6 +409,10 @@
     .doc-firma-line {
       border-bottom: 1.5px solid #c8bfef;
       height: 44px;
+      /* Sfondo leggerissimo (RGB ~234): sotto la soglia 714 dello scanner PDF,
+         così l'area firma non viene scambiata per un gap di sezione e non causa
+         un page-break nel mezzo della sezione firma. */
+      background: rgba(0,0,0,.08);
     }
     .doc-firma-sub {
       font-size: .7rem; color: #aaa;
