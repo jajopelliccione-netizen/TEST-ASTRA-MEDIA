@@ -2955,6 +2955,15 @@ async function scaricaPDF() {
       el.classList.add('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = 'none';
+      // Azzera il gap firma→footer via inline style (priorità assoluta su qualsiasi CSS)
+      // così il gap risultante (~6px reale = 12px a scale:2) è sotto minRunLen=16
+      // e l'algoritmo non inserisce un page-break tra firma e footer.
+      const _accett = el.querySelector('.doc-accettazione');
+      if (_accett) _accett.style.marginBottom = '0';
+      const _dfirma = _accett && _accett.querySelector('.doc-firma');
+      if (_dfirma) _dfirma.style.marginBottom = '0';
+      const _footer = el.querySelector('.doc-footer');
+      if (_footer) _footer.style.paddingTop = '4px';
     });
 
     await document.fonts.ready;
@@ -3033,6 +3042,13 @@ async function scaricaPDF() {
       el.classList.remove('pdf-compact');
       const banner = el.querySelector('#edit-banner');
       if (banner) banner.style.display = '';
+      // Ripristina gap firma→footer
+      const _accett = el.querySelector('.doc-accettazione');
+      if (_accett) _accett.style.marginBottom = '';
+      const _dfirma = _accett && _accett.querySelector('.doc-firma');
+      if (_dfirma) _dfirma.style.marginBottom = '';
+      const _footer = el.querySelector('.doc-footer');
+      if (_footer) _footer.style.paddingTop = '';
     });
 
     // Ripristina layout personalizzato
