@@ -490,6 +490,17 @@
        e l'algoritmo di snap non taglia lì lasciando il footer da solo */
     .doc-accettazione { margin-bottom: 0; }
     .doc-accettazione .doc-firma { margin-bottom: 0; }
+    .doc-copia-banner {
+      text-align: center;
+      font-size: .62rem; font-weight: 800; letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: #7B5CF0;
+      border-radius: 4px;
+      padding: 5px 18px;
+      margin: 0 auto 14px;
+      display: table; /* shrink-wrap to content, still centered */
+    }
     .doc-accettazione-clause {
       font-size: .78rem; color: #555; line-height: 1.55;
       border-left: 3px solid #c0bfe8; padding-left: 12px; margin-bottom: 6px;
@@ -1492,6 +1503,7 @@
       <!-- Accettazione e firma -->
       <div class="drag-section" id="ds-firma" data-label="Firma">
         <div class="doc-accettazione">
+          <div id="doc-copia-banner" class="doc-copia-banner">COPIA CLIENTE</div>
           <div class="doc-accettazione-clause">
             Con la firma del presente documento il Cliente accetta integralmente la presente proposta commerciale e le condizioni in essa contenute.
           </div>
@@ -2974,6 +2986,8 @@ function setCopia(tipo) {
   _cvCopia = tipo;
   document.getElementById('btn-copia-cliente').classList.toggle('copia-active', tipo === 'cliente');
   document.getElementById('btn-copia-venditore').classList.toggle('copia-active', tipo === 'venditore');
+  const banner = document.getElementById('doc-copia-banner');
+  if (banner) banner.textContent = tipo === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
 }
 
 /* ── SCARICA PDF – A4 corretto per stampa (210×297 mm) ── */
