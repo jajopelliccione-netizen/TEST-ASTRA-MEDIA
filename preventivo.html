@@ -489,6 +489,58 @@
     /* Accettazione — margin-bottom 0 così il gap verso il footer è < 8px reali
        e l'algoritmo di snap non taglia lì lasciando il footer da solo */
     .doc-accettazione { margin-bottom: 0; }
+
+    /* ── Foglio Servizi Aggiuntivi ── */
+    .doc-svcx-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid #7B5CF0;
+      padding-bottom: 16px; margin-bottom: 24px;
+    }
+    .doc-svcx-title {
+      font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800;
+      color: #1a0a2e; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .doc-svcx-subtitle {
+      font-size: .63rem; color: #888; letter-spacing: .05em; margin-top: 5px; line-height: 1.5;
+    }
+    .doc-svcx-block {
+      border: 1.5px solid #e0daf8; border-radius: 6px;
+      padding: 20px 20px 16px; margin-bottom: 18px; position: relative;
+    }
+    .doc-svcx-num {
+      position: absolute; top: -10px; left: 16px;
+      background: #7B5CF0; color: #fff;
+      font-size: .58rem; font-weight: 800; letter-spacing: .14em;
+      padding: 3px 10px; border-radius: 3px; text-transform: uppercase;
+    }
+    .doc-svcx-desc-label {
+      font-size: .58rem; font-weight: 700; letter-spacing: .1em;
+      color: #999; text-transform: uppercase; margin-bottom: 8px; margin-top: 4px;
+    }
+    .doc-svcx-line {
+      height: 24px; margin-bottom: 7px;
+      border-bottom: 1px solid #ccc;
+      background: rgba(0,0,0,.04);
+    }
+    .doc-svcx-fields {
+      display: flex; gap: 20px; margin-top: 10px;
+    }
+    .doc-svcx-field { flex: 1; }
+    .doc-svcx-field-label {
+      font-size: .56rem; font-weight: 700; letter-spacing: .1em;
+      color: #999; text-transform: uppercase; margin-bottom: 5px;
+    }
+    .doc-svcx-field-line {
+      height: 26px;
+      border-bottom: 1.5px solid #c8bfef;
+      background: rgba(0,0,0,.08);
+      border-radius: 2px 2px 0 0;
+    }
+    .doc-svcx-footer {
+      border-top: 1px solid #ece8ff; padding-top: 10px; margin-top: 4px;
+      display: flex; justify-content: space-between;
+      font-size: .62rem; color: #aaa; letter-spacing: .03em;
+    }
     .doc-accettazione .doc-firma { margin-bottom: 0; }
     .doc-copia-banner {
       text-align: center;
@@ -966,6 +1018,7 @@
 
     /* ── Separatore pagine nel preview ── */
     #desc-page-preview .doc { margin-bottom: 0; }
+    #servizi-extra-preview .doc { margin-bottom: 0; }
 
     /* ── Pulsante PDF ── */
     .btn-pdf {
@@ -1025,6 +1078,13 @@
       /* Ogni .doc interno alla pagina descrizione → page break DOPO */
       #desc-page-preview { width: 100% !important; max-width: 100% !important; }
       #desc-page-preview .doc {
+        box-shadow: none !important; border-radius: 0 !important;
+        max-width: 100% !important; margin: 0 !important;
+        page-break-after: always; break-after: page;
+      }
+      /* Foglio servizi aggiuntivi → page break DOPO */
+      #servizi-extra-preview { width: 100% !important; max-width: 100% !important; }
+      #doc-svcx {
         box-shadow: none !important; border-radius: 0 !important;
         max-width: 100% !important; margin: 0 !important;
         page-break-after: always; break-after: page;
@@ -1364,7 +1424,108 @@
   <!-- ── PREVIEW PANEL ── -->
   <div class="preview-panel">
       <div id="desc-page-preview" style="display:none;width:100%;max-width:794px"></div>
-      <div id="desc-page-label" class="page-label" style="display:none;width:100%;max-width:794px">— Pagina 2: Preventivo —</div>
+      <div id="desc-page-label" class="page-label" style="display:none;width:100%;max-width:794px">— Pagina descrizione —</div>
+      <div class="page-label" style="width:100%;max-width:794px">— Servizi Aggiuntivi —</div>
+      <div id="servizi-extra-preview" style="width:100%;max-width:794px">
+        <div class="doc" id="doc-svcx">
+          <!-- Mini header -->
+          <div class="doc-svcx-header">
+            <div>
+              <div class="doc-svcx-title">Servizi Aggiuntivi</div>
+              <div class="doc-svcx-subtitle">Compilare a penna &middot; Per ogni voce indicare descrizione, importo e raccogliere la firma del cliente</div>
+            </div>
+            <div style="text-align:right">
+              <div class="doc-logo-name" style="font-size:.95rem">ASTRA AGENCY</div>
+              <div id="svcx-num" style="font-size:.68rem;color:#888;margin-top:3px">N.&nbsp;—</div>
+            </div>
+          </div>
+
+          <!-- Blocco 1 -->
+          <div class="doc-svcx-block">
+            <div class="doc-svcx-num">Servizio 01</div>
+            <div class="doc-svcx-desc-label">Descrizione</div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-fields">
+              <div class="doc-svcx-field" style="flex:0 0 170px">
+                <div class="doc-svcx-field-label">Importo</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div style="flex:1"></div>
+            </div>
+            <div class="doc-svcx-fields" style="margin-top:8px">
+              <div class="doc-svcx-field">
+                <div class="doc-svcx-field-label">Data</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div class="doc-svcx-field" style="flex:2">
+                <div class="doc-svcx-field-label">Firma Cliente</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blocco 2 -->
+          <div class="doc-svcx-block">
+            <div class="doc-svcx-num">Servizio 02</div>
+            <div class="doc-svcx-desc-label">Descrizione</div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-fields">
+              <div class="doc-svcx-field" style="flex:0 0 170px">
+                <div class="doc-svcx-field-label">Importo</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div style="flex:1"></div>
+            </div>
+            <div class="doc-svcx-fields" style="margin-top:8px">
+              <div class="doc-svcx-field">
+                <div class="doc-svcx-field-label">Data</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div class="doc-svcx-field" style="flex:2">
+                <div class="doc-svcx-field-label">Firma Cliente</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blocco 3 -->
+          <div class="doc-svcx-block">
+            <div class="doc-svcx-num">Servizio 03</div>
+            <div class="doc-svcx-desc-label">Descrizione</div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-line"></div>
+            <div class="doc-svcx-fields">
+              <div class="doc-svcx-field" style="flex:0 0 170px">
+                <div class="doc-svcx-field-label">Importo</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div style="flex:1"></div>
+            </div>
+            <div class="doc-svcx-fields" style="margin-top:8px">
+              <div class="doc-svcx-field">
+                <div class="doc-svcx-field-label">Data</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+              <div class="doc-svcx-field" style="flex:2">
+                <div class="doc-svcx-field-label">Firma Cliente</div>
+                <div class="doc-svcx-field-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="doc-svcx-footer">
+            <span>ASTRA AGENCY &ensp;&mdash;&ensp; Social Media Agency</span>
+            <span>info@astragency.it &ensp;&middot;&ensp; astragency.it</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-label" style="width:100%;max-width:794px">— Preventivo —</div>
     <div class="doc" id="doc-preview">
 
       <div id="edit-banner">✎ Trascina le sezioni per riposizionarle</div>
@@ -1948,6 +2109,8 @@ function aggiorna() {
   const validity = document.getElementById('f-validity').value;
 
   document.getElementById('p-num').textContent = num;
+  const svcxNum = document.getElementById('svcx-num');
+  if (svcxNum) svcxNum.innerHTML = 'N.&nbsp;' + num;
   const d = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
   document.getElementById('p-date').textContent = d;
 
@@ -3004,6 +3167,9 @@ async function scaricaPDF() {
       const descDoc = descContainer.querySelector('.doc');
       if (descDoc) pages.push(descDoc);
     }
+    // Foglio servizi aggiuntivi (sempre incluso)
+    const svcxEl = document.getElementById('doc-svcx');
+    if (svcxEl) pages.push(svcxEl);
     pages.push(document.getElementById('doc-preview'));
 
     // Salva stili originali
