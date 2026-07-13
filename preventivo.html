@@ -1518,6 +1518,11 @@
             </div>
           </div>
 
+          <!-- Banner copia -->
+          <div style="text-align:center;margin:18px 0 14px">
+            <div id="svcx-copia-banner" class="doc-copia-banner">COPIA CLIENTE</div>
+          </div>
+
           <!-- Footer -->
           <div class="doc-svcx-footer">
             <span>ASTRA AGENCY &ensp;&mdash;&ensp; Social Media Agency</span>
@@ -3149,8 +3154,11 @@ function setCopia(tipo) {
   _cvCopia = tipo;
   document.getElementById('btn-copia-cliente').classList.toggle('copia-active', tipo === 'cliente');
   document.getElementById('btn-copia-venditore').classList.toggle('copia-active', tipo === 'venditore');
+  const label = tipo === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
   const banner = document.getElementById('doc-copia-banner');
-  if (banner) banner.textContent = tipo === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
+  if (banner) banner.textContent = label;
+  const svcxBanner = document.getElementById('svcx-copia-banner');
+  if (svcxBanner) svcxBanner.textContent = label;
 }
 
 /* ── SCARICA PDF – A4 corretto per stampa (210×297 mm) ── */
