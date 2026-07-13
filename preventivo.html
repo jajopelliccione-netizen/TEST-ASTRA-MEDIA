@@ -3082,13 +3082,18 @@ async function scaricaPDF() {
       })
     ));
 
-    // Cattura posizione firma PRIMA di ripristinare gli stili A4 → valori coerenti col canvas
+    // Cattura posizioni PRIMA di ripristinare gli stili A4 → valori coerenti col canvas
     const _firmaTopInDoc = pages.map(el => {
       const firmaEl = el.querySelector('#ds-firma');
       if (!firmaEl) return -1;
       const pr = el.getBoundingClientRect();
       const fr = firmaEl.getBoundingClientRect();
-      return (fr.top - pr.top) * 2; // scale:2, relativo all'elemento renderizzato
+      return (fr.top - pr.top) * 2; // scale:2
+    });
+    const _footerHeights = pages.map(el => {
+      const footerEl = el.querySelector('#ds-footer');
+      if (!footerEl) return 0;
+      return Math.round(footerEl.getBoundingClientRect().height * 2); // scale:2
     });
 
     // Ripristina stili
@@ -3241,6 +3246,22 @@ async function scaricaPDF() {
         cx.fillStyle = '#fff';
         cx.fillRect(0, 0, ch.width, ch.height);
         cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
+
+        // Pagine intermedie: stampa il footer (estratto dal fondo del canvas principale)
+        // così ogni foglio PDF ha il footer in fondo, come l'ultima pagina.
+        if (!isLast) {
+          const fH = _footerHeights[_cIdx] || 0;
+          if (fH > 10) {
+            const footerSrcY = processed.height - fH;
+            const footerDstY = ch.height - fH - 16; // 16px margine dal bordo
+            // Pulisci l'area e ridisegna il footer
+            cx.fillStyle = '#fff';
+            cx.fillRect(0, footerDstY - 12, ch.width, fH + 28);
+            cx.drawImage(processed, 0, footerSrcY, processed.width, fH,
+                         0, footerDstY, ch.width, fH);
+          }
+        }
+
         _pdfPages.push(ch);
         _lastSrcY = srcY; _lastTopPad = topPad; _lastDrawH = drawH;
         srcY += drawH;
