@@ -1033,7 +1033,42 @@
 
     /* ── Separatore pagine nel preview ── */
     #desc-page-preview .doc { margin-bottom: 0; }
-    #servizi-extra-preview .doc { margin-bottom: 0; }
+    .svcx-sheet-wrap .doc   { margin-bottom: 0; }
+
+    /* ── Barra controlli foglio servizi ── */
+    .svcx-add-btn {
+      flex: 0 0 auto;
+      background: rgba(123,92,240,.15); border: 1px solid rgba(123,92,240,.35);
+      border-radius: 6px; padding: 4px 12px; color: #a78bfa;
+      font-family: 'Space Grotesk', sans-serif; font-size: .68rem; font-weight: 700;
+      letter-spacing: .06em; cursor: pointer; transition: background .18s; text-transform: uppercase;
+    }
+    .svcx-add-btn:hover { background: rgba(123,92,240,.28); }
+    .svcx-sheet-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(123,92,240,.08); border: 1px solid rgba(123,92,240,.2);
+      border-bottom: none; border-radius: 8px 8px 0 0; padding: 7px 14px;
+    }
+    .svcx-sheet-bar-label {
+      font-size: .65rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: #a78bfa;
+    }
+    .svcx-sheet-wrap .doc { border-radius: 0 0 4px 4px; }
+    .svcx-btn-dl {
+      background: rgba(123,92,240,.12); border: 1px solid rgba(123,92,240,.3);
+      border-radius: 5px; padding: 3px 10px;
+      font-size: .63rem; font-weight: 700; color: #a78bfa;
+      cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+      transition: background .18s; letter-spacing: .04em;
+    }
+    .svcx-btn-dl:hover { background: rgba(123,92,240,.25); }
+    .svcx-btn-rm {
+      background: rgba(220,50,80,.1); border: 1px solid rgba(220,50,80,.25);
+      border-radius: 5px; padding: 3px 9px;
+      font-size: .8rem; font-weight: 700; color: #ff7090;
+      cursor: pointer; transition: background .18s; line-height: 1;
+    }
+    .svcx-btn-rm:hover { background: rgba(220,50,80,.22); }
 
     /* ── Pulsante PDF ── */
     .btn-pdf {
@@ -1097,9 +1132,10 @@
         max-width: 100% !important; margin: 0 !important;
         page-break-after: always; break-after: page;
       }
-      /* Foglio servizi aggiuntivi → page break DOPO */
-      #servizi-extra-preview, #servizi-extra2-preview { width: 100% !important; max-width: 100% !important; }
-      #doc-svcx, #doc-svcx2 {
+      /* Fogli servizi aggiuntivi → page break DOPO ciascuno */
+      #svcx-sheets-container { width: 100% !important; max-width: 100% !important; }
+      .svcx-sheet-bar { display: none !important; }
+      .svcx-sheet-wrap .doc {
         box-shadow: none !important; border-radius: 0 !important;
         max-width: 100% !important; margin: 0 !important;
         page-break-after: always; break-after: page;
@@ -1442,269 +1478,9 @@
       <div id="desc-page-label" class="page-label" style="display:none;width:100%;max-width:794px">— Pagina descrizione —</div>
       <div class="page-label" style="width:100%;max-width:794px">
         — Servizi Aggiuntivi —
-        <button id="btn-svcx2" onclick="toggleSvcx2()" style="flex:0 0 auto;background:rgba(123,92,240,.15);border:1px solid rgba(123,92,240,.35);border-radius:6px;padding:4px 12px;color:#a78bfa;font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:background .18s;text-transform:uppercase">+ Secondo foglio</button>
+        <button class="svcx-add-btn" onclick="addSvcxSheet()">+ Aggiungi foglio</button>
       </div>
-      <div id="servizi-extra-preview" style="width:100%;max-width:794px">
-        <div class="doc" id="doc-svcx">
-          <!-- Header -->
-          <div class="doc-svcx-header">
-            <div>
-              <div class="doc-svcx-title">Accordo Servizi Aggiuntivi</div>
-              <div class="doc-svcx-subtitle">Modulo integrativo al contratto principale &middot; Ogni voce è vincolante solo se firmata da entrambe le parti</div>
-            </div>
-            <div style="text-align:right">
-              <div class="doc-logo-name" style="font-size:.95rem">ASTRA AGENCY</div>
-              <div id="svcx-num" style="font-size:.68rem;color:#888;margin-top:3px">N.&nbsp;—</div>
-            </div>
-          </div>
-
-          <!-- Parti del contratto -->
-          <div class="doc-svcx-parti">
-            <div class="doc-svcx-parte">
-              <div class="doc-svcx-field-label">Cliente</div>
-              <div id="svcx-cliente" class="doc-svcx-parte-val">—</div>
-            </div>
-            <div class="doc-svcx-parte">
-              <div class="doc-svcx-field-label">Fornitore</div>
-              <div class="doc-svcx-parte-val">Astra Agency — info@astragency.it</div>
-            </div>
-            <div class="doc-svcx-parte" style="flex:0 0 auto">
-              <div class="doc-svcx-field-label">Rif. Contratto</div>
-              <div id="svcx-rif" class="doc-svcx-parte-val">N.&nbsp;—</div>
-            </div>
-          </div>
-
-          <!-- Blocco 1 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 01</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Blocco 2 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 02</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Blocco 3 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 03</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Clausola accettazione -->
-          <div class="doc-svcx-clausola">
-            Con la firma di ciascuna voce, il Cliente accetta il servizio descritto e si impegna al pagamento dell'importo indicato secondo le modalità del contratto principale. Ogni servizio sarà oggetto di regolare fatturazione da parte di Astra Agency.
-          </div>
-
-          <!-- Banner copia -->
-          <div style="text-align:center;margin:14px 0 12px">
-            <div id="svcx-copia-banner" class="doc-copia-banner">COPIA CLIENTE</div>
-          </div>
-
-          <!-- Footer -->
-          <div class="doc-svcx-footer">
-            <span>ASTRA AGENCY &ensp;&mdash;&ensp; Social Media Agency</span>
-            <span>info@astragency.it &ensp;&middot;&ensp; astragency.it</span>
-          </div>
-        </div>
-      </div>
-      <!-- Secondo foglio servizi aggiuntivi (opzionale) -->
-      <div id="servizi-extra2-preview" style="display:none;width:100%;max-width:794px">
-        <div class="doc" id="doc-svcx2">
-          <div class="doc-svcx-header">
-            <div>
-              <div class="doc-svcx-title">Accordo Servizi Aggiuntivi</div>
-              <div class="doc-svcx-subtitle">Modulo integrativo al contratto principale &middot; Ogni voce è vincolante solo se firmata da entrambe le parti</div>
-            </div>
-            <div style="text-align:right">
-              <div class="doc-logo-name" style="font-size:.95rem">ASTRA AGENCY</div>
-              <div id="svcx2-num" style="font-size:.68rem;color:#888;margin-top:3px">N.&nbsp;—</div>
-            </div>
-          </div>
-          <div class="doc-svcx-parti">
-            <div class="doc-svcx-parte">
-              <div class="doc-svcx-field-label">Cliente</div>
-              <div id="svcx2-cliente" class="doc-svcx-parte-val">—</div>
-            </div>
-            <div class="doc-svcx-parte">
-              <div class="doc-svcx-field-label">Fornitore</div>
-              <div class="doc-svcx-parte-val">Astra Agency — info@astragency.it</div>
-            </div>
-            <div class="doc-svcx-parte" style="flex:0 0 auto">
-              <div class="doc-svcx-field-label">Rif. Contratto</div>
-              <div id="svcx2-rif" class="doc-svcx-parte-val">N.&nbsp;—</div>
-            </div>
-          </div>
-
-          <!-- Blocco 4 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 04</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Blocco 5 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 05</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Blocco 6 -->
-          <div class="doc-svcx-block">
-            <div class="doc-svcx-num">Servizio 06</div>
-            <div class="doc-svcx-desc-label">Descrizione del servizio</div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-line"></div>
-            <div class="doc-svcx-fields">
-              <div class="doc-svcx-field" style="flex:0 0 160px">
-                <div class="doc-svcx-field-label">Importo concordato</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div style="flex:1"></div>
-            </div>
-            <div class="doc-svcx-fields" style="margin-top:8px">
-              <div class="doc-svcx-field" style="flex:0 0 120px">
-                <div class="doc-svcx-field-label">Data</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Cliente</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-              <div class="doc-svcx-field">
-                <div class="doc-svcx-field-label">Firma Astra Agency</div>
-                <div class="doc-svcx-field-line"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="doc-svcx-clausola">
-            Con la firma di ciascuna voce, il Cliente accetta il servizio descritto e si impegna al pagamento dell'importo indicato secondo le modalità del contratto principale. Ogni servizio sarà oggetto di regolare fatturazione da parte di Astra Agency.
-          </div>
-          <div style="text-align:center;margin:14px 0 12px">
-            <div id="svcx2-copia-banner" class="doc-copia-banner">COPIA CLIENTE</div>
-          </div>
-          <div class="doc-svcx-footer">
-            <span>ASTRA AGENCY &ensp;&mdash;&ensp; Social Media Agency</span>
-            <span>info@astragency.it &ensp;&middot;&ensp; astragency.it</span>
-          </div>
-        </div>
-      </div>
+      <div id="svcx-sheets-container" style="width:100%;max-width:794px;display:flex;flex-direction:column"></div>
 
       <div class="page-label" style="width:100%;max-width:794px">— Preventivo —</div>
     <div class="doc" id="doc-preview">
@@ -1967,6 +1743,7 @@ document.getElementById('f-notes').value =
 
 renderContatti();
 renderRighe();
+_renderSvcxSheets();
 aggiorna();
 aggiornaLogo();
 caricaLayoutSalvato();
@@ -2290,22 +2067,11 @@ function aggiorna() {
   const validity = document.getElementById('f-validity').value;
 
   document.getElementById('p-num').textContent = num;
-  const svcxNum = document.getElementById('svcx-num');
-  if (svcxNum) svcxNum.innerHTML = 'N.&nbsp;' + num;
-  const svcxRif = document.getElementById('svcx-rif');
-  if (svcxRif) svcxRif.innerHTML = 'N.&nbsp;' + num;
-  const svcx2Num = document.getElementById('svcx2-num');
-  if (svcx2Num) svcx2Num.innerHTML = 'N.&nbsp;' + num;
-  const svcx2Rif = document.getElementById('svcx2-rif');
-  if (svcx2Rif) svcx2Rif.innerHTML = 'N.&nbsp;' + num;
+  _syncSvcxData();
   const d = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : oggi();
   document.getElementById('p-date').textContent = d;
 
   document.getElementById('p-ccompany').textContent = ccompany;
-  const svcxCliente = document.getElementById('svcx-cliente');
-  if (svcxCliente) svcxCliente.textContent = ccompany || '—';
-  const svcx2Cliente = document.getElementById('svcx2-cliente');
-  if (svcx2Cliente) svcx2Cliente.textContent = ccompany || '—';
   document.getElementById('p-notes').textContent    = notes;
   document.getElementById('p-validity').textContent = validity;
   document.getElementById('p-notes-box').style.display = notes ? '' : 'none';
@@ -3340,22 +3106,160 @@ function setCopia(tipo) {
   _cvCopia = tipo;
   document.getElementById('btn-copia-cliente').classList.toggle('copia-active', tipo === 'cliente');
   document.getElementById('btn-copia-venditore').classList.toggle('copia-active', tipo === 'venditore');
-  const label = tipo === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
-  ['doc-copia-banner','svcx-copia-banner','svcx2-copia-banner'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = label;
+  const banner = document.getElementById('doc-copia-banner');
+  if (banner) banner.textContent = tipo === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
+  _syncSvcxData();
+}
+
+/* ── Fogli Servizi Aggiuntivi (dinamici) ── */
+let _svcxIds = [1];
+let _nextSvcxId = 2;
+
+function addSvcxSheet() {
+  _svcxIds.push(_nextSvcxId++);
+  _renderSvcxSheets();
+  _syncSvcxData();
+}
+
+function removeSvcxSheet(id) {
+  if (_svcxIds.length <= 1) return;
+  _svcxIds = _svcxIds.filter(s => s !== id);
+  _renderSvcxSheets();
+  _syncSvcxData();
+}
+
+function _svcxBlock(n) {
+  const z = n => String(n).padStart(2,'0');
+  return `<div class="doc-svcx-block">
+    <div class="doc-svcx-num">Servizio ${z(n)}</div>
+    <div class="doc-svcx-desc-label">Descrizione del servizio</div>
+    <div class="doc-svcx-line"></div><div class="doc-svcx-line"></div>
+    <div class="doc-svcx-fields">
+      <div class="doc-svcx-field" style="flex:0 0 160px">
+        <div class="doc-svcx-field-label">Importo concordato</div>
+        <div class="doc-svcx-field-line"></div>
+      </div><div style="flex:1"></div>
+    </div>
+    <div class="doc-svcx-fields" style="margin-top:8px">
+      <div class="doc-svcx-field" style="flex:0 0 120px">
+        <div class="doc-svcx-field-label">Data</div>
+        <div class="doc-svcx-field-line"></div>
+      </div>
+      <div class="doc-svcx-field">
+        <div class="doc-svcx-field-label">Firma Cliente</div>
+        <div class="doc-svcx-field-line"></div>
+      </div>
+      <div class="doc-svcx-field">
+        <div class="doc-svcx-field-label">Firma Astra Agency</div>
+        <div class="doc-svcx-field-line"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _svcxSheetHTML(id, startNum) {
+  const z = n => String(n).padStart(2,'0');
+  const sheetNum = Math.ceil(startNum / 3);
+  const canRemove = _svcxIds.length > 1;
+  return `<div class="svcx-sheet-wrap" id="svcx-wrap-${id}">
+    <div class="svcx-sheet-bar">
+      <span class="svcx-sheet-bar-label">Foglio ${sheetNum} — Servizi ${z(startNum)} · ${z(startNum+1)} · ${z(startNum+2)}</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="svcx-btn-dl" onclick="scaricaSoloFoglio(${id})">⬇ Scarica solo questo</button>
+        ${canRemove ? `<button class="svcx-btn-rm" onclick="removeSvcxSheet(${id})">×</button>` : ''}
+      </div>
+    </div>
+    <div class="doc" id="doc-svcx-${id}">
+      <div class="doc-svcx-header">
+        <div>
+          <div class="doc-svcx-title">Accordo Servizi Aggiuntivi</div>
+          <div class="doc-svcx-subtitle">Modulo integrativo al contratto principale &middot; Ogni voce è vincolante solo se firmata da entrambe le parti</div>
+        </div>
+        <div style="text-align:right">
+          <div class="doc-logo-name" style="font-size:.95rem">ASTRA AGENCY</div>
+          <div id="svcx-num-${id}" style="font-size:.68rem;color:#888;margin-top:3px">N.&nbsp;—</div>
+        </div>
+      </div>
+      <div class="doc-svcx-parti">
+        <div class="doc-svcx-parte">
+          <div class="doc-svcx-field-label">Cliente</div>
+          <div id="svcx-cliente-${id}" class="doc-svcx-parte-val">—</div>
+        </div>
+        <div class="doc-svcx-parte">
+          <div class="doc-svcx-field-label">Fornitore</div>
+          <div class="doc-svcx-parte-val">Astra Agency &mdash; info@astragency.it</div>
+        </div>
+        <div class="doc-svcx-parte" style="flex:0 0 auto">
+          <div class="doc-svcx-field-label">Rif. Contratto</div>
+          <div id="svcx-rif-${id}" class="doc-svcx-parte-val">N.&nbsp;—</div>
+        </div>
+      </div>
+      ${_svcxBlock(startNum)}
+      ${_svcxBlock(startNum+1)}
+      ${_svcxBlock(startNum+2)}
+      <div class="doc-svcx-clausola">Con la firma di ciascuna voce, il Cliente accetta il servizio descritto e si impegna al pagamento dell'importo indicato secondo le modalità del contratto principale. Ogni servizio sarà oggetto di regolare fatturazione da parte di Astra Agency.</div>
+      <div style="text-align:center;margin:14px 0 12px">
+        <div id="svcx-copia-${id}" class="doc-copia-banner">COPIA CLIENTE</div>
+      </div>
+      <div class="doc-svcx-footer">
+        <span>ASTRA AGENCY &ensp;&mdash;&ensp; Social Media Agency</span>
+        <span>info@astragency.it &ensp;&middot;&ensp; astragency.it</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _renderSvcxSheets() {
+  const c = document.getElementById('svcx-sheets-container');
+  if (!c) return;
+  c.innerHTML = _svcxIds.map((id, idx) => _svcxSheetHTML(id, idx * 3 + 1)).join('');
+}
+
+function _syncSvcxData() {
+  const num     = (document.getElementById('f-num') || {}).value || '001';
+  const cliente = ((document.getElementById('f-ccompany') || {}).value || '').trim() || '—';
+  const label   = _cvCopia === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
+  _svcxIds.forEach(id => {
+    const n = document.getElementById(`svcx-num-${id}`);    if (n) n.innerHTML = 'N.&nbsp;' + num;
+    const r = document.getElementById(`svcx-rif-${id}`);    if (r) r.innerHTML = 'N.&nbsp;' + num;
+    const c = document.getElementById(`svcx-cliente-${id}`);if (c) c.textContent = cliente;
+    const b = document.getElementById(`svcx-copia-${id}`);  if (b) b.textContent = label;
   });
 }
 
-/* ── Secondo foglio servizi aggiuntivi ── */
-let _svcx2Visible = false;
-function toggleSvcx2() {
-  _svcx2Visible = !_svcx2Visible;
-  const preview = document.getElementById('servizi-extra2-preview');
-  const btn     = document.getElementById('btn-svcx2');
-  preview.style.display = _svcx2Visible ? '' : 'none';
-  btn.textContent = _svcx2Visible ? '− Rimuovi secondo foglio' : '+ Secondo foglio';
-  btn.style.background = _svcx2Visible ? 'rgba(123,92,240,.28)' : 'rgba(123,92,240,.15)';
+async function scaricaSoloFoglio(id) {
+  const idx = _svcxIds.indexOf(id);
+  if (idx < 0) return;
+  const startNum = idx * 3 + 1;
+  const el = document.getElementById('doc-svcx-' + id);
+  if (!el) return;
+
+  const A4W_PX = 794;
+  const a4H2   = Math.round(A4W_PX * 297 / 210) * 2; // scale:2
+  const orig   = { bs:el.style.boxShadow, br:el.style.borderRadius, w:el.style.width, mw:el.style.maxWidth, nw:el.style.minWidth };
+  el.style.cssText += ';box-shadow:none;border-radius:0;width:' + A4W_PX + 'px;max-width:' + A4W_PX + 'px;min-width:' + A4W_PX + 'px';
+
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 120));
+  const canvas = await html2canvas(el, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+
+  el.style.boxShadow = orig.bs; el.style.borderRadius = orig.br;
+  el.style.width = orig.w; el.style.maxWidth = orig.mw; el.style.minWidth = orig.nw;
+
+  const pg = document.createElement('canvas');
+  pg.width = canvas.width; pg.height = a4H2;
+  const ctx = pg.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,pg.width,pg.height);
+  ctx.drawImage(canvas, 0, 0);
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+  pdf.addImage(pg.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, 210, 297);
+
+  const z = n => String(n).padStart(2,'0');
+  const cname = (document.getElementById('f-ccompany').value || 'Cliente').trim();
+  const copia = _cvCopia === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
+  pdf.save(`AstraAgency x ${cname} - Servizi ${z(startNum)}-${z(startNum+2)} (${copia}).pdf`);
 }
 
 /* ── SCARICA PDF – A4 corretto per stampa (210×297 mm) ── */
@@ -3372,14 +3276,11 @@ async function scaricaPDF() {
       const descDoc = descContainer.querySelector('.doc');
       if (descDoc) pages.push(descDoc);
     }
-    // Foglio servizi aggiuntivi (sempre incluso)
-    const svcxEl = document.getElementById('doc-svcx');
-    if (svcxEl) pages.push(svcxEl);
-    // Secondo foglio servizi (opzionale)
-    if (_svcx2Visible) {
-      const svcx2El = document.getElementById('doc-svcx2');
-      if (svcx2El) pages.push(svcx2El);
-    }
+    // Tutti i fogli servizi aggiuntivi
+    _svcxIds.forEach(id => {
+      const el = document.getElementById('doc-svcx-' + id);
+      if (el) pages.push(el);
+    });
     pages.push(document.getElementById('doc-preview'));
 
     // Salva stili originali
