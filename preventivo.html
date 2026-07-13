@@ -3602,6 +3602,8 @@ async function scaricaPDF() {
     }
 
     const _pdfPages = [];
+    let _pdfFinalLastTopPad = 0;
+    let _pdfFinalLastDrawH  = 0;
     canvases.forEach((canvas, _cIdx) => {
       const processed = _scaleToFit(canvas);
       // Il canvas del preventivo (ultimo) ha contenuto denso in fondo (righe totali).
@@ -3696,6 +3698,9 @@ async function scaricaPDF() {
         }
       }
 
+      // Traccia l'ultima pagina del documento principale per la pulizia post-forEach
+      if (isLastCanvas) { _pdfFinalLastTopPad = _lastTopPad; _pdfFinalLastDrawH = _lastDrawH; }
+
       // Canvas non-ultimi: spinge il footer al fondo dell'ultima pagina di questo canvas.
       // Stesso approccio canvas-redraw: nessun DOM, nessuna interferenza.
       if (!isLastCanvas) {
@@ -3725,6 +3730,27 @@ async function scaricaPDF() {
         }
       }
     });
+
+    // ── Pulizia: se il footer è finito da solo sull'ultima pagina, spostalo sulla precedente ──
+    // Accade quando il cut cade tra firma e footer e il canvas-redraw non riesce a raggrupparli.
+    if (_pdfPages.length >= 2 && _pdfFinalLastDrawH > 0) {
+      const _a4H2    = _pdfPages[0].height;
+      const _thresh  = _a4H2 * 0.22; // 22% A4: il footer da solo occupa ~10%, soglia ampia
+      if (_pdfFinalLastDrawH < _thresh) {
+        const lastPg = _pdfPages[_pdfPages.length - 1];
+        const prevPg = _pdfPages[_pdfPages.length - 2];
+        const srcY   = _pdfFinalLastTopPad;
+        const srcH   = _pdfFinalLastDrawH;
+        const dstY   = prevPg.height - srcH - 16;
+        if (dstY > 0) {
+          const pctx = prevPg.getContext('2d');
+          pctx.fillStyle = '#fff';
+          pctx.fillRect(0, dstY - 20, prevPg.width, srcH + 36);
+          pctx.drawImage(lastPg, 0, srcY, lastPg.width, srcH, 0, dstY, prevPg.width, srcH);
+          _pdfPages.pop();
+        }
+      }
+    }
 
     // ── Copertina ───────────────────────────────────────────────────────────────
     // Generata come elemento DOM temporaneo (fuori schermo), catturata con html2canvas
