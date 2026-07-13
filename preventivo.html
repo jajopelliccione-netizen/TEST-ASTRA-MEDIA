@@ -3212,6 +3212,7 @@ function addSvcxSheet() {
   _svcxIds.push(_nextSvcxId++);
   _renderSvcxSheets();
   _syncSvcxData();
+  _scheduleAutoSave();
 }
 
 function removeSvcxSheet(id) {
@@ -3219,6 +3220,7 @@ function removeSvcxSheet(id) {
   _svcxIds = _svcxIds.filter(s => s !== id);
   _renderSvcxSheets();
   _syncSvcxData();
+  _scheduleAutoSave();
 }
 
 function _svcxBlock(n) {
