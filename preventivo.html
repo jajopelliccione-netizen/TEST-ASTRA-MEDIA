@@ -1725,6 +1725,9 @@ let _prevState = null;
 let _elaboratoPacchetto = null; // JSON elaborato dall'AI per la pagina descrizione
 let _bozzaAttivaId  = null;
 let _autoSaveTimer  = null;
+let _cvCopia        = 'cliente';
+let _svcxIds        = [1];
+let _nextSvcxId     = 2;
 
 let contatti = [
   { nome: '', email: '', phone: '' }
@@ -2507,6 +2510,7 @@ function _bozzaSnapshot() {
       pagContanti:document.getElementById('chk-f-contanti').checked,
       logoSize:      document.getElementById('logo-size').value,
       logoShadow:    document.getElementById('logo-shadow').value,
+      numFogliSvcx:  _svcxIds.length,
       descPacchetto: _elaboratoPacchetto ? JSON.parse(JSON.stringify(_elaboratoPacchetto)) : null,
     }
   };
@@ -2591,6 +2595,12 @@ async function caricaBozza(id) {
   contatti = d.contatti;
   righe    = d.righe;
   _bozzaAttivaId = id; // abilita auto-save su questa bozza
+
+  // Ripristina fogli servizi aggiuntivi
+  const nFogli = d.numFogliSvcx || 1;
+  _svcxIds   = Array.from({ length: nFogli }, (_, i) => i + 1);
+  _nextSvcxId = nFogli + 1;
+  _renderSvcxSheets();
 
   // Ripristina pagina AI PRIMA di aggiorna() per evitare auto-save con descPacchetto:null
   _elaboratoPacchetto = d.descPacchetto || null;
@@ -3186,7 +3196,7 @@ async function scaricaWord() {
 }
 
 /* ── Copia Cliente / Venditore ── */
-let _cvCopia = 'cliente';
+
 function setCopia(tipo) {
   _cvCopia = tipo;
   document.getElementById('btn-copia-cliente').classList.toggle('copia-active', tipo === 'cliente');
@@ -3197,8 +3207,6 @@ function setCopia(tipo) {
 }
 
 /* ── Fogli Servizi Aggiuntivi (dinamici) ── */
-let _svcxIds = [1];
-let _nextSvcxId = 2;
 
 function addSvcxSheet() {
   _svcxIds.push(_nextSvcxId++);
