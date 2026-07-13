@@ -1723,6 +1723,8 @@ let righe = [
 ];
 let _prevState = null;
 let _elaboratoPacchetto = null; // JSON elaborato dall'AI per la pagina descrizione
+let _bozzaAttivaId  = null;
+let _autoSaveTimer  = null;
 
 let contatti = [
   { nome: '', email: '', phone: '' }
@@ -2477,9 +2479,6 @@ async function migraBozzeLegacy() {
 }
 
 // ── Auto-save bozza attiva ──
-let _bozzaAttivaId  = null;
-let _autoSaveTimer  = null;
-
 function _bozzaSnapshot() {
   const fb = window._fb; if (!fb) return null;
   const ccompany  = document.getElementById('f-ccompany').value;
@@ -2592,13 +2591,8 @@ async function caricaBozza(id) {
   contatti = d.contatti;
   righe    = d.righe;
   _bozzaAttivaId = id; // abilita auto-save su questa bozza
-  renderContatti();
-  renderRighe();
-  aggiorna();
-  aggiornaLogo();
-  _setAutosaveStatus('📂 Bozza attiva — modifiche auto-salvate', 'ok');
 
-  // Ripristina pagina AI se era presente nella bozza
+  // Ripristina pagina AI PRIMA di aggiorna() per evitare auto-save con descPacchetto:null
   _elaboratoPacchetto = d.descPacchetto || null;
   renderDescPacchetto();
   const _ti = document.getElementById('desc-titolo-input');
@@ -2608,6 +2602,12 @@ async function caricaBozza(id) {
     _tb.style.display = '';
     document.getElementById('btn-reset-desc').style.display = '';
   }
+
+  renderContatti();
+  renderRighe();
+  aggiorna();
+  aggiornaLogo();
+  _setAutosaveStatus('📂 Bozza attiva — modifiche auto-salvate', 'ok');
 }
 
 async function eliminaBozza(id) {
