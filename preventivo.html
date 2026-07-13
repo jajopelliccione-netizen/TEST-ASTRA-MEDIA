@@ -3335,6 +3335,91 @@ async function scaricaPDF() {
       }
     });
 
+    // ── Copertina ───────────────────────────────────────────────────────────────
+    // Generata come elemento DOM temporaneo (fuori schermo), catturata con html2canvas
+    // e preposta come prima pagina del PDF.
+    {
+      const cvNum    = document.getElementById('f-num').value || '001';
+      const cvDtVal  = document.getElementById('f-date').value;
+      const cvDate   = cvDtVal
+        ? new Date(cvDtVal).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})
+        : oggi();
+      const cvClient = document.getElementById('f-ccompany').value || '';
+      const cvA4H    = Math.round(A4W_PX * 297 / 210);
+
+      const cvEl = document.createElement('div');
+      cvEl.style.cssText = [
+        `position:fixed;left:-9999px;top:0`,
+        `width:${A4W_PX}px;max-width:${A4W_PX}px;height:${cvA4H}px`,
+        `overflow:hidden;box-sizing:border-box`,
+        `background:#1a0a2e`,
+        `display:flex;flex-direction:column;justify-content:space-between`,
+        `padding:64px 68px`,
+        `font-family:'Space Grotesk',sans-serif`
+      ].join(';');
+
+      cvEl.innerHTML = `
+        <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+          <div style="position:absolute;width:580px;height:580px;border-radius:50%;
+            background:rgba(123,92,240,.16);top:-160px;right:-130px"></div>
+          <div style="position:absolute;width:340px;height:340px;border-radius:50%;
+            background:rgba(123,92,240,.09);bottom:-70px;left:-100px"></div>
+          <div style="position:absolute;width:190px;height:190px;border-radius:50%;
+            background:rgba(123,92,240,.13);top:41%;left:57%"></div>
+          <div style="position:absolute;top:0;bottom:0;left:68px;width:1px;
+            background:linear-gradient(to bottom,transparent 0%,rgba(123,92,240,.35) 30%,rgba(123,92,240,.35) 70%,transparent 100%)"></div>
+        </div>
+
+        <div style="position:relative">
+          <div style="font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;
+            color:#fff;letter-spacing:.07em">ASTRA AGENCY</div>
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.22em;color:#7B5CF0;
+            text-transform:uppercase;margin-top:5px">Social Media Agency</div>
+        </div>
+
+        <div style="position:relative;text-align:center">
+          <div style="width:44px;height:3px;background:#7B5CF0;border-radius:2px;
+            margin:0 auto 28px"></div>
+          <div style="font-family:'Syne',sans-serif;font-size:2.9rem;font-weight:800;
+            color:#fff;line-height:1.1;letter-spacing:.05em;text-transform:uppercase">
+            Proposta<br>Commerciale</div>
+          <div style="width:44px;height:3px;background:#7B5CF0;border-radius:2px;
+            margin:26px auto"></div>
+          ${cvClient
+            ? `<div style="font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:700;
+                color:#7B5CF0;letter-spacing:.02em">${cvClient}</div>`
+            : ''}
+          <div style="font-size:.78rem;color:rgba(255,255,255,.42);margin-top:10px;
+            letter-spacing:.05em">N.&nbsp;${cvNum}&ensp;·&ensp;${cvDate}</div>
+        </div>
+
+        <div style="position:relative;border-top:1px solid rgba(255,255,255,.1);
+          padding-top:18px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:.68rem;color:rgba(255,255,255,.38);letter-spacing:.05em">
+            Preparata da Astra Agency</div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.38)">
+            info@astragency.it&ensp;·&ensp;astragency.it</div>
+        </div>`;
+
+      document.body.appendChild(cvEl);
+      await new Promise(r => setTimeout(r, 80));
+      const cvCanvas = await html2canvas(cvEl, {
+        scale: 2, useCORS: true, allowTaint: true,
+        backgroundColor: '#1a0a2e', logging: false
+      });
+      document.body.removeChild(cvEl);
+
+      // Taglia al formato A4 esatto e prepone al PDF
+      const cvPage   = document.createElement('canvas');
+      cvPage.width   = cvCanvas.width;
+      cvPage.height  = cvA4H * 2; // scale:2
+      const cvCtx    = cvPage.getContext('2d');
+      cvCtx.fillStyle = '#1a0a2e';
+      cvCtx.fillRect(0, 0, cvPage.width, cvPage.height);
+      cvCtx.drawImage(cvCanvas, 0, 0);
+      _pdfPages.unshift(cvPage);
+    }
+
     // Genera PDF con pagine A4 fisse (210×297 mm)
     const { jsPDF } = window.jspdf;
     let pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
