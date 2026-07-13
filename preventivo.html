@@ -452,7 +452,10 @@
     }
 
     /* Condizioni generali */
-    .doc-condizioni { margin-bottom: 28px; }
+    /* margin-bottom ridotto a 6px (12px a scale:2 < minRunLen 16) così il gap
+       condizioni→firma non viene rilevato come break point — il taglio pagina
+       avviene dentro le condizioni e la firma resta sulla stessa pagina */
+    .doc-condizioni { margin-bottom: 6px; }
     .doc-condizioni-title {
       font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
       color: #7B5CF0; border-bottom: 1px solid #e8e4fa; padding-bottom: 7px; margin-bottom: 14px;
