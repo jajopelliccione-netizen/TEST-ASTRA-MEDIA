@@ -3887,8 +3887,9 @@ async function scaricaPDF() {
     });
 
     const num   = document.getElementById('f-num').value || '001';
-    const cname = (document.getElementById('f-ccompany').value || 'Cliente').replace(/\s+/g, '-');
-    pdf.save(`Preventivo-${num}-${cname}-AstraAgency.pdf`);
+    const cname = (document.getElementById('f-ccompany').value || 'Cliente').trim();
+    const copiaLabel = _cvCopia === 'venditore' ? 'Copia Venditore' : 'Copia Cliente';
+    pdf.save(`AstraAgency x ${cname} (${copiaLabel}).pdf`);
 
   } catch(e) {
     console.error(e);
