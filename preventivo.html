@@ -3019,23 +3019,6 @@ async function scaricaPDF() {
 
     await new Promise(r => setTimeout(r, 120));
 
-    // Spinge la sezione firma al fondo dell'ultima pagina A4:
-    // misura lo spazio libero rimanente e lo inietta nello spacer sopra la firma.
-    pages.forEach(el => {
-      const spacer = el.querySelector('#doc-firma-spacer');
-      if (!spacer) return;
-      spacer.style.height = '0';                          // azzera per misurare base
-      const a4H_lyt    = Math.round(A4W_PX * 297 / 210); // ~1123 px @96dpi
-      const baseDocH   = el.scrollHeight;
-      const nPages     = Math.ceil(baseDocH / a4H_lyt);
-      // spazio libero al fondo dell'ultima pagina
-      const usedOnLast = baseDocH - (nPages - 1) * a4H_lyt;
-      const freeSpace  = a4H_lyt - usedOnLast;
-      // Riempi lo spacer con lo spazio libero, lasciando 20px di margine al fondo
-      const spacerH = Math.max(32, freeSpace - 20);
-      spacer.style.height = spacerH + 'px';
-    });
-
     // Bake logo shadow nel clone (html2canvas non applica CSS filter)
     function bakeLogoInClone(clonedDoc) {
       const origLogo   = document.getElementById('doc-logo');
@@ -3116,9 +3099,6 @@ async function scaricaPDF() {
       if (_dfirma) _dfirma.style.marginBottom = '';
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '';
-      // Ripristina spacer firma
-      const _spacer = el.querySelector('#doc-firma-spacer');
-      if (_spacer) _spacer.style.height = '';
     });
 
     // Ripristina layout personalizzato
@@ -3229,6 +3209,7 @@ async function scaricaPDF() {
       const a4H = Math.round(processed.width * _A4R);
       let srcY = 0;
       let pIdx = 0;
+      let _lastSrcY = 0, _lastTopPad = 0, _lastDrawH = 0;
       while (srcY < processed.height) {
         const remaining = processed.height - srcY;
         if (remaining < a4H * 0.05) break; // salta slice quasi-vuota
@@ -3252,8 +3233,42 @@ async function scaricaPDF() {
         cx.fillRect(0, 0, ch.width, ch.height);
         cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
         _pdfPages.push(ch);
+        _lastSrcY = srcY; _lastTopPad = topPad; _lastDrawH = drawH;
         srcY += drawH;
         pIdx++;
+      }
+
+      // Spinge la sezione firma al fondo dell'ultima pagina ridisegnando il canvas:
+      // nessuna modifica al DOM → nessuna interferenza con l'algoritmo di pagina.
+      if (isLastCanvas) {
+        const lastPage = _pdfPages[_pdfPages.length - 1];
+        const firmaEl  = pages[_cIdx] && pages[_cIdx].querySelector('#ds-firma');
+        if (lastPage && firmaEl) {
+          // Spazio bianco rimasto al fondo dell'ultima pagina (in px canvas scale:2)
+          const whiteBot = lastPage.height - _lastTopPad - _lastDrawH;
+          const shift    = whiteBot - 24; // 24px margine basso
+          if (shift > 40) {
+            // Posizione firma dentro la pagina canvas
+            const firmaCanvasTop = firmaEl.offsetTop * 2; // DOM→canvas scale:2
+            const firmaInPage    = _lastTopPad + (firmaCanvasTop - _lastSrcY);
+            if (firmaInPage > 10 && firmaInPage < lastPage.height - 60) {
+              const firmaH   = (_lastTopPad + _lastDrawH) - firmaInPage;
+              const newCh    = document.createElement('canvas');
+              newCh.width    = lastPage.width;
+              newCh.height   = lastPage.height;
+              const nctx     = newCh.getContext('2d');
+              nctx.fillStyle = '#fff';
+              nctx.fillRect(0, 0, newCh.width, newCh.height);
+              // Copia contenuto sopra la firma (invariato)
+              if (firmaInPage > 0)
+                nctx.drawImage(lastPage, 0, 0, lastPage.width, firmaInPage, 0, 0, lastPage.width, firmaInPage);
+              // Copia firma+footer spostata in basso di shift
+              if (firmaH > 0)
+                nctx.drawImage(lastPage, 0, firmaInPage, lastPage.width, firmaH, 0, firmaInPage + shift, lastPage.width, firmaH);
+              _pdfPages[_pdfPages.length - 1] = newCh;
+            }
+          }
+        }
       }
     });
 
