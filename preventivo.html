@@ -570,7 +570,7 @@
       background: #7B5CF0;
       border-radius: 4px;
       padding: 5px 18px;
-      margin: 16px auto 32px;
+      margin: 8px auto 24px;
       display: table; /* shrink-wrap to content, still centered */
     }
     .doc-accettazione-clause {
@@ -1623,7 +1623,7 @@
       </div>
 
       <!-- Spacer elastico: nel PDF viene calcolato per spingere la firma al fondo pagina -->
-      <div id="doc-firma-spacer" style="min-height:32px"></div>
+      <div id="doc-firma-spacer" style="min-height:16px"></div>
 
       <!-- Accettazione e firma -->
       <div class="drag-section" id="ds-firma" data-label="Firma">
@@ -3380,6 +3380,8 @@ async function scaricaPDF() {
       if (_dfirma) _dfirma.style.marginBottom = '0';
       const _copBanner = el.querySelector('.doc-copia-banner');
       if (_copBanner) { _copBanner.style.marginTop = '4px'; _copBanner.style.marginBottom = '10px'; }
+      const _spacer = el.querySelector('#doc-firma-spacer');
+      if (_spacer) _spacer.style.minHeight = '8px';
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '4px';
     });
@@ -3506,6 +3508,8 @@ async function scaricaPDF() {
       if (_dfirma) _dfirma.style.marginBottom = '';
       const _copBanner = el.querySelector('.doc-copia-banner');
       if (_copBanner) { _copBanner.style.marginTop = ''; _copBanner.style.marginBottom = ''; }
+      const _spacer = el.querySelector('#doc-firma-spacer');
+      if (_spacer) _spacer.style.minHeight = '';
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '';
     });
