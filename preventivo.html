@@ -225,19 +225,6 @@
 
     /* ── Linee di taglio pagina A4 ── */
     .doc-page-wrap { position: relative; width: 794px; flex-shrink: 0; }
-    .doc-page-cut {
-      position: absolute; left: 0; right: 0;
-      height: 0;
-      border-top: 2px dashed rgba(123,92,240,.35);
-      pointer-events: none; z-index: 10;
-    }
-    .doc-page-cut::before {
-      content: attr(data-page);
-      position: absolute; right: 0; top: -18px;
-      font-size: .58rem; font-weight: 700; letter-spacing: .1em;
-      color: rgba(123,92,240,.5); text-transform: uppercase;
-      background: var(--bg); padding: 0 4px;
-    }
 
     /* ── DOCUMENTO PREVENTIVO ── */
     .doc {
@@ -2248,30 +2235,6 @@ function aggiorna() {
 
   reflowSections();
   _scheduleAutoSave();
-  _updatePageLines();
-}
-
-// Mostra linee di taglio A4 in anteprima (come il PDF)
-function _updatePageLines() {
-  const A4H = Math.round(794 * 297 / 210); // ~1123px
-  // Raccoglie tutti i .doc visibili nel preview panel
-  const previewPanel = document.querySelector('.preview-panel');
-  if (!previewPanel) return;
-  const docs = previewPanel.querySelectorAll('.doc');
-  docs.forEach(doc => {
-    // Rimuovi linee precedenti
-    doc.querySelectorAll('.doc-page-cut').forEach(l => l.remove());
-    const h = doc.scrollHeight;
-    const pages = Math.ceil(h / A4H);
-    for (let p = 1; p < pages; p++) {
-      const line = document.createElement('div');
-      line.className = 'doc-page-cut';
-      line.style.top = (p * A4H) + 'px';
-      line.dataset.page = 'Pag. ' + p + ' / ' + pages;
-      doc.style.position = 'relative';
-      doc.appendChild(line);
-    }
-  });
 }
 
 function reflowSections() {
@@ -3416,7 +3379,7 @@ async function scaricaPDF() {
       const _dfirma = _accett && _accett.querySelector('.doc-firma');
       if (_dfirma) _dfirma.style.marginBottom = '0';
       const _copBanner = el.querySelector('.doc-copia-banner');
-      if (_copBanner) _copBanner.style.marginTop = '10px';
+      if (_copBanner) { _copBanner.style.marginTop = '4px'; _copBanner.style.marginBottom = '10px'; }
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '4px';
     });
@@ -3542,7 +3505,7 @@ async function scaricaPDF() {
       const _dfirma = _accett && _accett.querySelector('.doc-firma');
       if (_dfirma) _dfirma.style.marginBottom = '';
       const _copBanner = el.querySelector('.doc-copia-banner');
-      if (_copBanner) _copBanner.style.marginTop = '';
+      if (_copBanner) { _copBanner.style.marginTop = ''; _copBanner.style.marginBottom = ''; }
       const _footer = el.querySelector('.doc-footer');
       if (_footer) _footer.style.paddingTop = '';
     });
