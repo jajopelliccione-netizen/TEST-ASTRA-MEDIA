@@ -3090,10 +3090,14 @@ async function scaricaPDF() {
       const fr = firmaEl.getBoundingClientRect();
       return (fr.top - pr.top) * 2; // scale:2
     });
-    const _footerHeights = pages.map(el => {
-      const footerEl = el.querySelector('#ds-footer');
-      if (!footerEl) return 0;
-      return Math.round(footerEl.getBoundingClientRect().height * 2); // scale:2
+    // Footer: cerca prima #ds-footer (preventivo), altrimenti ultimo figlio (desc-page)
+    const _footerEls      = pages.map(el => el.querySelector('#ds-footer') || el.lastElementChild);
+    const _footerHeights  = _footerEls.map(f => f ? Math.round(f.getBoundingClientRect().height * 2) : 0);
+    const _footerTopDoc   = _footerEls.map((f, i) => {
+      if (!f) return -1;
+      const pr = pages[i].getBoundingClientRect();
+      const fr = f.getBoundingClientRect();
+      return (fr.top - pr.top) * 2; // scale:2
     });
 
     // Ripristina stili
@@ -3247,16 +3251,16 @@ async function scaricaPDF() {
         cx.fillRect(0, 0, ch.width, ch.height);
         cx.drawImage(processed, 0, srcY, processed.width, drawH, 0, topPad, processed.width, drawH);
 
-        // Pagine intermedie: stampa il footer (estratto dal fondo del canvas principale)
-        // così ogni foglio PDF ha il footer in fondo, come l'ultima pagina.
+        // Pagine intermedie: stampa il footer in fondo (estratto dal fondo del canvas corrente).
+        // _footerHeights[_cIdx] usa el.querySelector('#ds-footer') || el.lastElementChild,
+        // quindi funziona sia per il preventivo che per il documento di descrizione.
         if (!isLast) {
           const fH = _footerHeights[_cIdx] || 0;
           if (fH > 10) {
-            const footerSrcY = processed.height - fH;
-            const footerDstY = ch.height - fH - 16; // 16px margine dal bordo
-            // Pulisci l'area e ridisegna il footer
+            const footerSrcY = processed.height - fH; // footer è sempre in fondo al canvas
+            const footerDstY = ch.height - fH - 16;   // 16px margine inferiore
             cx.fillStyle = '#fff';
-            cx.fillRect(0, footerDstY - 12, ch.width, fH + 28);
+            cx.fillRect(0, footerDstY - 20, ch.width, fH + 36); // pulisci area + margine sopra
             cx.drawImage(processed, 0, footerSrcY, processed.width, fH,
                          0, footerDstY, ch.width, fH);
           }
@@ -3295,6 +3299,35 @@ async function scaricaPDF() {
               // Copia firma+footer spostata in basso di shift
               if (firmaH > 0)
                 nctx.drawImage(lastPage, 0, firmaInPage, lastPage.width, firmaH, 0, firmaInPage + shift, lastPage.width, firmaH);
+              _pdfPages[_pdfPages.length - 1] = newCh;
+            }
+          }
+        }
+      }
+
+      // Canvas non-ultimi: spinge il footer al fondo dell'ultima pagina di questo canvas.
+      // Stesso approccio canvas-redraw: nessun DOM, nessuna interferenza.
+      if (!isLastCanvas) {
+        const lastPage = _pdfPages[_pdfPages.length - 1];
+        const fH       = _footerHeights[_cIdx] || 0;
+        const fTop     = _footerTopDoc[_cIdx]  || -1;
+        if (lastPage && fH > 10 && fTop > 0) {
+          const whiteBot     = lastPage.height - _lastTopPad - _lastDrawH;
+          const shift        = whiteBot - 16;
+          if (shift > 20) {
+            const footerInPage = _lastTopPad + (fTop - _lastSrcY);
+            if (footerInPage > 10 && footerInPage < lastPage.height - 20) {
+              const footerH  = (_lastTopPad + _lastDrawH) - footerInPage;
+              const newCh    = document.createElement('canvas');
+              newCh.width    = lastPage.width;
+              newCh.height   = lastPage.height;
+              const nctx     = newCh.getContext('2d');
+              nctx.fillStyle = '#fff';
+              nctx.fillRect(0, 0, newCh.width, newCh.height);
+              if (footerInPage > 0)
+                nctx.drawImage(lastPage, 0, 0, lastPage.width, footerInPage, 0, 0, lastPage.width, footerInPage);
+              if (footerH > 0)
+                nctx.drawImage(lastPage, 0, footerInPage, lastPage.width, footerH, 0, footerInPage + shift, lastPage.width, footerH);
               _pdfPages[_pdfPages.length - 1] = newCh;
             }
           }
