@@ -484,21 +484,22 @@
 
 <!-- actions -->
 <div class="actions" id="dl-actions">
-  <a class="btn btn-primary" id="dl-jacopo" download="biglietto-jacopo.html" href="#">
+  <button class="btn btn-primary" onclick="scaricaPNG('card-jacopo','jacopo')">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
     Jacopo
-  </a>
-  <a class="btn btn-primary" id="dl-alex" download="biglietto-alessandro.html" href="#">
+  </button>
+  <button class="btn btn-primary" onclick="scaricaPNG('card-alex','alessandro')">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
     Alessandro
-  </a>
-  <a class="btn btn-primary" id="dl-retro" download="biglietto-retro.html" href="#">
+  </button>
+  <button class="btn btn-primary" onclick="scaricaPNG('card-back','retro')">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
     Retro
-  </a>
+  </button>
 </div>
-<p class="hint" id="dl-hint">Preparazione download in corso…</p>
+<p class="hint">Clicca per scaricare il PNG esatto della carta.</p>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ── FRONT: stesso identico sfondo del retro ──
 function drawFront(canvasId, seed) {
@@ -550,20 +551,26 @@ function drawBack(canvasId, seed) {
   });
 }
 
-const DRAW_MINI = `function drawBack(id,seed){const c=document.getElementById(id);if(!c)return;const W=c.offsetWidth||c.parentElement.offsetWidth,H=c.offsetHeight||c.parentElement.offsetHeight;c.width=W*2;c.height=H*2;const CW=c.width,CH=c.height,ctx=c.getContext('2d');let s=seed||77;const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/0xffffffff;};const n1=ctx.createRadialGradient(CW*.3,CH*.45,0,CW*.3,CH*.45,CW*.7);n1.addColorStop(0,'rgba(139,92,246,.28)');n1.addColorStop(.4,'rgba(109,40,217,.12)');n1.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=n1;ctx.fillRect(0,0,CW,CH);const n2=ctx.createRadialGradient(CW*.8,CH*.15,0,CW*.8,CH*.15,CW*.5);n2.addColorStop(0,'rgba(167,139,250,.16)');n2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=n2;ctx.fillRect(0,0,CW,CH);for(let i=0;i<80;i++){const x=rnd()*CW,y=rnd()*CH,r=rnd()*1+.2,op=rnd()*.5+.08;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+op+')';ctx.fill();}[[CW*.18,CH*.28],[CW*.72,CH*.6],[CW*.55,CH*.18]].forEach(([cx,cy])=>{const L=8,op=.55;[[0,L],[0,-L],[L,0],[-L,0]].forEach(([dx,dy])=>{const g=ctx.createLinearGradient(cx,cy,cx+dx,cy+dy);g.addColorStop(0,'rgba(255,255,255,'+op+')');g.addColorStop(1,'rgba(255,255,255,0)');ctx.strokeStyle=g;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx,cy+dy);ctx.stroke();});});}function drawFront(id,seed){drawBack(id,seed);}`;
-
-function buildCardHTML(cardId, drawCall) {
-  const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent).join('');
-  const cardHtml = document.getElementById(cardId).outerHTML;
-  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><style>' +
-    '@page{size:3.5in 2in;margin:0;}' +
-    '*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}' +
-    'html,body{width:336px;height:192px;overflow:hidden;background:#08071a;}' +
-    css +
-    '.card{width:336px!important;height:192px!important;box-shadow:none!important;}' +
-    '</style></head><body>' + cardHtml +
-    '<scr' + 'ipt>' + DRAW_MINI + 'window.onload=function(){' + drawCall + '};<\/scr' + 'ipt>' +
-    '</body></html>';
+function scaricaPNG(cardId, nome) {
+  const card = document.getElementById(cardId);
+  const btn = event.currentTarget;
+  const orig = btn.innerHTML;
+  btn.textContent = 'Attendere…';
+  btn.disabled = true;
+  html2canvas(card, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: null,
+    logging: false
+  }).then(function(canvas) {
+    const a = document.createElement('a');
+    a.download = 'biglietto-' + nome + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    btn.innerHTML = orig;
+    btn.disabled = false;
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -574,27 +581,5 @@ window.addEventListener('DOMContentLoaded', () => {
   drawFront('stars-jacopo', 17);
   drawFront('stars-alex',   93);
   drawBack('stars-back');
-
-  const links = [
-    { id: 'dl-jacopo', cardId: 'card-jacopo', draw: "drawFront('stars-jacopo',17);" },
-    { id: 'dl-alex',   cardId: 'card-alex',   draw: "drawFront('stars-alex',93);"   },
-    { id: 'dl-retro',  cardId: 'card-back',   draw: "drawBack('stars-back');"       }
-  ];
-
-  links.forEach(({ id, cardId, draw }) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    try {
-      const html = buildCardHTML(cardId, draw);
-      const blob = new Blob([html], { type: 'text/html' });
-      el.href = URL.createObjectURL(blob);
-    } catch(e) {
-      const html = buildCardHTML(cardId, draw);
-      el.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-    }
-  });
-
-  const hint = document.getElementById('dl-hint');
-  if (hint) hint.textContent = 'Scarica ogni carta → aprila nel browser → Ctrl+P → Salva come PDF (margini = Nessuno, attiva Grafica di sfondo).';
 });
 </script>
