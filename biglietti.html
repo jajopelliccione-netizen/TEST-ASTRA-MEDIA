@@ -103,18 +103,19 @@
     display: flex;
     flex-direction: row;
     height: 100%;
+    padding: 0 8px 0 24px;
   }
 
   /* ── LEFT: logo column ── */
   .card-front .logo-col {
-    width: 118px;
+    width: 105px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 12px 8px 12px 16px;
+    padding: 12px 8px 12px 8px;
   }
   .card-front .logo-col .star-icon {
     width: 107px;
@@ -234,14 +235,14 @@
     position: relative;
     z-index: 2;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
     height: 100%;
-    padding: 22px 26px 16px 26px;
-    gap: 10px;
+    padding: 36px 32px 36px 34px;
+    gap: 0;
   }
 
-  /* manifesto headline — fills the card */
+  /* manifesto — colonna sinistra */
   .card-back .manifesto {
     flex: 1;
     display: flex;
@@ -250,16 +251,16 @@
   }
 
   .card-back .manifesto-eyebrow {
-    font-size: .48rem;
+    font-size: .44rem;
     font-weight: 700;
     letter-spacing: .28em;
     text-transform: uppercase;
     color: var(--accent-lt);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .card-back .manifesto-text {
-    font-size: 1.15rem;
+    font-size: 1.38rem;
     font-weight: 900;
     line-height: 1.18;
     letter-spacing: -.02em;
@@ -271,46 +272,22 @@
     color: var(--accent-lt);
   }
 
-  /* divider line — stays in fixed position */
-  .card-back .divider {
-    border-top: 1px solid rgba(167,139,250,.15);
-  }
-
-  /* bottom row: services list + logo — sits below the divider */
-  .card-back .bottom-row {
+  /* logo — colonna destra */
+  .card-back .back-logo-col {
+    flex-shrink: 0;
+    width: 105px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 5px;
-  }
-
-  .card-back .svc-list {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    gap: 3px 10px;
-  }
-  .card-back .svc-item {
-    font-size: .45rem;
-    font-weight: 600;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .card-back .svc-item::before {
-    content: '·';
-    margin-right: 4px;
-    color: var(--accent-lt);
+    justify-content: center;
   }
 
   .card-back .back-logo {
-    width: 56px;
+    width: 98px;
     height: auto;
-    flex-shrink: 0;
-    opacity: .9;
-    align-self: center;
-    filter: drop-shadow(0 0 6px rgba(167,139,250,.3));
+    filter:
+      drop-shadow(0 0 6px rgba(167,139,250,.9))
+      drop-shadow(0 0 18px rgba(167,139,250,.55))
+      drop-shadow(0 0 34px rgba(120,90,255,.35));
   }
 
   /* ── download / print buttons ── */
@@ -495,16 +472,7 @@
           </div>
         </div>
 
-        <div class="divider"></div>
-        <div class="bottom-row">
-          <div class="svc-list">
-            <span class="svc-item">Branding</span>
-            <span class="svc-item">Web Design</span>
-            <span class="svc-item">Social Media</span>
-            <span class="svc-item">SEO &amp; ADV</span>
-            <span class="svc-item">Video &amp; Foto</span>
-            <span class="svc-item">E-Commerce</span>
-          </div>
+        <div class="back-logo-col">
           <img class="back-logo" src="" alt="Astra Agency" id="back-logo-img">
         </div>
 
