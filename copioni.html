@@ -316,10 +316,130 @@
   }
 
   @media print {
-    #auth-overlay, .topbar, .form-panel, .mobile-tabs { display: none !important; }
+    #auth-overlay, .topbar, .form-panel, .mobile-tabs, .editor-bar { display: none !important; }
     .layout { display: block !important; }
     .preview-panel { padding: 0 !important; }
     .doc { box-shadow: none !important; border-radius: 0 !important; }
+  }
+
+  /* ══════════════ VISTA LISTA ══════════════ */
+  #list-view { max-width: 1100px; margin: 0 auto; padding: 34px 24px 60px; }
+  .list-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .list-header h1 {
+    font-family: 'Syne', sans-serif; font-size: 1.7rem; font-weight: 800;
+    letter-spacing: .01em;
+  }
+  .btn-new {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    border: none; border-radius: 10px; padding: 11px 20px;
+    color: #fff; font-family: 'Space Grotesk', sans-serif;
+    font-size: .88rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 0 20px rgba(123,92,240,.35); transition: box-shadow .25s, transform .2s;
+    white-space: nowrap;
+  }
+  .btn-new:hover { box-shadow: 0 0 30px rgba(123,92,240,.6); transform: translateY(-1px); }
+
+  .list-tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .list-tab {
+    background: none; border: none; border-bottom: 3px solid transparent;
+    margin-bottom: -1px; padding: 12px 20px; cursor: pointer;
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: .82rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; transition: color .2s, border-color .2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .list-tab:hover { color: var(--text); }
+  .list-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 6px;
+    background: rgba(255,255,255,.08); border-radius: 99px;
+    font-size: .7rem; font-weight: 700; color: var(--text);
+  }
+  .list-tab.active .tab-count { background: rgba(123,92,240,.25); color: var(--purple); }
+
+  .copioni-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .copione-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .copione-card:hover { border-color: rgba(123,92,240,.5); transform: translateY(-2px); }
+  .cc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .cc-num {
+    font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--purple);
+  }
+  .cc-plat { font-size: .68rem; color: var(--muted); }
+  .cc-titolo { font-size: 1rem; font-weight: 700; line-height: 1.25; }
+  .cc-cliente { font-size: .8rem; color: var(--muted); }
+  .cc-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+  .cc-actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .cc-btn {
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    border-radius: 7px; padding: 6px 10px; color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif; font-size: .72rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+  }
+  .cc-btn:hover { background: rgba(123,92,240,.12); color: var(--text); border-color: rgba(123,92,240,.4); }
+  .cc-btn.danger:hover { background: rgba(255,45,120,.12); color: var(--pink); border-color: rgba(255,45,120,.4); }
+  .cc-move { margin-left: auto; }
+
+  .list-empty {
+    text-align: center; padding: 64px 20px; color: var(--muted);
+    border: 1px dashed var(--border); border-radius: 14px;
+  }
+  .list-empty p { margin-bottom: 16px; font-size: .92rem; }
+
+  /* ══════════════ EDITOR BAR ══════════════ */
+  .editor-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 12px 24px; background: var(--bg2);
+    border-bottom: 1px solid var(--border); position: sticky; top: 53px; z-index: 99;
+    flex-wrap: wrap;
+  }
+  .btn-back {
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 16px; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; font-size: .82rem; font-weight: 600;
+    cursor: pointer; transition: background .2s;
+  }
+  .btn-back:hover { background: rgba(255,255,255,.12); }
+  .status-select-wrap { display: flex; align-items: center; gap: 10px; }
+  .status-select-wrap label {
+    font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  #editor-status {
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; font-size: .82rem; font-weight: 600;
+    outline: none; cursor: pointer;
+  }
+  #editor-status option { background: #1a1a2e; }
+  .btn-salva {
+    background: linear-gradient(135deg, var(--purple), var(--pink)) !important;
+    border: none !important; color: #fff !important; font-weight: 700 !important;
+  }
+  @media (max-width: 768px) {
+    #list-view { padding: 20px 12px 50px; }
+    .list-header h1 { font-size: 1.35rem; }
+    .list-tab { padding: 10px 12px; font-size: .74rem; }
+    .editor-bar { padding: 10px 12px; top: 49px; }
   }
 </style>
 </head>
@@ -335,11 +455,47 @@
   <div class="topbar-brand">ASTRA<span>.</span> Copioni</div>
   <div class="topbar-actions">
     <span id="topbar-user" style="font-size:.78rem;color:var(--muted);display:none"></span>
-    <button class="btn-pdf" onclick="scaricaPDF()">
+    <button class="btn-pdf btn-salva" id="btn-salva" onclick="salvaCopione()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span class="btn-label">Salva</span>
+    </button>
+    <button class="btn-pdf" id="btn-pdf" onclick="scaricaPDF()" style="display:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       <span class="btn-label">Scarica PDF</span>
     </button>
     <button id="btn-logout" style="display:none" onclick="">Esci</button>
+  </div>
+</div>
+
+<!-- ═══════════════ VISTA LISTA ═══════════════ -->
+<div id="list-view" style="display:none">
+  <div class="list-header">
+    <h1>Copioni</h1>
+    <button class="btn-new" onclick="nuovoCopione()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuovo copione
+    </button>
+  </div>
+  <div class="list-tabs">
+    <button class="list-tab active" data-status="bozza"   onclick="switchListTab('bozza')">Bozze <span class="tab-count" id="count-bozza">0</span></button>
+    <button class="list-tab"        data-status="da_fare" onclick="switchListTab('da_fare')">Da fare <span class="tab-count" id="count-da_fare">0</span></button>
+    <button class="list-tab"        data-status="fatto"   onclick="switchListTab('fatto')">Fatti <span class="tab-count" id="count-fatto">0</span></button>
+  </div>
+  <div id="copioni-list" class="copioni-grid"></div>
+</div>
+
+<!-- ═══════════════ VISTA EDITOR ═══════════════ -->
+<div id="editor-view" style="display:none">
+
+<div class="editor-bar">
+  <button class="btn-back" onclick="tornaAllaLista()">← Copioni</button>
+  <div class="status-select-wrap">
+    <label for="editor-status">Stato</label>
+    <select id="editor-status">
+      <option value="bozza">Bozza</option>
+      <option value="da_fare">Da fare</option>
+      <option value="fatto">Fatto</option>
+    </select>
   </div>
 </div>
 
@@ -350,7 +506,7 @@
 </div>
 
 <!-- LAYOUT -->
-<div class="layout" id="main-layout" style="display:none">
+<div class="layout" id="main-layout">
 
   <!-- ── FORM PANEL ── -->
   <div class="form-panel" id="form-panel">
@@ -451,6 +607,9 @@
   </div>
 
 </div>
+<!-- /LAYOUT -->
+</div>
+<!-- /editor-view -->
 
 <script>
 // ── Stato ──
@@ -589,36 +748,254 @@ async function scaricaPDF() {
   btn.disabled  = false;
 }
 
+// ── Bridge form ↔ Firestore (usato dal modulo) ──
+const DEFAULT_SEZIONI = () => ([
+  { nome: 'HOOK', testo: '', note: '' },
+  { nome: 'CORPO', testo: '', note: '' },
+  { nome: 'CALL TO ACTION', testo: '', note: '' },
+]);
+
+function getFormData() {
+  return {
+    num:         document.getElementById('f-num').value || '001',
+    date:        document.getElementById('f-date').value || isoOggi(),
+    cliente:     document.getElementById('f-cliente').value || '',
+    titolo:      document.getElementById('f-titolo').value || '',
+    piattaforma: document.getElementById('f-piattaforma').value,
+    durata:      document.getElementById('f-durata').value || '',
+    sezioni:     sezioni.map(s => ({ nome: s.nome || '', testo: s.testo || '', note: s.note || '' })),
+  };
+}
+
+function caricaCopioneNelForm(d) {
+  d = d || {};
+  document.getElementById('f-num').value         = d.num || '001';
+  document.getElementById('f-date').value        = d.date || isoOggi();
+  document.getElementById('f-cliente').value     = d.cliente || '';
+  document.getElementById('f-titolo').value      = d.titolo || '';
+  document.getElementById('f-piattaforma').value = d.piattaforma || 'Instagram Reel';
+  document.getElementById('f-durata').value      = d.durata || '';
+  sezioni = (Array.isArray(d.sezioni) && d.sezioni.length)
+    ? d.sezioni.map(s => ({ nome: s.nome || '', testo: s.testo || '', note: s.note || '' }))
+    : DEFAULT_SEZIONI();
+  renderSezioni();
+  aggiorna();
+}
+
+// Espone i bridge al modulo (che gestisce Firestore e le viste)
+window.getFormData          = getFormData;
+window.caricaCopioneNelForm = caricaCopioneNelForm;
+window.isoOggi              = isoOggi;
+
 // ── Init ──
 document.getElementById('f-date').value = isoOggi();
 renderSezioni();
 aggiorna();
 </script>
 
-<!-- Auth Firebase -->
+<!-- Auth + Firestore (lista copioni, CRUD, viste) -->
 <script type="module">
   import { auth, db } from '/js/firebase-config.js';
   import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import {
+    collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+  const STATUS_LABELS = { bozza: 'Bozza', da_fare: 'Da fare', fatto: 'Fatto' };
+
+  let currentUser = null;
+  let currentId   = null;      // id del copione in modifica (null = nuovo)
+  let allCopioni  = [];
+  let activeTab   = 'bozza';
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function tsVal(t) { try { return t?.toMillis ? t.toMillis() : 0; } catch(_) { return 0; } }
+
+  // ── AUTH GATE ──
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '/admin/login.html'; return; }
     try {
       const snap = await getDoc(doc(db, 'admins', user.uid));
       if (!snap.exists()) { await signOut(auth); window.location.href = '/admin/login.html'; return; }
+      currentUser = user;
       const name = snap.data()?.name || user.email;
       const userEl = document.getElementById('topbar-user');
-      userEl.textContent = name;
-      userEl.style.display = '';
+      userEl.textContent = name; userEl.style.display = '';
       const logoutBtn = document.getElementById('btn-logout');
       logoutBtn.style.display = '';
       logoutBtn.onclick = async () => { await signOut(auth); window.location.href = '/admin/login.html'; };
     } catch(e) {
       window.location.href = '/admin/login.html';
+      return;
     }
     document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('main-layout').style.display  = '';
+    mostraLista();
+    await loadCopioni();
   });
+
+  // ── VISTE ──
+  function mostraLista() {
+    document.getElementById('list-view').style.display   = '';
+    document.getElementById('editor-view').style.display = 'none';
+    document.getElementById('btn-salva').style.display   = 'none';
+    document.getElementById('btn-pdf').style.display     = 'none';
+    window.scrollTo(0, 0);
+  }
+  function mostraEditor() {
+    document.getElementById('list-view').style.display   = 'none';
+    document.getElementById('editor-view').style.display = '';
+    document.getElementById('btn-salva').style.display   = '';
+    document.getElementById('btn-pdf').style.display     = '';
+    window.scrollTo(0, 0);
+  }
+
+  // ── CARICAMENTO ──
+  async function loadCopioni() {
+    const listEl = document.getElementById('copioni-list');
+    try {
+      const snap = await getDocs(collection(db, 'copioni'));
+      allCopioni = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allCopioni.sort((a, b) => tsVal(b.updatedAt) - tsVal(a.updatedAt));
+    } catch(e) {
+      listEl.innerHTML = `<div class="list-empty"><p>Impossibile caricare i copioni.<br><span style="font-size:.8rem">Verifica le regole Firestore per la collezione <code>copioni</code>.</span></p></div>`;
+      return;
+    }
+    renderCounts();
+    renderList();
+  }
+
+  function renderCounts() {
+    ['bozza','da_fare','fatto'].forEach(s => {
+      const el = document.getElementById('count-' + s);
+      if (el) el.textContent = allCopioni.filter(c => (c.status || 'bozza') === s).length;
+    });
+  }
+
+  function renderList() {
+    const listEl = document.getElementById('copioni-list');
+    const items = allCopioni.filter(c => (c.status || 'bozza') === activeTab);
+    if (!items.length) {
+      listEl.innerHTML = `<div class="list-empty"><p>Nessun copione in "${STATUS_LABELS[activeTab]}".</p><button class="btn-new" onclick="nuovoCopione()">+ Nuovo copione</button></div>`;
+      return;
+    }
+    listEl.innerHTML = items.map(cardHTML).join('');
+  }
+
+  function cardHTML(c) {
+    const num  = esc(c.num || '—');
+    const plat = esc(c.piattaforma || '');
+    let data = '';
+    try { if (c.date) data = new Date(c.date + 'T12:00').toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' }); } catch(_){}
+    const moves = ['bozza','da_fare','fatto']
+      .filter(s => s !== (c.status || 'bozza'))
+      .map(s => `<button class="cc-btn" onclick="event.stopPropagation();spostaCopione('${c.id}','${s}')">→ ${STATUS_LABELS[s]}</button>`)
+      .join('');
+    return `
+      <div class="copione-card" onclick="apriCopione('${c.id}')">
+        <div class="cc-top">
+          <span class="cc-num">Copione ${num}</span>
+          <span class="cc-plat">${plat}</span>
+        </div>
+        <div class="cc-titolo">${esc(c.titolo || 'Senza titolo')}</div>
+        <div class="cc-cliente">${esc(c.cliente || '—')}</div>
+        <div class="cc-meta">${data}</div>
+        <div class="cc-actions">
+          <button class="cc-btn" onclick="event.stopPropagation();apriCopione('${c.id}')">Apri</button>
+          <button class="cc-btn danger" onclick="event.stopPropagation();eliminaCopione('${c.id}')">Elimina</button>
+          <span class="cc-move"></span>
+          ${moves}
+        </div>
+      </div>`;
+  }
+
+  function suggestNextNum() {
+    let max = 0;
+    allCopioni.forEach(c => {
+      const n = parseInt(String(c.num || '').replace(/\D/g, ''), 10);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return String(max + 1).padStart(3, '0');
+  }
+
+  function setActiveTabUI(status) {
+    activeTab = status;
+    document.querySelectorAll('.list-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.status === status));
+  }
+
+  // ── AZIONI (esposte agli onclick) ──
+  window.switchListTab = (status) => { setActiveTabUI(status); renderList(); };
+
+  window.nuovoCopione = () => {
+    currentId = null;
+    window.caricaCopioneNelForm({ num: suggestNextNum(), date: window.isoOggi(), piattaforma: 'Instagram Reel', sezioni: null });
+    document.getElementById('editor-status').value = 'bozza';
+    mostraEditor();
+  };
+
+  window.apriCopione = (id) => {
+    const c = allCopioni.find(x => x.id === id);
+    if (!c) return;
+    currentId = id;
+    window.caricaCopioneNelForm(c);
+    document.getElementById('editor-status').value = c.status || 'bozza';
+    mostraEditor();
+  };
+
+  window.tornaAllaLista = () => { mostraLista(); };
+
+  window.salvaCopione = async () => {
+    const data   = window.getFormData();
+    const status = document.getElementById('editor-status').value || 'bozza';
+    const btn    = document.getElementById('btn-salva');
+    const label  = btn.querySelector('.btn-label');
+    const orig   = label ? label.textContent : '';
+    if (label) label.textContent = 'Salvataggio…';
+    btn.disabled = true;
+    try {
+      const payload = { ...data, status, updatedAt: serverTimestamp(), updatedBy: currentUser?.uid || null };
+      if (currentId) {
+        await setDoc(doc(db, 'copioni', currentId), payload, { merge: true });
+      } else {
+        payload.createdAt = serverTimestamp();
+        payload.createdBy = currentUser?.uid || null;
+        const ref = await addDoc(collection(db, 'copioni'), payload);
+        currentId = ref.id;
+      }
+      await loadCopioni();
+      setActiveTabUI(status);
+      renderList();
+      mostraLista();
+    } catch(e) {
+      alert('Errore nel salvataggio: ' + (e.message || e));
+    }
+    if (label) label.textContent = orig;
+    btn.disabled = false;
+  };
+
+  window.spostaCopione = async (id, status) => {
+    try {
+      await updateDoc(doc(db, 'copioni', id), { status, updatedAt: serverTimestamp() });
+      const c = allCopioni.find(x => x.id === id);
+      if (c) c.status = status;
+      renderCounts();
+      renderList();
+    } catch(e) { alert('Errore: ' + (e.message || e)); }
+  };
+
+  window.eliminaCopione = async (id) => {
+    if (!confirm('Eliminare definitivamente questo copione?')) return;
+    try {
+      await deleteDoc(doc(db, 'copioni', id));
+      allCopioni = allCopioni.filter(x => x.id !== id);
+      renderCounts();
+      renderList();
+    } catch(e) { alert('Errore: ' + (e.message || e)); }
+  };
 </script>
 
 </body>
