@@ -55,6 +55,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         Clienti
       </a>
+      <a class="sidebar-link" data-section="registrati" onclick="showSection('registrati')" style="position:relative;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Registrati
+        <span id="registrati-badge" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--purple);color:#fff;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:99px;"></span>
+      </a>
       <a class="sidebar-link" data-section="partners" onclick="showSection('partners')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Partner
@@ -102,6 +107,22 @@
             <div class="empty-state">
               <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
               <p>Caricamento clienti…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: REGISTRATI -->
+      <section id="section-registrati" style="display:none;">
+        <div style="margin-bottom:24px;">
+          <h1 class="section-heading">Utenti registrati</h1>
+          <p class="section-sub" style="margin-bottom:0;">Persone che si sono registrate dal sito. Assegna il ruolo cliente per dargli accesso all'area riservata e al pulsante "Pannello Cliente".</p>
+        </div>
+        <div class="card">
+          <div id="registrati-table-wrap">
+            <div class="empty-state">
+              <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+              <p>Caricamento utenti…</p>
             </div>
           </div>
         </div>
@@ -817,12 +838,13 @@
     }
 
     window.showSection = (name) => {
-      ['clients','partners','contacts','settings','promo'].forEach(s => {
+      ['clients','registrati','partners','contacts','settings','promo'].forEach(s => {
         document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
       });
       document.querySelectorAll('[data-section]').forEach(l => {
         l.classList.toggle('active', l.dataset.section === name);
       });
+      if (name === 'registrati') loadRegistered();
       if (name === 'partners') loadPartners();
       if (name === 'contacts') loadContacts();
       if (name === 'settings') updateSettingsUI();
@@ -845,6 +867,7 @@
           loadCollaborators();
         }
         loadClients();
+        updateRegisteredBadge();
         startContactsBadge();
         // Avvia listener notifiche ORA che l'auth è confermata
         if ('Notification' in window && Notification.permission === 'granted') {
@@ -899,6 +922,88 @@
         } catch { c.analyticsActive = false; }
       })).then(() => renderClientsTable());
     }
+
+    // ── UTENTI REGISTRATI (self-registration) ─────────────────────
+    let allRegistered = [];
+
+    function esc(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function updateRegisteredBadge() {
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        const pending = snap.docs.filter(d => (d.data().role || 'registered') === 'registered').length;
+        const badge = document.getElementById('registrati-badge');
+        if (!badge) return;
+        if (pending > 0) { badge.textContent = pending; badge.style.display = ''; }
+        else badge.style.display = 'none';
+      } catch (_) { /* regole non ancora deployate: badge nascosto */ }
+    }
+
+    async function loadRegistered() {
+      const wrap = document.getElementById('registrati-table-wrap');
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        allRegistered = snap.docs
+          .map(d => ({ uid: d.id, ...d.data() }))
+          .filter(u => (u.role || 'registered') === 'registered');
+      } catch (err) {
+        wrap.innerHTML = `<div class="empty-state"><p style="color:var(--pink);">Impossibile leggere gli utenti registrati.<br><span style="font-size:.8rem;color:var(--text-muted);">Verifica le regole di sicurezza Firestore (collezione <code>users</code>).</span></p></div>`;
+        return;
+      }
+      renderRegisteredTable();
+    }
+
+    function renderRegisteredTable() {
+      const wrap = document.getElementById('registrati-table-wrap');
+      if (!allRegistered.length) {
+        wrap.innerHTML = '<div class="empty-state"><p>Nessun utente in attesa. Le nuove registrazioni dal sito compariranno qui.</p></div>';
+        return;
+      }
+      const rows = allRegistered.map(u => {
+        const name  = esc(u.name || '—');
+        const email = esc(u.email || '—');
+        let when = '—';
+        try { if (u.createdAt?.toDate) when = u.createdAt.toDate().toLocaleDateString('it-IT'); } catch (_) {}
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--border);border-radius:12px;flex-wrap:wrap;">
+            <div style="min-width:0;">
+              <div style="font-weight:600;">${name}</div>
+              <div style="font-size:.85rem;color:var(--text-muted);word-break:break-all;">${email}</div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Registrato il ${when}</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="assignClientRole('${u.uid}')">Assegna ruolo cliente</button>
+          </div>`;
+      }).join('');
+      wrap.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px;">${rows}</div>`;
+    }
+
+    window.assignClientRole = async (uid) => {
+      const u = allRegistered.find(x => x.uid === uid);
+      if (!u) return;
+      if (!confirm(`Assegnare il ruolo cliente a ${u.name || u.email}?\nDa quel momento vedrà il pulsante "Pannello Cliente" e potrà accedere alla sua area.`)) return;
+      try {
+        // Crea/collega il documento cliente (il ruolo cliente = presenza in "clients")
+        await setDoc(doc(db, 'clients', uid), {
+          displayName: u.name || '',
+          email: u.email || '',
+          reports: [],
+          self_registered: true,
+          createdAt: new Date()
+        }, { merge: true });
+        // Segna l'utente come promosso
+        await updateDoc(doc(db, 'users', uid), { role: 'client', promotedAt: new Date() });
+        showToast('Ruolo cliente assegnato!');
+        loadRegistered();
+        updateRegisteredBadge();
+        loadClients();
+      } catch (err) {
+        showToast('Errore: ' + (err.message || 'impossibile assegnare il ruolo'), 'error');
+      }
+    };
 
     function renderClientsTable() {
       const wrap = document.getElementById('clients-table-wrap');

@@ -41,7 +41,11 @@
         </button>
       </form>
 
-      <p style="text-align:center;margin-top:20px;font-size:.82rem;color:var(--text-muted);">
+      <p style="text-align:center;margin-top:22px;font-size:.9rem;color:var(--text-muted);">
+        Non hai un account?
+        <a href="/client/register.html" style="color:var(--purple);font-weight:600;">Registrati</a>
+      </p>
+      <p style="text-align:center;margin-top:12px;font-size:.82rem;color:var(--text-muted);">
         Problemi di accesso? Contatta
         <a href="mailto:info@astragency.it" style="color:var(--purple);">info@astragency.it</a>
       </p>
@@ -59,10 +63,8 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
-      const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-      window.location.href = adminSnap.exists()
-        ? '/admin/dashboard.html'
-        : '/client/dashboard.html';
+      // Torna alla home: lì compare il pulsante "Pannello Cliente" / "Pannello Admin".
+      window.location.href = '/';
     });
 
     const form  = document.getElementById('login-form');

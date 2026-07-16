@@ -121,6 +121,14 @@
           <li><a href="#contact">Contatti</a></li>
         </ul>
         <a href="#contact" class="nav-cta">Lavora con noi</a>
+        <div class="nav-auth" id="nav-auth">
+          <!-- stato logged-out (default: se lo script non parte restano visibili e funzionanti) -->
+          <a href="/client/login.html" class="nav-login" id="nav-login">Accedi</a>
+          <a href="/client/register.html" class="nav-cta nav-register" id="nav-register">Registrati</a>
+          <!-- stato logged-in -->
+          <a href="#" class="nav-cta nav-panel" id="nav-panel" style="display:none;">Pannello</a>
+          <button type="button" class="nav-logout" id="nav-logout" style="display:none;">Esci</button>
+        </div>
       </div>
       <button class="burger" id="burger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -134,6 +142,12 @@
     <a href="#packages" class="mob-link">Pacchetti</a>
     <a href="#partner" class="mob-link">Partner</a>
     <a href="#contact" class="mob-link">Contatti</a>
+    <div class="mob-auth" id="mob-auth">
+      <a href="/client/login.html" class="mob-login" id="mob-login">Accedi</a>
+      <a href="/client/register.html" class="mob-register" id="mob-register">Registrati</a>
+      <a href="#" class="mob-register mob-panel" id="mob-panel" style="display:none;">Pannello</a>
+      <button type="button" class="mob-logout" id="mob-logout" style="display:none;">Esci</button>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
@@ -1042,6 +1056,59 @@
     });
   </script>
   <script src="js/main.js?v=6" defer></script>
+
+  <!-- ═══ AUTH STATE (login / registrazione / pannelli) ═══ -->
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const el = (id) => document.getElementById(id);
+    const loggedOut = ['nav-login','nav-register','mob-login','mob-register'];
+    const panelIds  = ['nav-panel','mob-panel'];
+    const logoutIds = ['nav-logout','mob-logout'];
+    const show = (id, on) => { const n = el(id); if (n) n.style.display = on ? '' : 'none'; };
+
+    function setState(state) {
+      // state: 'out' | 'admin' | 'client' | 'registered'
+      loggedOut.forEach(id => show(id, state === 'out'));
+      logoutIds.forEach(id => show(id, state !== 'out'));
+
+      const isPanel = state === 'admin' || state === 'client';
+      panelIds.forEach(id => show(id, isPanel));
+
+      if (isPanel) {
+        const label = state === 'admin' ? 'Pannello Admin' : 'Pannello Cliente';
+        const href  = state === 'admin' ? '/admin/dashboard.html' : '/client/dashboard.html';
+        panelIds.forEach(id => { const n = el(id); if (n) { n.textContent = label; n.href = href; } });
+      }
+    }
+
+    // Safe read of a user's OWN doc — permission errors treated as "not present"
+    async function ownDocExists(path, uid) {
+      try {
+        const snap = await getDoc(doc(db, path, uid));
+        return snap.exists();
+      } catch (_) {
+        return false;
+      }
+    }
+
+    setState('out');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { setState('out'); return; }
+      if (await ownDocExists('admins', user.uid))       { setState('admin');  return; }
+      if (await ownDocExists('clients', user.uid))      { setState('client'); return; }
+      setState('registered'); // registrato ma senza ruolo: accede e basta
+    });
+
+    logoutIds.forEach(id => {
+      const n = el(id);
+      if (n) n.addEventListener('click', (e) => { e.preventDefault(); signOut(auth); });
+    });
+  </script>
+
   <script>
     (function() {
       const consent = localStorage.getItem('cookie_consent');

@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// ============================================================================
+//  Astra Agency — Regole di sicurezza Firestore
+// ----------------------------------------------------------------------------
+//  Principio: minimo privilegio. Ogni utente vede/scrive SOLO i propri dati.
+//
+//  - Team (admin): accesso completo (serve agli strumenti admin che usano
+//    varie collezioni — clienti, preventivi, partner, contatti, config…).
+//  - Cliente: legge e aggiorna SOLO il proprio documento e i propri analytics.
+//    NON può crearsi il ruolo cliente da solo (lo assegna l'admin).
+//  - Utente registrato: crea/legge SOLO il proprio documento `users`, e solo
+//    con ruolo 'registered'. Nessuna auto-promozione a cliente o admin.
+//  - Pubblico (non autenticato): può SOLO inviare i form contatti/partner e
+//    leggere la configurazione pubblica del sito (promo, visibilità sezioni).
+//
+//  ⚠️  Queste regole hanno effetto solo dopo il deploy:
+//        firebase deploy --only firestore:rules
+//      oppure incollandole nella console Firebase → Firestore → Regole.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn()
+             && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── TEAM ADMIN: accesso completo a tutto ────────────────────────────────
+    // Necessario perché gli strumenti interni (dashboard, preventivo, copioni…)
+    // leggono e scrivono su collezioni diverse. Gli utenti NON admin ricadono
+    // sempre nelle regole specifiche qui sotto (default-deny per tutto il resto).
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── CONFIG pubblica (promo + visibilità sezioni del sito) ───────────────
+    match /config/{docId} {
+      allow read: if true;            // scrittura: solo admin (sopra)
+    }
+
+    // ── FORM CONTATTI: chiunque può inviare, gestione solo admin ────────────
+    match /contacts/{id} {
+      allow create: if true;
+    }
+
+    // ── FORM PARTNER: chiunque può candidarsi, gestione solo admin ──────────
+    match /partners/{id} {
+      allow create: if true;
+    }
+
+    // ── ALIAS username→email: lettura pubblica (serve al login admin) ───────
+    match /auth_aliases/{username} {
+      allow read: if true;            // scrittura: solo admin (sopra)
+    }
+
+    // ── UTENTI REGISTRATI dal sito ──────────────────────────────────────────
+    // L'utente crea/legge SOLO il proprio documento, e SOLO con ruolo
+    // 'registered'. La promozione a cliente la fa l'admin (regola admin sopra).
+    match /users/{uid} {
+      allow read:   if isOwner(uid);
+      allow create: if isOwner(uid)
+                    && request.resource.data.role == 'registered';
+    }
+
+    // ── CLIENTI ─────────────────────────────────────────────────────────────
+    // Un cliente legge e aggiorna SOLO il proprio documento.
+    // NON può crearlo né cancellarlo: il ruolo cliente lo assegna l'admin.
+    match /clients/{uid} {
+      allow read:   if isOwner(uid);
+      allow update: if isOwner(uid);
+
+      // Sottocollezioni del cliente: sola lettura per il proprietario.
+      match /{sub=**} {
+        allow read: if isOwner(uid);
+      }
+    }
+
+    // ── ANALYTICS: il cliente legge i propri dati; scrittura solo admin ─────
+    match /analytics/{uid}/{sub=**} {
+      allow read: if isOwner(uid);
+    }
+  }
+}

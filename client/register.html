@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/admin/icon.png" />
+  <link rel="apple-touch-icon" href="/admin/icon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrazione – Astra Agency</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css?v=4" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="../logo.png" alt="Astra Agency" />
+        <span>Astra Agency</span>
+      </div>
+      <h1 class="login-title">Crea il tuo account</h1>
+      <p class="login-sub">Registrati per accedere all'area riservata di Astra Agency.</p>
+
+      <div class="login-error" id="login-error"></div>
+      <div class="login-error" id="login-ok" style="background:rgba(0,229,160,.12);border-color:rgba(0,229,160,.35);color:var(--green,#00E5A0);"></div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="name">Nome</label>
+          <input class="form-input" type="text" id="name" placeholder="Il tuo nome" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" placeholder="tuaemail@esempio.it" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" id="password" placeholder="Almeno 8 caratteri" autocomplete="new-password" minlength="8" required />
+            <button type="button" class="pwd-eye" onclick="togglePwd('password',this)" tabindex="-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password2">Conferma password</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" id="password2" placeholder="••••••••" autocomplete="new-password" minlength="8" required />
+            <button type="button" class="pwd-eye" onclick="togglePwd('password2',this)" tabindex="-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="submit-btn">
+          Registrati
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:22px;font-size:.9rem;color:var(--text-muted);">
+        Hai già un account?
+        <a href="/client/login.html" style="color:var(--purple);font-weight:600;">Accedi</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import {
+      createUserWithEmailAndPassword,
+      updateProfile
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const form  = document.getElementById('register-form');
+    const errEl = document.getElementById('login-error');
+    const okEl  = document.getElementById('login-ok');
+    const btn   = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      okEl.classList.remove('show');
+
+      const name  = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value;
+      const pass2 = document.getElementById('password2').value;
+
+      if (pass.length < 8) {
+        errEl.textContent = 'La password deve avere almeno 8 caratteri.';
+        errEl.classList.add('show');
+        return;
+      }
+      if (pass !== pass2) {
+        errEl.textContent = 'Le due password non coincidono.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      btn.textContent = 'Creazione account…';
+      btn.disabled = true;
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+
+        // Aggiorna il nome visualizzato (best-effort)
+        try { await updateProfile(cred.user, { displayName: name }); } catch (_) {}
+
+        // Crea SOLO il proprio documento utente — nessun ruolo assegnato.
+        // Sarà l'admin a decidere se promuovere l'utente a cliente.
+        try {
+          await setDoc(doc(db, 'users', cred.user.uid), {
+            name,
+            email,
+            role: 'registered',
+            createdAt: serverTimestamp()
+          });
+        } catch (_) { /* se le regole bloccano la scrittura, l'account esiste comunque */ }
+
+        okEl.textContent = 'Account creato! Ti sto portando al sito…';
+        okEl.classList.add('show');
+        setTimeout(() => { window.location.href = '/'; }, 1200);
+
+      } catch (err) {
+        const msgs = {
+          'auth/email-already-in-use': 'Esiste già un account con questa email. Prova ad accedere.',
+          'auth/invalid-email':        'Formato email non valido.',
+          'auth/weak-password':        'Password troppo debole (minimo 8 caratteri).',
+          'auth/operation-not-allowed':'Registrazione non abilitata. Contatta info@astragency.it.',
+          'auth/too-many-requests':    'Troppi tentativi. Attendi qualche minuto.',
+        };
+        errEl.textContent = msgs[err.code] || 'Errore durante la registrazione. Riprova.';
+        errEl.classList.add('show');
+        btn.textContent = 'Registrati';
+        btn.disabled = false;
+      }
+    });
+  </script>
+  <script>
+    function togglePwd(id, btn) {
+      const inp = document.getElementById(id);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.innerHTML = show
+        ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+  </script>
+</body>
+</html>

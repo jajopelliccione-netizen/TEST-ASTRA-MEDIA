@@ -469,6 +469,86 @@ img, svg { display: block; }
   transform: translateY(-1px);
 }
 
+/* ── AUTH BUTTONS (login / register / panel) ─── */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+.nav-login {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid rgba(123,92,240,.35);
+  transition: color .25s, border-color .25s, background .25s;
+  white-space: nowrap;
+}
+.nav-login:hover {
+  color: #fff;
+  border-color: var(--purple);
+  background: rgba(123,92,240,.1);
+}
+.nav-logout {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--pink);
+  border: 1px solid rgba(255,45,120,.3);
+  background: transparent;
+  cursor: pointer;
+  transition: background .25s, border-color .25s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.nav-logout:hover { background: rgba(255,45,120,.12); border-color: rgba(255,45,120,.55); }
+.nav-panel { margin-left: 0; }
+
+/* mobile auth links */
+.mob-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 28px;
+  align-items: center;
+}
+.mob-auth a, .mob-auth button {
+  font-family: inherit;
+  cursor: pointer;
+}
+.mob-login {
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: 1px solid rgba(123,92,240,.4);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.mob-register {
+  padding: 12px 34px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+}
+.mob-logout {
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,45,120,.35);
+  background: transparent;
+  color: var(--pink);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
 .about-logo-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
 .footer-logo {
   height: auto;
