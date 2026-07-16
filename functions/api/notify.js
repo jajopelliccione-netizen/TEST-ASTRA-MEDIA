@@ -70,10 +70,10 @@ async function sendAll(tokens, title, body, projectId, accessToken) {
             notification: { title, body },
             webpush: {
               notification: {
-                icon: 'https://astragency.studio/admin/icon.png',
-                badge: 'https://astragency.studio/admin/icon.png',
+                icon: 'https://astragency.it/admin/icon.png',
+                badge: 'https://astragency.it/admin/icon.png',
               },
-              fcmOptions: { link: 'https://astragency.studio/admin/dashboard.html' },
+              fcmOptions: { link: 'https://astragency.it/admin/dashboard.html' },
             },
           },
         }),

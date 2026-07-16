@@ -19,11 +19,11 @@ async function sendToAdmins(title, body) {
       notification: { title, body },
       webpush: {
         notification: {
-          icon:  'https://astragency.studio/admin/icon.png',
-          badge: 'https://astragency.studio/admin/icon.png',
+          icon:  'https://astragency.it/admin/icon.png',
+          badge: 'https://astragency.it/admin/icon.png',
           requireInteraction: false,
         },
-        fcmOptions: { link: 'https://astragency.studio/admin/dashboard.html' }
+        fcmOptions: { link: 'https://astragency.it/admin/dashboard.html' }
       }
     });
   }
