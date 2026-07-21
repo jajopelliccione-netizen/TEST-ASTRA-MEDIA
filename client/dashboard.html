@@ -30,6 +30,7 @@
       <span class="portal-nav-badge">Area Clienti</span>
     </div>
     <div class="portal-nav-right">
+      <select id="brand-switcher" style="display:none;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.85rem;cursor:pointer;"></select>
       <span class="portal-nav-user" id="user-email"></span>
       <button class="btn-logout" id="logout-btn">Esci</button>
     </div>
@@ -205,7 +206,7 @@
   <script type="module">
     import { auth, db } from '../js/firebase-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const loading   = document.getElementById('loading-state');
     const main      = document.getElementById('main-content');
@@ -214,17 +215,45 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = '/client/login.html'; return; }
 
-      let targetUid = user.uid;
-
       if (previewUid) {
         const adminSnap = await getDoc(doc(db, 'admins', user.uid));
         if (!adminSnap.exists()) { window.location.href = '/client/login.html'; return; }
-        targetUid = previewUid;
-        const banner = document.getElementById('preview-banner');
-        banner.style.display = 'flex';
+        document.getElementById('preview-banner').style.display = 'flex';
+        document.getElementById('user-email').textContent = 'Anteprima cliente';
+        await loadClientData(previewUid);
+        return;
       }
 
-      document.getElementById('user-email').textContent = previewUid ? 'Anteprima cliente' : user.email;
+      document.getElementById('user-email').textContent = user.email;
+
+      // Un cliente può avere più "brand" collegati allo stesso login: il
+      // proprio doc (se esiste) più ogni clients/{id} con ownerUid == user.uid.
+      let brands = [];
+      const ownSnap = await getDoc(doc(db, 'clients', user.uid));
+      if (ownSnap.exists()) brands.push({ uid: user.uid, ...ownSnap.data() });
+      try {
+        const siblingSnap = await getDocs(query(collection(db, 'clients'), where('ownerUid', '==', user.uid)));
+        siblingSnap.forEach(d => brands.push({ uid: d.id, ...d.data() }));
+      } catch (_) { /* regole non ancora aggiornate: ignora, mostra solo il brand principale */ }
+
+      if (!brands.length) {
+        loading.innerHTML = '<div style="text-align:center;padding:40px;"><p style="color:var(--text-muted);">Profilo non ancora configurato.<br>Contatta <a href="mailto:info@astragency.it" style="color:var(--purple);">info@astragency.it</a></p></div>';
+        return;
+      }
+
+      const switcher = document.getElementById('brand-switcher');
+      if (brands.length > 1) {
+        switcher.innerHTML = brands.map(b => `<option value="${b.uid}">${(b.displayName || b.company || 'Brand').replace(/"/g,'&quot;')}</option>`).join('');
+        switcher.style.display = '';
+        switcher.onchange = () => loadClientData(switcher.value);
+      }
+
+      await loadClientData(brands[0].uid);
+    });
+
+    async function loadClientData(targetUid) {
+      loading.style.display = '';
+      main.style.display = 'none';
 
       const snap = await getDoc(doc(db, 'clients', targetUid));
       if (!snap.exists()) {
@@ -237,7 +266,7 @@
       main.style.display = 'block';
 
       // Welcome
-      document.getElementById('welcome-title').textContent = `Ciao, ${data.displayName || user.email.split('@')[0]}! 👋`;
+      document.getElementById('welcome-title').textContent = `Ciao, ${data.displayName || data.email?.split('@')[0] || 'cliente'}! 👋`;
       document.getElementById('welcome-sub').textContent   = `Pacchetto attivo: ${data.package || '—'}`;
 
       // Stats
@@ -334,7 +363,7 @@
         }, { rootMargin: '200px' });
         obs.observe(socialCard);
       }
-    });
+    }
 
     function fmtSocialNum(n) {
       n = Number(n) || 0;

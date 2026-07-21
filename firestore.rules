@@ -41,11 +41,19 @@ service cloud.firestore {
     // SOLO i campi 'websiteDraft' e 'siteConfig' (approvazione bozza sito e
     // questionario). Senza questo, quelle funzioni della dashboard cliente
     // davano "permission denied". Creazione/eliminazione restano solo admin.
+    //
+    // NB (multi-brand): un documento clients/{id} può anche essere un "brand"
+    // aggiuntivo collegato al login di un altro cliente, tramite il campo
+    // ownerUid (== uid dell'account che ha effettuato l'accesso). In quel caso
+    // il doc ID non coincide con l'auth uid, quindi read/update sono concessi
+    // anche quando resource.data.ownerUid corrisponde all'utente loggato.
     match /clients/{uid} {
-      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow read: if request.auth != null && (
+        request.auth.uid == uid || isAdmin() || resource.data.ownerUid == request.auth.uid
+      );
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
-        || (request.auth != null && request.auth.uid == uid
+        || (request.auth != null && (request.auth.uid == uid || resource.data.ownerUid == request.auth.uid)
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['websiteDraft', 'siteConfig']));
     }
@@ -83,8 +91,14 @@ service cloud.firestore {
     }
 
     // ── Analytics: il cliente legge i propri dati; scrittura solo admin ─────
+    // NB (multi-brand): clientId qui può essere l'id di un brand secondario
+    // (non l'auth uid) — si verifica quindi anche se il brand appartiene
+    // (ownerUid) all'utente loggato.
     match /analytics/{clientId}/{rest=**} {
-      allow read: if request.auth != null && (request.auth.uid == clientId || isAdmin());
+      allow read: if request.auth != null && (
+        request.auth.uid == clientId || isAdmin() ||
+        get(/databases/$(database)/documents/clients/$(clientId)).data.ownerUid == request.auth.uid
+      );
       allow write: if isAdmin();
     }
 
