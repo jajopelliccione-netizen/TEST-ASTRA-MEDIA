@@ -3,9 +3,8 @@ rules_version = '2';
 // ============================================================================
 //  Astra Agency — Regole di sicurezza Firestore
 // ----------------------------------------------------------------------------
-//  Questo file rispecchia le regole attive nella console Firebase, con 3
-//  correzioni consigliate rispetto alla versione precedente (vedi NB accanto
-//  a ogni blocco modificato). Ha effetto SOLO dopo il deploy:
+//  Questo file rispecchia le regole attive nella console Firebase. Ha effetto
+//  SOLO dopo il deploy:
 //    firebase deploy --only firestore:rules
 //  oppure incollando il contenuto nella console → Firestore → Regole → Pubblica.
 // ============================================================================
@@ -14,98 +13,40 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
-      return request.auth != null
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // "owner" = admin con ruolo 'owner' (non il proprietario di un documento)
     function isOwner() {
       return request.auth != null
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'owner';
     }
 
-    // ── Copioni: lettura/scrittura solo admin ──────────────────────────────
+        // Copioni: lettura/scrittura solo per gli admin
     match /copioni/{id} {
-      allow read, write: if isAdmin();
+      allow read, write: if request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // ── Alias username→email: lettura pubblica (serve al login admin) ───────
-    match /auth_aliases/{alias} {
-      allow read: if true;
-      allow create, delete: if isOwner();
-    }
+    match /auth_aliases/{alias} { allow read: if true; allow create, delete: if isOwner(); }
 
-    // ── CLIENTI ─────────────────────────────────────────────────────────────
-    // NB (correzione): il cliente ora può AGGIORNARE il PROPRIO documento, ma
-    // SOLO i campi 'websiteDraft' e 'siteConfig' (approvazione bozza sito e
-    // questionario). Senza questo, quelle funzioni della dashboard cliente
-    // davano "permission denied". Creazione/eliminazione restano solo admin.
-    //
-    // NB (multi-brand): un documento clients/{id} può anche essere un "brand"
-    // aggiuntivo collegato al login di un altro cliente, tramite il campo
-    // ownerUid (== uid dell'account che ha effettuato l'accesso). In quel caso
-    // il doc ID non coincide con l'auth uid, quindi read/update sono concessi
+    // NB (multi-brand): un doc clients/{id} può essere un "brand" aggiuntivo
+    // collegato al login di un altro cliente tramite ownerUid — in quel caso
+    // il doc ID non coincide con l'auth uid, quindi la lettura è concessa
     // anche quando resource.data.ownerUid corrisponde all'utente loggato.
-    match /clients/{uid} {
-      allow read: if request.auth != null && (
-        request.auth.uid == uid || isAdmin() || resource.data.ownerUid == request.auth.uid
-      );
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
-        || (request.auth != null && (request.auth.uid == uid || resource.data.ownerUid == request.auth.uid)
-            && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['websiteDraft', 'siteConfig']));
-    }
+    match /clients/{uid} { allow read: if request.auth != null && (request.auth.uid == uid || isAdmin() || resource.data.ownerUid == request.auth.uid); allow write: if isAdmin(); }
 
-    // ── ADMINS ───────────────────────────────────────────────────────────────
-    // NB (correzione): la lettura è ora limitata al PROPRIO doc o agli admin,
-    // invece di essere aperta a qualsiasi utente autenticato (evita che un
-    // cliente/registrato possa enumerare gli account admin).
-    match /admins/{uid} {
-      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow create: if isOwner() && uid != request.auth.uid;
-      allow delete: if isOwner() && uid != request.auth.uid;
-    }
-
-    // ── UTENTI REGISTRATI dal sito ──────────────────────────────────────────
-    // NB (aggiunta): serve alla registrazione self-service. L'utente crea/legge
-    // SOLO il proprio documento e SOLO con ruolo 'registered' (niente
-    // auto-promozione). La promozione a cliente la fa l'admin.
-    // Se in futuro togliete la registrazione, questa regola resta innocua.
-    match /users/{uid} {
-      allow read:   if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == uid
-                    && request.resource.data.role == 'registered';
-      allow update, delete: if isAdmin();
-    }
-
-    // ── Form pubblici: chiunque può inviare, gestione solo admin ────────────
+    match /admins/{uid} { allow read: if request.auth != null; allow create: if isOwner() && uid != request.auth.uid; allow delete: if isOwner() && uid != request.auth.uid; }
     match /partners/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
     match /contacts/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
+    match /admin_tokens/{uid} { allow read, write: if isAdmin() && request.auth.uid == uid; allow delete: if isOwner(); }
 
-    // ── Token notifiche push (FCM): solo il proprio admin ───────────────────
-    match /admin_tokens/{uid} {
-      allow read, write: if isAdmin() && request.auth.uid == uid;
-      allow delete: if isOwner();
-    }
-
-    // ── Analytics: il cliente legge i propri dati; scrittura solo admin ─────
-    // NB (multi-brand): clientId qui può essere l'id di un brand secondario
-    // (non l'auth uid) — si verifica quindi anche se il brand appartiene
+    // NB (multi-brand): clientId può essere l'id di un brand secondario (non
+    // l'auth uid) — si verifica quindi anche se il brand appartiene
     // (ownerUid) all'utente loggato.
-    match /analytics/{clientId}/{rest=**} {
-      allow read: if request.auth != null && (
-        request.auth.uid == clientId || isAdmin() ||
-        get(/databases/$(database)/documents/clients/$(clientId)).data.ownerUid == request.auth.uid
-      );
-      allow write: if isAdmin();
-    }
+    match /analytics/{clientId}/{rest=**} { allow read: if request.auth != null && (request.auth.uid == clientId || isAdmin() || get(/databases/$(database)/documents/clients/$(clientId)).data.ownerUid == request.auth.uid); allow write: if isAdmin(); }
 
-    // ── Config pubblica del sito (promo, visibilità sezioni) ────────────────
     match /config/{doc} { allow read: if true; allow write: if isAdmin(); }
-
-    // ── Bozze preventivi: solo admin ────────────────────────────────────────
     match /preventivi_bozze/{id} { allow read, write: if isAdmin(); }
 
   }
