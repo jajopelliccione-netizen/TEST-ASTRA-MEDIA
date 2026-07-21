@@ -673,6 +673,42 @@
     </div>
   </div>
 
+  <!-- MODAL: Soci / collaboratori (login separati sullo stesso cliente) -->
+  <div class="modal-overlay" id="collab-modal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Soci — <span id="collab-client-name"></span></h2>
+        <button class="modal-close" onclick="closeCollabModal()">✕</button>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px;">Ogni socio ha un login separato (email/password proprie) ma vede esattamente gli stessi dati di questo cliente.</p>
+      <div id="collab-list" style="margin-bottom:20px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:18px;">
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Aggiungi socio</p>
+        <form id="collab-form">
+          <input type="hidden" id="collab-uid" />
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input class="form-input" id="collab-name" placeholder="Es. Luca Bianchi" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Email (login separato)</label>
+              <input class="form-input" type="email" id="collab-email" placeholder="luca@email.it" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" id="collab-password" placeholder="Min. 6 caratteri" required />
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeCollabModal()">Annulla</button>
+            <button type="submit" class="btn btn-primary">Crea account socio</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Profilo Admin -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal" style="max-width:380px;">
@@ -1197,6 +1233,9 @@
             ${!isBrand ? `<button class="act-btn" onclick="openAddBrand('${c.uid}','${name}')" title="Aggiungi un altro brand a questo stesso login">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>+ Brand
             </button>` : ''}
+            <button class="act-btn" onclick="openCollabModal('${c.uid}','${name}')" title="Soci: login separati sullo stesso cliente">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Soci${c.collaborators?.length?` (${c.collaborators.length})`:''}
+            </button>
             <button class="act-btn act-danger" onclick="deleteClient('${c.uid}')">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Elimina
             </button>
@@ -1581,6 +1620,74 @@
       onPackageChange();
       document.getElementById('client-modal').classList.add('open');
     };
+
+    // ── SOCI (login separati sullo stesso cliente/brand) ────────────
+    window.openCollabModal = (uid, name) => {
+      document.getElementById('collab-uid').value = uid;
+      document.getElementById('collab-client-name').textContent = name;
+      document.getElementById('collab-form').reset();
+      const client = allClients.find(c => c.uid === uid);
+      const list = document.getElementById('collab-list');
+      const collaborators = client?.collaborators || [];
+      list.innerHTML = collaborators.length ? `
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Soci esistenti</p>
+        ${collaborators.map((co, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;">
+            <div>
+              <span style="font-weight:700;font-size:.88rem;">${esc(co.name)}</span>
+              <span style="font-size:.78rem;color:var(--text-muted);margin-left:10px;">${esc(co.email)}</span>
+            </div>
+            <button onclick="removeCollaborator('${uid}',${i})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;flex-shrink:0;">Rimuovi</button>
+          </div>`).join('')}` : '';
+      document.getElementById('collab-modal').classList.add('open');
+    };
+    window.closeCollabModal = () => document.getElementById('collab-modal').classList.remove('open');
+
+    window.removeCollaborator = async (uid, index) => {
+      if (!confirm('Rimuovere questo socio? Perderà l\'accesso.')) return;
+      const client = allClients.find(c => c.uid === uid);
+      if (!client?.collaborators) return;
+      const collab = client.collaborators[index];
+      try {
+        await updateDoc(doc(db, 'clients', uid), {
+          collaboratorUids: arrayRemove(collab.uid),
+          collaborators: arrayRemove(collab),
+        });
+        client.collaborators.splice(index, 1);
+        client.collaboratorUids = (client.collaboratorUids || []).filter(u => u !== collab.uid);
+        showToast('Socio rimosso!');
+        openCollabModal(uid, document.getElementById('collab-client-name').textContent);
+        renderClientsTable();
+      } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+    };
+
+    document.getElementById('collab-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('collab-uid').value;
+      const name = document.getElementById('collab-name').value.trim();
+      const email = document.getElementById('collab-email').value.trim();
+      const password = document.getElementById('collab-password').value;
+      try {
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const collabUid = cred.user.uid;
+        const collab = { uid: collabUid, name, email };
+        await updateDoc(doc(db, 'clients', uid), {
+          collaboratorUids: arrayUnion(collabUid),
+          collaborators: arrayUnion(collab),
+        });
+        await secondaryAuth.signOut();
+        const client = allClients.find(c => c.uid === uid);
+        if (client) {
+          if (!client.collaborators) client.collaborators = [];
+          client.collaborators.push(collab);
+          if (!client.collaboratorUids) client.collaboratorUids = [];
+          client.collaboratorUids.push(collabUid);
+        }
+        showToast('Socio aggiunto!');
+        openCollabModal(uid, document.getElementById('collab-client-name').textContent);
+        renderClientsTable();
+      } catch(err) { showToast('Errore: ' + err.message, 'error'); }
+    });
 
     window.editClient = (uid) => {
       const c = allClients.find(x => x.uid === uid);

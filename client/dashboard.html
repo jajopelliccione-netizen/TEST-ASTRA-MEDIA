@@ -227,14 +227,25 @@
       document.getElementById('user-email').textContent = user.email;
 
       // Un cliente può avere più "brand" collegati allo stesso login: il
-      // proprio doc (se esiste) più ogni clients/{id} con ownerUid == user.uid.
+      // proprio doc (se esiste), ogni clients/{id} con ownerUid == user.uid,
+      // e ogni clients/{id} dove è registrato come socio (collaboratorUids).
       let brands = [];
+      const seenBrandIds = new Set();
+      function pushBrand(id, data) {
+        if (seenBrandIds.has(id)) return;
+        seenBrandIds.add(id);
+        brands.push({ uid: id, ...data });
+      }
       const ownSnap = await getDoc(doc(db, 'clients', user.uid));
-      if (ownSnap.exists()) brands.push({ uid: user.uid, ...ownSnap.data() });
+      if (ownSnap.exists()) pushBrand(user.uid, ownSnap.data());
       try {
         const siblingSnap = await getDocs(query(collection(db, 'clients'), where('ownerUid', '==', user.uid)));
-        siblingSnap.forEach(d => brands.push({ uid: d.id, ...d.data() }));
-      } catch (_) { /* regole non ancora aggiornate: ignora, mostra solo il brand principale */ }
+        siblingSnap.forEach(d => pushBrand(d.id, d.data()));
+      } catch (_) { /* regole non ancora aggiornate: ignora */ }
+      try {
+        const collabSnap = await getDocs(query(collection(db, 'clients'), where('collaboratorUids', 'array-contains', user.uid)));
+        collabSnap.forEach(d => pushBrand(d.id, d.data()));
+      } catch (_) { /* regole non ancora aggiornate: ignora */ }
 
       if (!brands.length) {
         loading.innerHTML = '<div style="text-align:center;padding:40px;"><p style="color:var(--text-muted);">Profilo non ancora configurato.<br>Contatta <a href="mailto:info@astragency.it" style="color:var(--purple);">info@astragency.it</a></p></div>';
