@@ -564,6 +564,111 @@
     </div>
   </div>
 
+  <!-- MODAL: Ads (campagne pubblicitarie) -->
+  <div class="modal-overlay" id="ads-modal">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Gestisci Ads — <span id="ads-client-name"></span></h2>
+        <button class="modal-close" onclick="closeAdsModal()">✕</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:18px;cursor:pointer;">
+        <input type="checkbox" id="ads-enabled-toggle" style="width:16px;height:16px;" />
+        <span style="font-size:.85rem;">Mostra la tab "Ads" a questo cliente</span>
+      </label>
+      <div id="ads-list" style="margin-bottom:20px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:18px;">
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Aggiungi campagna</p>
+        <form id="ads-form">
+          <input type="hidden" id="ads-uid" />
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Nome campagna</label>
+              <input class="form-input" id="ad-nome" placeholder="Promo Estate" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stato</label>
+              <select class="form-input" id="ad-stato" required>
+                <option value="Attiva">Attiva</option>
+                <option value="In pausa">In pausa</option>
+                <option value="Conclusa">Conclusa</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Spesa (€)</label>
+              <input class="form-input" type="number" step="0.01" id="ad-spesa" placeholder="420" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Clic totali</label>
+              <input class="form-input" type="number" id="ad-clic" placeholder="1200" required />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">CTR (%)</label>
+              <input class="form-input" type="number" step="0.1" id="ad-ctr" placeholder="3.4" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Conversioni</label>
+              <input class="form-input" type="number" id="ad-conversioni" placeholder="58" required />
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeAdsModal()">Annulla</button>
+            <button type="submit" class="btn btn-primary">Aggiungi campagna</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Contenuti (articoli pubblicati) -->
+  <div class="modal-overlay" id="content-modal">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Gestisci Contenuti — <span id="content-client-name"></span></h2>
+        <button class="modal-close" onclick="closeContentModal()">✕</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:18px;cursor:pointer;">
+        <input type="checkbox" id="content-enabled-toggle" style="width:16px;height:16px;" />
+        <span style="font-size:.85rem;">Mostra la tab "Contenuti" a questo cliente</span>
+      </label>
+      <div id="content-list" style="margin-bottom:20px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:18px;">
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Aggiungi contenuto</p>
+        <form id="content-form">
+          <input type="hidden" id="content-uid" />
+          <div class="form-group">
+            <label class="form-label">Titolo</label>
+            <input class="form-input" id="art-titolo" placeholder="Menu estivo 2026" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Stato</label>
+              <select class="form-input" id="art-stato" required>
+                <option value="Pubblicato">Pubblicato</option>
+                <option value="Bozza">Bozza</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data (es. 12 lug)</label>
+              <input class="form-input" id="art-data" placeholder="12 lug" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Visualizzazioni (lascia vuoto se bozza)</label>
+            <input class="form-input" type="number" id="art-views" placeholder="1400" />
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeContentModal()">Annulla</button>
+            <button type="submit" class="btn btn-primary">Aggiungi contenuto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Profilo Admin -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal" style="max-width:380px;">
@@ -1085,6 +1190,12 @@
               <button class="act-btn" onclick="openSocialModal('${c.uid}','${name}')">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5z"/><circle cx="12" cy="12" r="3"/></svg>Social
               </button>
+              <button class="act-btn${c.features?.adsEnabled?' act-green':''}" onclick="openAdsModal('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>Ads${c.adsCampaigns?.length?` (${c.adsCampaigns.length})`:''}
+              </button>
+              <button class="act-btn${c.features?.contentEnabled?' act-green':''}" onclick="openContentModal('${c.uid}','${name}')">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="3" width="14" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>Contenuti${c.articoli?.length?` (${c.articoli.length})`:''}
+              </button>
               ${(c.package||'').includes('Sito') ? `<button class="act-btn ${c.siteConfig?.status==='completed'?'act-green':''}" onclick="openSiteConfig('${c.uid}','${name}')">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>${c.siteConfig?.status==='completed'?'Brief ✓':c.siteConfig?.status==='in_progress'?'Brief…':'Brief'}
               </button>` : ''}
@@ -1576,6 +1687,145 @@
       showToast('Report aggiunto!');
       closeReportModal();
       renderClientsTable();
+    });
+
+    // ── ADS (campagne pubblicitarie) ────────────────────────────────
+    window.openAdsModal = (uid, name) => {
+      document.getElementById('ads-uid').value = uid;
+      document.getElementById('ads-client-name').textContent = name;
+      document.getElementById('ads-form').reset();
+      const client = allClients.find(c => c.uid === uid);
+      document.getElementById('ads-enabled-toggle').checked = !!client?.features?.adsEnabled;
+      const list = document.getElementById('ads-list');
+      const campaigns = client?.adsCampaigns || [];
+      list.innerHTML = campaigns.length ? `
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Campagne esistenti</p>
+        ${[...campaigns].reverse().map((a, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;">
+            <div>
+              <span style="font-weight:700;font-size:.88rem;">${esc(a.nome)}</span>
+              <span style="font-size:.78rem;color:var(--text-muted);margin-left:10px;">€${a.spesa} · ${a.clic} clic · ${a.ctr}% CTR · ${a.stato}</span>
+            </div>
+            <button onclick="deleteAdCampaign('${uid}',${campaigns.length-1-i})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;flex-shrink:0;">Elimina</button>
+          </div>`).join('')}` : '';
+      document.getElementById('ads-modal').classList.add('open');
+    };
+    window.closeAdsModal = () => document.getElementById('ads-modal').classList.remove('open');
+
+    document.getElementById('ads-enabled-toggle').addEventListener('change', async (e) => {
+      const uid = document.getElementById('ads-uid').value;
+      if (!uid) return;
+      try {
+        await updateDoc(doc(db, 'clients', uid), { 'features.adsEnabled': e.target.checked });
+        const client = allClients.find(c => c.uid === uid);
+        if (client) { client.features = { ...(client.features||{}), adsEnabled: e.target.checked }; }
+        showToast(e.target.checked ? 'Tab Ads attivata per il cliente' : 'Tab Ads disattivata');
+      } catch(err) { showToast('Errore: ' + err.message, 'error'); }
+    });
+
+    window.deleteAdCampaign = async (uid, index) => {
+      if (!confirm('Eliminare questa campagna?')) return;
+      const client = allClients.find(c => c.uid === uid);
+      if (!client?.adsCampaigns) return;
+      const campaign = client.adsCampaigns[index];
+      try {
+        await updateDoc(doc(db, 'clients', uid), { adsCampaigns: arrayRemove(campaign) });
+        client.adsCampaigns.splice(index, 1);
+        showToast('Campagna eliminata!');
+        openAdsModal(uid, document.getElementById('ads-client-name').textContent);
+        renderClientsTable();
+      } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+    };
+
+    document.getElementById('ads-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('ads-uid').value;
+      const campaign = {
+        nome:        document.getElementById('ad-nome').value.trim(),
+        stato:       document.getElementById('ad-stato').value,
+        spesa:       parseFloat(document.getElementById('ad-spesa').value),
+        clic:        parseInt(document.getElementById('ad-clic').value),
+        ctr:         parseFloat(document.getElementById('ad-ctr').value),
+        conversioni: parseInt(document.getElementById('ad-conversioni').value),
+        createdAt:   new Date().toISOString(),
+      };
+      try {
+        await updateDoc(doc(db, 'clients', uid), { adsCampaigns: arrayUnion(campaign) });
+        const client = allClients.find(c => c.uid === uid);
+        if (client) { if (!client.adsCampaigns) client.adsCampaigns = []; client.adsCampaigns.push(campaign); }
+        showToast('Campagna aggiunta!');
+        openAdsModal(uid, document.getElementById('ads-client-name').textContent);
+        renderClientsTable();
+      } catch(err) { showToast('Errore: ' + err.message, 'error'); }
+    });
+
+    // ── CONTENUTI (articoli pubblicati) ─────────────────────────────
+    window.openContentModal = (uid, name) => {
+      document.getElementById('content-uid').value = uid;
+      document.getElementById('content-client-name').textContent = name;
+      document.getElementById('content-form').reset();
+      const client = allClients.find(c => c.uid === uid);
+      document.getElementById('content-enabled-toggle').checked = !!client?.features?.contentEnabled;
+      const list = document.getElementById('content-list');
+      const articoli = client?.articoli || [];
+      list.innerHTML = articoli.length ? `
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Contenuti esistenti</p>
+        ${[...articoli].reverse().map((a, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;">
+            <div>
+              <span style="font-weight:700;font-size:.88rem;">${esc(a.titolo)}</span>
+              <span style="font-size:.78rem;color:var(--text-muted);margin-left:10px;">${a.stato}${a.visualizzazioni!=null?` · ${a.visualizzazioni} views`:''}${a.data?` · ${a.data}`:''}</span>
+            </div>
+            <button onclick="deleteArticolo('${uid}',${articoli.length-1-i})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;flex-shrink:0;">Elimina</button>
+          </div>`).join('')}` : '';
+      document.getElementById('content-modal').classList.add('open');
+    };
+    window.closeContentModal = () => document.getElementById('content-modal').classList.remove('open');
+
+    document.getElementById('content-enabled-toggle').addEventListener('change', async (e) => {
+      const uid = document.getElementById('content-uid').value;
+      if (!uid) return;
+      try {
+        await updateDoc(doc(db, 'clients', uid), { 'features.contentEnabled': e.target.checked });
+        const client = allClients.find(c => c.uid === uid);
+        if (client) { client.features = { ...(client.features||{}), contentEnabled: e.target.checked }; }
+        showToast(e.target.checked ? 'Tab Contenuti attivata per il cliente' : 'Tab Contenuti disattivata');
+      } catch(err) { showToast('Errore: ' + err.message, 'error'); }
+    });
+
+    window.deleteArticolo = async (uid, index) => {
+      if (!confirm('Eliminare questo contenuto?')) return;
+      const client = allClients.find(c => c.uid === uid);
+      if (!client?.articoli) return;
+      const articolo = client.articoli[index];
+      try {
+        await updateDoc(doc(db, 'clients', uid), { articoli: arrayRemove(articolo) });
+        client.articoli.splice(index, 1);
+        showToast('Contenuto eliminato!');
+        openContentModal(uid, document.getElementById('content-client-name').textContent);
+        renderClientsTable();
+      } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+    };
+
+    document.getElementById('content-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('content-uid').value;
+      const viewsRaw = document.getElementById('art-views').value;
+      const articolo = {
+        titolo:          document.getElementById('art-titolo').value.trim(),
+        stato:           document.getElementById('art-stato').value,
+        data:            document.getElementById('art-data').value.trim(),
+        visualizzazioni: viewsRaw ? parseInt(viewsRaw) : null,
+        createdAt:       new Date().toISOString(),
+      };
+      try {
+        await updateDoc(doc(db, 'clients', uid), { articoli: arrayUnion(articolo) });
+        const client = allClients.find(c => c.uid === uid);
+        if (client) { if (!client.articoli) client.articoli = []; client.articoli.push(articolo); }
+        showToast('Contenuto aggiunto!');
+        openContentModal(uid, document.getElementById('content-client-name').textContent);
+        renderClientsTable();
+      } catch(err) { showToast('Errore: ' + err.message, 'error'); }
     });
 
     // ── MODAL NOTIFICHE ────────────────────────────────────────────
