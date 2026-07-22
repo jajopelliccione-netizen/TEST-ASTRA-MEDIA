@@ -67,5 +67,16 @@ service cloud.firestore {
     match /config/{doc} { allow read: if true; allow write: if isAdmin(); }
     match /preventivi_bozze/{id} { allow read, write: if isAdmin(); }
 
+    // Codici di attivazione ("primo accesso"): l'admin li crea/gestisce da
+    // qui, ma la loro validazione e il collegamento al cliente avvengono
+    // SOLO tramite la Cloud Function activateInvite (Admin SDK, bypassa
+    // queste regole) — il cliente non ha e non deve avere accesso diretto.
+    match /invites/{code} { allow read, write: if isAdmin(); }
+
+    // Codici "password dimenticata": stessa logica degli inviti — solo le
+    // Cloud Function requestPasswordReset/confirmPasswordReset (Admin SDK)
+    // li leggono/scrivono davvero.
+    match /password_resets/{code} { allow read, write: if isAdmin(); }
+
   }
 }

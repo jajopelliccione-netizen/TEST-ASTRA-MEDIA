@@ -430,6 +430,7 @@
         <input type="hidden" id="edit-uid" />
         <input type="hidden" id="edit-original-email" />
         <input type="hidden" id="brand-owner-uid" />
+        <input type="hidden" id="edit-is-brand" />
         <p id="brand-hint" style="display:none;font-size:.8rem;color:var(--text-muted);background:rgba(123,92,240,.08);border:1px solid rgba(123,92,240,.25);border-radius:9px;padding:10px 13px;margin-bottom:14px;">
           Questo brand condivide il login del cliente principale — non ha email/password proprie. Il cliente lo vedrà come una scheda separata dopo l'accesso.
         </p>
@@ -443,6 +444,18 @@
             <input class="form-input" id="f-company" placeholder="Nome azienda" />
           </div>
         </div>
+        <div id="access-method-group" style="display:none;margin-bottom:14px;">
+          <label class="form-label" style="margin-bottom:8px;">Come dare accesso al cliente</label>
+          <div style="display:flex;gap:16px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer;">
+              <input type="radio" name="access-method" value="code" checked onchange="toggleAccessMethod()" style="accent-color:var(--purple);" /> Genera codice (consigliato)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer;">
+              <input type="radio" name="access-method" value="direct" onchange="toggleAccessMethod()" style="accent-color:var(--purple);" /> Imposto io email/password
+            </label>
+          </div>
+          <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;">Con il codice, il cliente sceglie lui stesso email e password al primo accesso — non le vedrai mai.</p>
+        </div>
         <div class="grid-2" id="email-password-group">
           <div class="form-group">
             <label class="form-label">Email (login cliente)</label>
@@ -455,6 +468,10 @@
               <button type="button" class="pwd-eye" onclick="togglePwd('f-password',this)" tabindex="-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
+        </div>
+        <div id="new-client-code-result" style="display:none;background:rgba(123,92,240,.12);border:1px solid rgba(123,92,240,.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;">Codice generato — condividilo con il cliente</div>
+          <div id="new-client-code-text" style="font-size:1.6rem;font-weight:800;letter-spacing:.2em;"></div>
         </div>
         <div class="grid-2">
           <div class="form-group">
@@ -674,35 +691,33 @@
   </div>
 
   <!-- MODAL: Soci / collaboratori (login separati sullo stesso cliente) -->
-  <div class="modal-overlay" id="collab-modal">
+  <!-- MODAL: Soci (client) — NB: ID prefissati "csoc-" per non collidere con
+       la sezione "Collaboratori" admin (accesso al pannello), che usa già
+       id="collab-*" più sotto nella pagina Impostazioni. -->
+  <div class="modal-overlay" id="csoc-modal">
     <div class="modal" style="max-width:480px;">
       <div class="modal-header">
-        <h2 class="modal-title">Soci — <span id="collab-client-name"></span></h2>
-        <button class="modal-close" onclick="closeCollabModal()">✕</button>
+        <h2 class="modal-title">Soci — <span id="csoc-client-name"></span></h2>
+        <button class="modal-close" onclick="closeSociModal()">✕</button>
       </div>
-      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px;">Ogni socio ha un login separato (email/password proprie) ma vede esattamente gli stessi dati di questo cliente.</p>
-      <div id="collab-list" style="margin-bottom:20px;"></div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px;">Genera un codice e dallo al socio: lui lo inserisce in "Primo accesso" nella pagina di login e sceglie lui stesso email e password. Vedrai solo la sua email, mai la password.</p>
+      <div id="csoc-code-result" style="display:none;background:rgba(123,92,240,.12);border:1px solid rgba(123,92,240,.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:18px;">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;">Codice generato — condividilo ora</div>
+        <div id="csoc-code-text" style="font-size:1.6rem;font-weight:800;letter-spacing:.2em;"></div>
+      </div>
+      <div id="csoc-list" style="margin-bottom:14px;"></div>
+      <div id="csoc-pending-list" style="margin-bottom:20px;"></div>
       <div style="border-top:1px solid var(--border);padding-top:18px;">
-        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Aggiungi socio</p>
-        <form id="collab-form">
-          <input type="hidden" id="collab-uid" />
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Genera codice per un nuovo socio</p>
+        <form id="csoc-form">
+          <input type="hidden" id="csoc-uid" />
           <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input class="form-input" id="collab-name" placeholder="Es. Luca Bianchi" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label">Email (login separato)</label>
-              <input class="form-input" type="email" id="collab-email" placeholder="luca@email.it" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Password</label>
-              <input class="form-input" type="password" id="collab-password" placeholder="Min. 6 caratteri" required />
-            </div>
+            <label class="form-label">Etichetta (facoltativa, per riconoscerlo)</label>
+            <input class="form-input" id="csoc-label" placeholder="Es. Luca" />
           </div>
           <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
-            <button type="button" class="btn btn-outline" onclick="closeCollabModal()">Annulla</button>
-            <button type="submit" class="btn btn-primary">Crea account socio</button>
+            <button type="button" class="btn btn-outline" onclick="closeSociModal()">Chiudi</button>
+            <button type="submit" class="btn btn-primary">Genera codice</button>
           </div>
         </form>
       </div>
@@ -963,7 +978,7 @@
       onAuthStateChanged, signOut, createUserWithEmailAndPassword, getAuth
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
-      doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, arrayUnion, arrayRemove, onSnapshot, query, limit
+      doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, arrayUnion, arrayRemove, onSnapshot, query, where, limit
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { initializeApp as fbInit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import {
@@ -1081,6 +1096,28 @@
       return String(str == null ? '' : str)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Codici di attivazione ("primo accesso") — invites/{code}. no 0/O/1/I/L
+    // per evitare ambiguità quando il codice viene letto ad alta voce.
+    const INVITE_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    function generateInviteCode() {
+      let code = '';
+      for (let i = 0; i < 8; i++) code += INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)];
+      return code;
+    }
+    async function createInvite(clientUid, role, label) {
+      const code = generateInviteCode();
+      await setDoc(doc(db, 'invites', code), {
+        code, clientUid, role, label: label || '',
+        used: false, usedAt: null, usedByUid: null,
+        createdAt: new Date(), createdBy: currentAdminUid,
+      });
+      return code;
+    }
+    async function listPendingInvites(clientUid, role) {
+      const snap = await getDocs(query(collection(db, 'invites'), where('clientUid', '==', clientUid)));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(i => i.role === role && !i.used);
     }
 
     async function updateRegisteredBadge() {
@@ -1233,7 +1270,7 @@
             ${!isBrand ? `<button class="act-btn" onclick="openAddBrand('${c.uid}','${name}')" title="Aggiungi un altro brand a questo stesso login">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>+ Brand
             </button>` : ''}
-            <button class="act-btn" onclick="openCollabModal('${c.uid}','${name}')" title="Soci: login separati sullo stesso cliente">
+            <button class="act-btn" onclick="openSociModal('${c.uid}','${name}')" title="Soci: login separati sullo stesso cliente">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Soci${c.collaborators?.length?` (${c.collaborators.length})`:''}
             </button>
             <button class="act-btn act-danger" onclick="deleteClient('${c.uid}')">
@@ -1256,9 +1293,12 @@
       // Ogni cliente puo' avere piu' "brand" collegati allo stesso login
       // (stesso ownerUid = uid dell'account principale): li raggruppiamo e
       // li mostriamo annidati sotto la scheda del cliente principale.
-      const roots = allClients.filter(c => !c.ownerUid);
+      // NB: si raggruppa su isBrand (flag esplicito), non su ownerUid — un
+      // cliente attivato con codice ha anch'esso ownerUid valorizzato (punta
+      // al proprio nuovo auth uid) ma non è un brand di nessuno.
+      const roots = allClients.filter(c => !c.isBrand);
       const brandsByOwner = {};
-      allClients.filter(c => c.ownerUid).forEach(c => {
+      allClients.filter(c => c.isBrand).forEach(c => {
         (brandsByOwner[c.ownerUid] ||= []).push(c);
       });
 
@@ -1593,15 +1633,24 @@
     };
 
     // ── ADD/EDIT CLIENT ────────────────────────────────────────────
+    window.toggleAccessMethod = () => {
+      const useCode = document.querySelector('input[name="access-method"]:checked')?.value === 'code';
+      document.getElementById('email-password-group').style.display = useCode ? 'none' : '';
+      document.getElementById('f-email').required = !useCode;
+    };
+
     window.openAddClient = () => {
       document.getElementById('modal-title').textContent = 'Nuovo Cliente';
       document.getElementById('client-form').reset();
       document.getElementById('edit-uid').value = '';
       document.getElementById('brand-owner-uid').value = '';
+      document.getElementById('edit-is-brand').value = 'false';
       document.getElementById('brand-hint').style.display = 'none';
-      document.getElementById('email-password-group').style.display = '';
-      document.getElementById('f-email').required = true;
-      document.getElementById('f-password').required = true;
+      document.getElementById('access-method-group').style.display = '';
+      document.getElementById('new-client-code-result').style.display = 'none';
+      document.querySelector('input[name="access-method"][value="code"]').checked = true;
+      toggleAccessMethod();
+      document.getElementById('f-password').required = false;
       document.getElementById('client-modal').classList.add('open');
     };
 
@@ -1612,7 +1661,10 @@
       document.getElementById('client-form').reset();
       document.getElementById('edit-uid').value = '';
       document.getElementById('brand-owner-uid').value = ownerUid;
+      document.getElementById('edit-is-brand').value = 'true';
       document.getElementById('brand-hint').style.display = '';
+      document.getElementById('access-method-group').style.display = 'none';
+      document.getElementById('new-client-code-result').style.display = 'none';
       document.getElementById('email-password-group').style.display = 'none';
       document.getElementById('f-email').required = false;
       document.getElementById('f-password').required = false;
@@ -1622,28 +1674,40 @@
     };
 
     // ── SOCI (login separati sullo stesso cliente/brand) ────────────
-    window.openCollabModal = (uid, name) => {
-      document.getElementById('collab-uid').value = uid;
-      document.getElementById('collab-client-name').textContent = name;
-      document.getElementById('collab-form').reset();
+    window.openSociModal = async (uid, name) => {
+      document.getElementById('csoc-uid').value = uid;
+      document.getElementById('csoc-client-name').textContent = name;
+      document.getElementById('csoc-form').reset();
+      document.getElementById('csoc-code-result').style.display = 'none';
       const client = allClients.find(c => c.uid === uid);
-      const list = document.getElementById('collab-list');
+      const list = document.getElementById('csoc-list');
       const collaborators = client?.collaborators || [];
       list.innerHTML = collaborators.length ? `
-        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Soci esistenti</p>
+        <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Soci attivi</p>
         ${collaborators.map((co, i) => `
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;">
             <div>
               <span style="font-weight:700;font-size:.88rem;">${esc(co.name)}</span>
               <span style="font-size:.78rem;color:var(--text-muted);margin-left:10px;">${esc(co.email)}</span>
             </div>
-            <button onclick="removeCollaborator('${uid}',${i})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;flex-shrink:0;">Rimuovi</button>
+            <button onclick="removeSocio('${uid}',${i})" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;flex-shrink:0;">Rimuovi</button>
           </div>`).join('')}` : '';
-      document.getElementById('collab-modal').classList.add('open');
+      document.getElementById('csoc-modal').classList.add('open');
+      try {
+        const pending = await listPendingInvites(uid, 'collaborator');
+        const pendList = document.getElementById('csoc-pending-list');
+        pendList.innerHTML = pending.length ? `
+          <p style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Codici in attesa</p>
+          ${pending.map(inv => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;">
+              <span style="font-weight:800;letter-spacing:.15em;font-size:.9rem;">${esc(inv.code)}</span>
+              ${inv.label ? `<span style="font-size:.78rem;color:var(--text-muted);">${esc(inv.label)}</span>` : ''}
+            </div>`).join('')}` : '';
+      } catch(_) {}
     };
-    window.closeCollabModal = () => document.getElementById('collab-modal').classList.remove('open');
+    window.closeSociModal = () => document.getElementById('csoc-modal').classList.remove('open');
 
-    window.removeCollaborator = async (uid, index) => {
+    window.removeSocio = async (uid, index) => {
       if (!confirm('Rimuovere questo socio? Perderà l\'accesso.')) return;
       const client = allClients.find(c => c.uid === uid);
       if (!client?.collaborators) return;
@@ -1656,50 +1720,42 @@
         client.collaborators.splice(index, 1);
         client.collaboratorUids = (client.collaboratorUids || []).filter(u => u !== collab.uid);
         showToast('Socio rimosso!');
-        openCollabModal(uid, document.getElementById('collab-client-name').textContent);
+        openSociModal(uid, document.getElementById('csoc-client-name').textContent);
         renderClientsTable();
       } catch(e) { showToast('Errore: ' + e.message, 'error'); }
     };
 
-    document.getElementById('collab-form').addEventListener('submit', async (e) => {
+    document.getElementById('csoc-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const uid = document.getElementById('collab-uid').value;
-      const name = document.getElementById('collab-name').value.trim();
-      const email = document.getElementById('collab-email').value.trim();
-      const password = document.getElementById('collab-password').value;
+      const uid = document.getElementById('csoc-uid').value;
+      const label = document.getElementById('csoc-label').value.trim();
       try {
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-        const collabUid = cred.user.uid;
-        const collab = { uid: collabUid, name, email };
-        await updateDoc(doc(db, 'clients', uid), {
-          collaboratorUids: arrayUnion(collabUid),
-          collaborators: arrayUnion(collab),
-        });
-        await secondaryAuth.signOut();
-        const client = allClients.find(c => c.uid === uid);
-        if (client) {
-          if (!client.collaborators) client.collaborators = [];
-          client.collaborators.push(collab);
-          if (!client.collaboratorUids) client.collaboratorUids = [];
-          client.collaboratorUids.push(collabUid);
-        }
-        showToast('Socio aggiunto!');
-        openCollabModal(uid, document.getElementById('collab-client-name').textContent);
-        renderClientsTable();
+        const code = await createInvite(uid, 'collaborator', label);
+        document.getElementById('csoc-code-text').textContent = code;
+        document.getElementById('csoc-code-result').style.display = '';
+        document.getElementById('csoc-form').reset();
+        showToast('Codice generato!');
       } catch(err) { showToast('Errore: ' + err.message, 'error'); }
     });
 
     window.editClient = (uid) => {
       const c = allClients.find(x => x.uid === uid);
       if (!c) return;
-      const isBrand = !!c.ownerUid;
+      // isBrand è un flag esplicito, non si deduce da ownerUid: un cliente
+      // attivato con codice ha anch'esso ownerUid valorizzato (il proprio
+      // nuovo auth uid) ma non è un brand di nessuno.
+      const isBrand = !!c.isBrand;
+      const isPending = !isBrand && !c.email; // creato con codice, non ancora attivato
       document.getElementById('modal-title').textContent = isBrand ? 'Modifica brand' : 'Modifica Cliente';
       document.getElementById('edit-uid').value           = uid;
       document.getElementById('edit-original-email').value = c.email || '';
       document.getElementById('brand-owner-uid').value    = c.ownerUid || '';
+      document.getElementById('edit-is-brand').value      = String(isBrand);
       document.getElementById('brand-hint').style.display = isBrand ? '' : 'none';
-      document.getElementById('email-password-group').style.display = isBrand ? 'none' : '';
-      document.getElementById('f-email').required = !isBrand;
+      document.getElementById('access-method-group').style.display = 'none';
+      document.getElementById('new-client-code-result').style.display = 'none';
+      document.getElementById('email-password-group').style.display = (isBrand || isPending) ? 'none' : '';
+      document.getElementById('f-email').required = !isBrand && !isPending;
       document.getElementById('f-name').value             = c.displayName || '';
       document.getElementById('f-company').value          = c.company || '';
       document.getElementById('f-email').value            = c.email || '';
@@ -1730,7 +1786,9 @@
 
       const editUid   = document.getElementById('edit-uid').value;
       const ownerUid  = document.getElementById('brand-owner-uid').value;
-      const isBrand   = !!ownerUid;
+      const isBrand   = document.getElementById('edit-is-brand').value === 'true';
+      const useCode   = !isBrand && !editUid
+        && document.querySelector('input[name="access-method"]:checked')?.value === 'code';
 
       const data = {
         displayName:       document.getElementById('f-name').value.trim(),
@@ -1746,7 +1804,7 @@
           status:      document.getElementById('f-draft-status').value,
         },
       };
-      if (!isBrand) data.email = document.getElementById('f-email').value.trim();
+      if (!isBrand && !useCode) data.email = document.getElementById('f-email').value.trim();
 
       try {
         if (isBrand) {
@@ -1756,18 +1814,35 @@
             await setDoc(doc(db, 'clients', editUid), data, { merge: true });
             showToast('Brand aggiornato!');
           } else {
-            await addDoc(collection(db, 'clients'), { ...data, ownerUid, reports: [], createdAt: new Date() });
+            await addDoc(collection(db, 'clients'), { ...data, ownerUid, isBrand: true, reports: [], createdAt: new Date() });
             showToast('Brand creato!');
           }
+        } else if (useCode) {
+          // Nessuna credenziale ancora: si crea solo il profilo, e un codice
+          // di attivazione che il cliente userà per scegliersi email/password.
+          const newRef = await addDoc(collection(db, 'clients'), { ...data, reports: [], createdAt: new Date() });
+          const code = await createInvite(newRef.id, 'owner', data.displayName);
+          document.getElementById('new-client-code-text').textContent = code;
+          document.getElementById('new-client-code-result').style.display = '';
+          await loadClients();
+          btn.textContent = 'Salva'; btn.disabled = false;
+          return; // resta aperto finché l'admin non chiude, per far vedere/copiare il codice
         } else if (editUid) {
           await setDoc(doc(db, 'clients', editUid), data, { merge: true });
 
           // Aggiorna le credenziali Firebase Auth se email o password sono cambiate
+          // (non applicabile a un cliente ancora "pending": non ha un account).
+          const existing = allClients.find(x => x.uid === editUid);
+          const isPending = existing && !existing.isBrand && !existing.email;
           const originalEmail = document.getElementById('edit-original-email').value;
           const newPassword   = document.getElementById('f-password').value;
-          const emailChanged  = data.email && data.email !== originalEmail;
-          if (emailChanged || newPassword) {
-            const payload = { uid: editUid };
+          const emailChanged  = !isPending && data.email && data.email !== originalEmail;
+          if (!isPending && (emailChanged || newPassword)) {
+            // Il doc ha come id il vero auth uid solo per i clienti creati
+            // direttamente; quelli attivati con codice tengono il loro vero
+            // auth uid in ownerUid (il doc id è quello del profilo "pending").
+            const authUid = existing?.ownerUid || editUid;
+            const payload = { uid: authUid };
             if (emailChanged)  payload.newEmail    = data.email;
             if (newPassword)   payload.newPassword = newPassword;
             const wResp = await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/update-client-credentials', {

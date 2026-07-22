@@ -41,7 +41,71 @@
         </button>
       </form>
 
-      <p style="text-align:center;margin-top:22px;font-size:.9rem;color:var(--text-muted);">
+      <!-- PRIMO ACCESSO — attivazione tramite codice dato dall'agenzia -->
+      <form id="activate-form" style="display:none;">
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Inserisci il codice ricevuto dall'agenzia e scegli la tua email e password.</p>
+        <div class="form-group">
+          <label class="form-label" for="act-code">Codice di attivazione</label>
+          <input class="form-input" id="act-code" placeholder="ABCD1234" required style="text-transform:uppercase;letter-spacing:.15em;text-align:center;font-weight:700;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="act-name">Il tuo nome</label>
+          <input class="form-input" id="act-name" placeholder="Mario Rossi" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="act-email">Email</label>
+          <input class="form-input" type="email" id="act-email" placeholder="tuaemail@esempio.it" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="act-password">Scegli una password</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" id="act-password" placeholder="Min. 6 caratteri" required minlength="6" />
+            <button type="button" class="pwd-eye" onclick="togglePwd('act-password',this)" tabindex="-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="activate-btn">
+          Attiva account
+        </button>
+      </form>
+
+      <!-- PASSWORD DIMENTICATA (1/2) — richiede il codice via email -->
+      <form id="forgot-request-form" style="display:none;">
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Inserisci la tua email: se esiste un account, ti mandiamo un codice per reimpostare la password.</p>
+        <div class="form-group">
+          <label class="form-label" for="forgot-email">Email</label>
+          <input class="form-input" type="email" id="forgot-email" placeholder="tuaemail@esempio.it" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="forgot-request-btn">
+          Invia codice
+        </button>
+      </form>
+
+      <!-- PASSWORD DIMENTICATA (2/2) — codice + nuova password -->
+      <form id="forgot-confirm-form" style="display:none;">
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Controlla la tua email: inserisci il codice ricevuto e scegli la nuova password.</p>
+        <div class="form-group">
+          <label class="form-label" for="forgot-code">Codice ricevuto via email</label>
+          <input class="form-input" id="forgot-code" placeholder="123456" required style="letter-spacing:.2em;text-align:center;font-weight:700;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="forgot-password">Nuova password</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" id="forgot-password" placeholder="Min. 6 caratteri" required minlength="6" />
+            <button type="button" class="pwd-eye" onclick="togglePwd('forgot-password',this)" tabindex="-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="forgot-confirm-btn">
+          Imposta nuova password
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:22px;font-size:.9rem;color:var(--text-muted);" id="toggle-mode-wrap">
+        <a href="#" id="toggle-mode-link" style="color:var(--purple);font-weight:600;">Primo accesso? Ho un codice di attivazione</a>
+      </p>
+      <p style="text-align:center;margin-top:12px;font-size:.9rem;color:var(--text-muted);" id="forgot-link-wrap">
+        <a href="#" id="forgot-link" style="color:var(--purple);font-weight:600;">Password dimenticata?</a>
+      </p>
+      <p style="text-align:center;margin-top:12px;font-size:.9rem;color:var(--text-muted);">
         Non hai un account?
         <a href="/client/register.html" style="color:var(--purple);font-weight:600;">Registrati</a>
       </p>
@@ -53,13 +117,11 @@
   </div>
 
   <script type="module">
-    import { auth } from '../js/firebase-config.js';
+    import { auth, ACTIVATE_INVITE_URL, REQUEST_PASSWORD_RESET_URL, CONFIRM_PASSWORD_RESET_URL } from '../js/firebase-config.js';
     import {
       signInWithEmailAndPassword,
       onAuthStateChanged
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    import { db } from '../js/firebase-config.js';
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -67,8 +129,22 @@
       window.location.href = '/';
     });
 
-    const form  = document.getElementById('login-form');
     const errEl = document.getElementById('login-error');
+
+    const forms = {
+      login: document.getElementById('login-form'),
+      activate: document.getElementById('activate-form'),
+      forgotRequest: document.getElementById('forgot-request-form'),
+      forgotConfirm: document.getElementById('forgot-confirm-form'),
+    };
+    function showMode(mode) {
+      Object.entries(forms).forEach(([key, el]) => { el.style.display = key === mode ? '' : 'none'; });
+      document.getElementById('toggle-mode-wrap').style.display = mode === 'login' ? '' : 'none';
+      document.getElementById('forgot-link-wrap').style.display = mode === 'login' ? '' : 'none';
+      errEl.classList.remove('show');
+    }
+
+    const form  = forms.login;
     const btn   = document.getElementById('submit-btn');
 
     form.addEventListener('submit', async (e) => {
@@ -97,6 +173,110 @@
         btn.disabled = false;
       }
     });
+
+    // ── PRIMO ACCESSO — attiva il codice e crea l'account ────────────
+    const activateBtn  = document.getElementById('activate-btn');
+    const toggleLink   = document.getElementById('toggle-mode-link');
+
+    toggleLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const showingActivate = forms.activate.style.display !== 'none';
+      showMode(showingActivate ? 'login' : 'activate');
+      toggleLink.textContent = showingActivate ? 'Primo accesso? Ho un codice di attivazione' : '← Torna al login';
+    });
+
+    forms.activate.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      activateBtn.textContent = 'Attivazione in corso…';
+      activateBtn.disabled = true;
+
+      const code     = document.getElementById('act-code').value.trim();
+      const name     = document.getElementById('act-name').value.trim();
+      const email    = document.getElementById('act-email').value.trim();
+      const password = document.getElementById('act-password').value;
+
+      try {
+        const resp = await fetch(ACTIVATE_INVITE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, name, email, password }),
+        });
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Attivazione fallita.');
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        errEl.textContent = err.message || 'Errore di attivazione. Riprova.';
+        errEl.classList.add('show');
+        activateBtn.textContent = 'Attiva account';
+        activateBtn.disabled = false;
+      }
+    });
+
+    // ── PASSWORD DIMENTICATA ──────────────────────────────────────────
+    const forgotLink = document.getElementById('forgot-link');
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showMode('forgotRequest');
+    });
+
+    const forgotRequestBtn = document.getElementById('forgot-request-btn');
+    forms.forgotRequest.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      forgotRequestBtn.textContent = 'Invio in corso…';
+      forgotRequestBtn.disabled = true;
+      const email = document.getElementById('forgot-email').value.trim();
+      try {
+        const resp = await fetch(REQUEST_PASSWORD_RESET_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Invio fallito.');
+        window.__forgotEmail = email;
+        showMode('forgotConfirm');
+      } catch (err) {
+        errEl.textContent = err.message || 'Errore. Riprova.';
+        errEl.classList.add('show');
+      }
+      forgotRequestBtn.textContent = 'Invia codice';
+      forgotRequestBtn.disabled = false;
+    });
+
+    const forgotConfirmBtn = document.getElementById('forgot-confirm-btn');
+    forms.forgotConfirm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.classList.remove('show');
+      forgotConfirmBtn.textContent = 'Salvataggio…';
+      forgotConfirmBtn.disabled = true;
+      const code = document.getElementById('forgot-code').value.trim();
+      const newPassword = document.getElementById('forgot-password').value;
+      try {
+        const resp = await fetch(CONFIRM_PASSWORD_RESET_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, newPassword }),
+        });
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Codice non valido.');
+        const email = data.email || window.__forgotEmail;
+        await signInWithEmailAndPassword(auth, email, newPassword);
+      } catch (err) {
+        errEl.textContent = err.message || 'Errore. Riprova.';
+        errEl.classList.add('show');
+        forgotConfirmBtn.textContent = 'Imposta nuova password';
+        forgotConfirmBtn.disabled = false;
+      }
+    });
+
+    // Link diretto dall'email (?resetCode=123456): salta al passo 2.
+    const urlResetCode = new URLSearchParams(window.location.search).get('resetCode');
+    if (urlResetCode) {
+      document.getElementById('forgot-code').value = urlResetCode;
+      showMode('forgotConfirm');
+    }
   </script>
   <script>
     function togglePwd(id, btn) {
