@@ -1475,7 +1475,23 @@
 
     window.deleteClient = async (uid) => {
       if (!confirm('Eliminare questo cliente? L\'operazione non può essere annullata.')) return;
+      const client = allClients.find(c => c.uid === uid);
       try {
+        // Elimina anche l'account Firebase Auth (se ne ha uno) così l'email
+        // torna libera per un futuro nuovo cliente — i brand condividono il
+        // login di qualcun altro, quindi non hanno un account proprio da
+        // eliminare, e un cliente "pending" (codice non ancora attivato) non
+        // ne ha ancora creato uno.
+        if (client && !client.isBrand && client.email) {
+          const authUid = client.ownerUid || uid;
+          try {
+            await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/delete-collab-auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ uid: authUid }),
+            });
+          } catch (_) {}
+        }
         await deleteDoc(doc(db, 'clients', uid));
         allClients = allClients.filter(c => c.uid !== uid);
         renderClientsTable();
@@ -1713,6 +1729,14 @@
       if (!client?.collaborators) return;
       const collab = client.collaborators[index];
       try {
+        // Elimina anche il suo account Firebase Auth, così l'email torna libera.
+        try {
+          await fetch('https://astra-notify.jacopopelliccione.workers.dev/api/delete-collab-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid: collab.uid }),
+          });
+        } catch (_) {}
         await updateDoc(doc(db, 'clients', uid), {
           collaboratorUids: arrayRemove(collab.uid),
           collaborators: arrayRemove(collab),
