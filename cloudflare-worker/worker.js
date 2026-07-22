@@ -60,6 +60,18 @@ export default {
       return handleTikTokToken(request, env);
     }
 
+    if (request.method === 'POST' && path.endsWith('/activate-invite')) {
+      return handleActivateInvite(request, env);
+    }
+
+    if (request.method === 'POST' && path.endsWith('/request-password-reset')) {
+      return handleRequestPasswordReset(request, env);
+    }
+
+    if (request.method === 'POST' && path.endsWith('/confirm-password-reset')) {
+      return handleConfirmPasswordReset(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   },
 };
@@ -857,6 +869,227 @@ async function fetchTikTokTikwm(username, token) {
 }
 
 // ── Auth JWT ───────────────────────────────────────────────────────────────
+// Chiave pubblica web dell'app Firebase (già presente in chiaro in
+// js/firebase-config.js) — serve solo per creare account via l'API pubblica
+// signUp, che non richiede il service account.
+const FIREBASE_WEB_API_KEY = 'AIzaSyCOQaxFQ5qzOu7cjfaRmGkk4XlqySh4BcA';
+
+// ── Firestore REST — lettura/scrittura "admin" tramite service account ────
+// (bypassa le security rules, come già fa handleSocialData per la lettura)
+function fsEncodeValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'string') return { stringValue: v };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (v instanceof Date) return { timestampValue: v.toISOString() };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(fsEncodeValue) } };
+  if (typeof v === 'object') return { mapValue: { fields: fsEncodeFields(v) } };
+  return { stringValue: String(v) };
+}
+function fsEncodeFields(obj) {
+  const fields = {};
+  for (const [k, val] of Object.entries(obj)) fields[k] = fsEncodeValue(val);
+  return fields;
+}
+function fsDecodeValue(v) {
+  if (!v) return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('integerValue' in v) return parseInt(v.integerValue, 10);
+  if ('doubleValue' in v) return v.doubleValue;
+  if ('timestampValue' in v) return v.timestampValue;
+  if ('nullValue' in v) return null;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(fsDecodeValue);
+  if ('mapValue' in v) return fsDecodeFields(v.mapValue.fields || {});
+  return null;
+}
+function fsDecodeFields(fields) {
+  const obj = {};
+  for (const [k, v] of Object.entries(fields || {})) obj[k] = fsDecodeValue(v);
+  return obj;
+}
+async function fsGet(fsBase, token, path) {
+  const resp = await fetch(`${fsBase}/${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (resp.status === 404) return null;
+  if (!resp.ok) throw new Error(`Firestore GET ${path} fallito: ${resp.status}`);
+  const data = await resp.json();
+  return fsDecodeFields(data.fields || {});
+}
+async function fsSet(fsBase, token, path, obj, mergeFields) {
+  const url = new URL(`${fsBase}/${path}`);
+  if (mergeFields) mergeFields.forEach(f => url.searchParams.append('updateMask.fieldPaths', f));
+  const resp = await fetch(url.toString(), {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: fsEncodeFields(obj) }),
+  });
+  if (!resp.ok) throw new Error(`Firestore PATCH ${path} fallito: ${await resp.text()}`);
+  return resp.json();
+}
+
+function passwordResetEmailHtml(code, resetUrl) {
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#07060F;color:#F4F2FF;border-radius:16px;">
+    <h1 style="font-size:20px;margin:0 0 8px;">Astra Agency</h1>
+    <p style="color:rgba(244,242,255,.7);font-size:14px;line-height:1.5;">Hai richiesto di reimpostare la password del tuo account. Usa il codice qui sotto nell'app o nel sito, oppure clicca direttamente sul link.</p>
+    <div style="background:#15121F;border:1px solid rgba(140,130,255,.3);border-radius:12px;padding:20px;text-align:center;margin:20px 0;">
+      <div style="font-size:12px;color:rgba(244,242,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Il tuo codice</div>
+      <div style="font-size:32px;font-weight:800;letter-spacing:8px;color:#F4F2FF;">${code}</div>
+    </div>
+    <div style="text-align:center;margin:20px 0;">
+      <a href="${resetUrl}" style="display:inline-block;background:#6C63FF;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;">Reimposta password ora</a>
+    </div>
+    <p style="color:rgba(244,242,255,.45);font-size:12px;line-height:1.5;">Il codice e il link scadono tra 15 minuti. Se non hai richiesto tu questa email, ignorala pure: la tua password resterà invariata.</p>
+  </div>`;
+}
+
+async function sendBrandedEmail(apiKey, to, subject, html) {
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'Astra Agency <onboarding@resend.dev>', to: [to], subject, html }),
+  });
+  if (!resp.ok) throw new Error(`Invio email fallito: ${await resp.text()}`);
+}
+
+// ── POST /api/activate-invite ──────────────────────────────────────────────
+// "Primo accesso": il cliente inserisce il codice generato dall'admin e
+// sceglie lui stesso email/password. Crea l'account e lo collega al
+// cliente/brand giusto (come proprietario o come socio), senza bisogno del
+// piano Blaze — usa la stessa chiave di servizio già configurata per
+// update-client-credentials.
+async function handleActivateInvite(request, env) {
+  try {
+    const { code, email, password, name } = await request.json();
+    if (!code || !email || !password) return json({ ok: false, error: 'Codice, email e password sono obbligatori.' });
+    if (String(password).length < 6) return json({ ok: false, error: 'La password deve avere almeno 6 caratteri.' });
+
+    const projectId = env.FCM_PROJECT_ID;
+    const svcToken   = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase     = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+    const inviteCode = String(code).trim().toUpperCase();
+    const invite = await fsGet(fsBase, svcToken, `invites/${inviteCode}`);
+    if (!invite) return json({ ok: false, error: 'Codice non valido.' });
+    if (invite.used) return json({ ok: false, error: 'Questo codice è già stato utilizzato.' });
+
+    const signUpResp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_WEB_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: false }),
+    });
+    const signUpData = await signUpResp.json();
+    if (!signUpResp.ok) {
+      const messages = {
+        EMAIL_EXISTS: "Questa email è già registrata. Usa un'altra email o accedi normalmente.",
+        INVALID_EMAIL: 'Formato email non valido.',
+      };
+      return json({ ok: false, error: messages[signUpData.error?.message] || signUpData.error?.message || 'Creazione account fallita.' });
+    }
+    const newUid = signUpData.localId;
+
+    if (name) {
+      await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:update`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: newUid, displayName: name }),
+      });
+    }
+
+    if (invite.role === 'collaborator') {
+      const client = await fsGet(fsBase, svcToken, `clients/${invite.clientUid}`);
+      const collaboratorUids = [...(client?.collaboratorUids || []), newUid];
+      const collaborators = [...(client?.collaborators || []), { uid: newUid, name: name || email.split('@')[0], email }];
+      await fsSet(fsBase, svcToken, `clients/${invite.clientUid}`, { collaboratorUids, collaborators }, ['collaboratorUids', 'collaborators']);
+    } else {
+      await fsSet(fsBase, svcToken, `clients/${invite.clientUid}`, { ownerUid: newUid, email }, ['ownerUid', 'email']);
+    }
+
+    await fsSet(fsBase, svcToken, `invites/${inviteCode}`,
+      { used: true, usedAt: new Date(), usedByUid: newUid, usedEmail: email },
+      ['used', 'usedAt', 'usedByUid', 'usedEmail']);
+
+    return json({ ok: true, uid: newUid });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── POST /api/request-password-reset ────────────────────────────────────────
+async function handleRequestPasswordReset(request, env) {
+  try {
+    const { email } = await request.json();
+    if (!email) return json({ ok: false, error: 'Email obbligatoria.' });
+
+    const projectId = env.FCM_PROJECT_ID;
+    const svcToken   = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase     = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+    const lookupResp = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:lookup`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: [email] }),
+    });
+    const lookupData = await lookupResp.json();
+    const user = lookupData.users?.[0];
+    if (!user) return json({ ok: true }); // non riveliamo se l'email esiste o no
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    await fsSet(fsBase, svcToken, `password_resets/${code}`, {
+      code, uid: user.localId, email,
+      used: false, usedAt: null,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      createdAt: new Date(),
+    });
+
+    if (env.RESEND_API_KEY) {
+      const resetUrl = `https://astragency.it/client/login.html?resetCode=${code}`;
+      await sendBrandedEmail(
+        env.RESEND_API_KEY, email,
+        'Il tuo codice per reimpostare la password — Astra Agency',
+        passwordResetEmailHtml(code, resetUrl)
+      );
+    }
+
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
+// ── POST /api/confirm-password-reset ────────────────────────────────────────
+async function handleConfirmPasswordReset(request, env) {
+  try {
+    const { code, newPassword } = await request.json();
+    if (!code || !newPassword) return json({ ok: false, error: 'Codice e nuova password sono obbligatori.' });
+    if (String(newPassword).length < 6) return json({ ok: false, error: 'La password deve avere almeno 6 caratteri.' });
+
+    const projectId = env.FCM_PROJECT_ID;
+    const svcToken   = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase     = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+    const resetCode = String(code).trim();
+    const reset = await fsGet(fsBase, svcToken, `password_resets/${resetCode}`);
+    if (!reset) return json({ ok: false, error: 'Codice non valido.' });
+    if (reset.used) return json({ ok: false, error: 'Codice già utilizzato.' });
+    if (new Date(reset.expiresAt) < new Date()) return json({ ok: false, error: 'Codice scaduto. Richiedine uno nuovo.' });
+
+    const updResp = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:update`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${svcToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ localId: reset.uid, password: newPassword }),
+    });
+    const updData = await updResp.json();
+    if (!updResp.ok) return json({ ok: false, error: updData.error?.message || 'Errore Firebase' });
+
+    await fsSet(fsBase, svcToken, `password_resets/${resetCode}`, { used: true, usedAt: new Date() }, ['used', 'usedAt']);
+
+    return json({ ok: true, email: reset.email });
+  } catch (err) {
+    return json({ ok: false, error: err.message });
+  }
+}
+
 async function getAccessToken(clientEmail, privateKey) {
   const now     = Math.floor(Date.now() / 1000);
   const header  = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));

@@ -15,14 +15,10 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);
 
-// Cloud Function "activateInvite" (firebase-functions/index.js) — attiva un
-// codice invito e crea l'account con l'email/password scelte dal cliente.
-// URL prevedibile per una function v2 senza region esplicita (us-central1);
-// se al deploy Firebase stampa un URL diverso, aggiornalo qui.
-export const ACTIVATE_INVITE_URL = 'https://us-central1-astragency-88b1a.cloudfunctions.net/activateInvite';
-
-// Cloud Functions "requestPasswordReset" / "confirmPasswordReset" — invio del
-// codice via email (Resend) e conferma della nuova password. Stessa nota sul
-// prevedibile URL us-central1: verifica dopo il deploy.
-export const REQUEST_PASSWORD_RESET_URL = 'https://us-central1-astragency-88b1a.cloudfunctions.net/requestPasswordReset';
-export const CONFIRM_PASSWORD_RESET_URL = 'https://us-central1-astragency-88b1a.cloudfunctions.net/confirmPasswordReset';
+// Endpoint sul Cloudflare Worker "astra-notify" (cloudflare-worker/worker.js)
+// — niente piano Blaze di Firebase richiesto, gira sul piano gratuito di
+// Cloudflare Workers che usate già per update-client-credentials ecc.
+const WORKER_BASE = 'https://astra-notify.jacopopelliccione.workers.dev';
+export const ACTIVATE_INVITE_URL = `${WORKER_BASE}/api/activate-invite`;
+export const REQUEST_PASSWORD_RESET_URL = `${WORKER_BASE}/api/request-password-reset`;
+export const CONFIRM_PASSWORD_RESET_URL = `${WORKER_BASE}/api/confirm-password-reset`;

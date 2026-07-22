@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "astragency-88b1a"
-  }
+    "default": "astragency-88b1a",
+    "ASTRAGENCY APP/SITE": "astragency-88b1a"
+  },
+  "targets": {},
+  "etags": {}
 }
