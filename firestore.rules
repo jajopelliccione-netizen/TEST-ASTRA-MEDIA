@@ -69,13 +69,12 @@ service cloud.firestore {
 
     // Codici di attivazione ("primo accesso"): l'admin li crea/gestisce da
     // qui, ma la loro validazione e il collegamento al cliente avvengono
-    // SOLO tramite la Cloud Function activateInvite (Admin SDK, bypassa
-    // queste regole) — il cliente non ha e non deve avere accesso diretto.
+    // SOLO tramite il Cloudflare Worker (service account, bypassa queste
+    // regole) — il cliente non ha e non deve avere accesso diretto.
     match /invites/{code} { allow read, write: if isAdmin(); }
 
-    // Codici "password dimenticata": stessa logica degli inviti — solo le
-    // Cloud Function requestPasswordReset/confirmPasswordReset (Admin SDK)
-    // li leggono/scrivono davvero.
+    // Codici "password dimenticata": stessa logica degli inviti — solo il
+    // Worker (endpoint request/confirm-password-reset) li legge/scrive.
     match /password_resets/{code} { allow read, write: if isAdmin(); }
 
   }
