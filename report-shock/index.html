@@ -97,6 +97,7 @@ E se la tua pagina fosse attiva? Scrivici in DM o su astragency.it ✦
 
 <script>
   const NUM = 7;
+  const V = '?v=6';   // cache-busting: bump ad ogni aggiornamento delle slide
   const titoli = ['Cover','Punto di partenza','Il reel','Classifica video','Totale','Perché','CTA'];
   const grid = document.getElementById('grid');
   for (let i = 1; i <= NUM; i++) {
@@ -105,8 +106,8 @@ E se la tua pagina fosse attiva? Scrivici in DM o su astragency.it ✦
     card.className = 'card';
     card.innerHTML =
       '<div class="imgwrap"><span class="badge">'+n+' · '+titoli[i-1]+'</span>'+
-      '<img src="slide-'+n+'.png" alt="Slide '+n+'" loading="lazy"></div>'+
-      '<a class="btn btn-primary dl" href="slide-'+n+'.png" download="astra-shock-slide-'+n+'.png">⬇ Scarica</a>';
+      '<img src="slide-'+n+'.png'+V+'" alt="Slide '+n+'" loading="lazy"></div>'+
+      '<a class="btn btn-primary dl" href="slide-'+n+'.png'+V+'" download="astra-shock-slide-'+n+'.png">⬇ Scarica</a>';
     grid.appendChild(card);
   }
 
@@ -115,7 +116,7 @@ E se la tua pagina fosse attiva? Scrivici in DM o su astragency.it ✦
       const n = String(i).padStart(2,'0');
       setTimeout(function(){
         const a = document.createElement('a');
-        a.href = 'slide-'+n+'.png';
+        a.href = 'slide-'+n+'.png'+V;
         a.download = 'astra-shock-slide-'+n+'.png';
         document.body.appendChild(a); a.click(); a.remove();
       }, (i-1)*350);
