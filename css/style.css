@@ -2440,3 +2440,46 @@ body.promo-active #pkg-social { padding-top: 74px; }
 
 /* ── Better tap highlight on mobile ──────────────────────────── */
 a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
+
+/* ══════════════════════════════════════════════════════════════════
+   APPLE-DESIGN REFINEMENTS  (skill: .claude/skills/apple-design)
+   Tipografia size-specific · feedback immediato al tocco · nitidezza.
+   Solo affinamenti in cascata: non modifica i layout esistenti.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* §15 Typography — testo più nitido + tracking size-specific.
+   I titoli grandi vogliono tracking NEGATIVO (le lettere sembrano
+   troppo distanti man mano che crescono); il body resta vicino a 0. */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.hero-title      { letter-spacing: -.028em; line-height: 1.04; }
+.section-header h2 { letter-spacing: -.018em; }
+
+/* §1 Response — il tocco deve rispondere SUBITO alla pressione
+   (non solo all'hover): micro scala verso il basso, transizione veloce. */
+.btn-primary:active,
+.btn-outline:active,
+.nav-cta:active,
+.nav-login:active,
+.nav-logout:active,
+.nav-panel:active,
+.mob-link:active,
+.btn:active {
+  transform: scale(.97);
+  transition: transform 90ms ease-out;
+}
+
+/* §14 Reduced-motion — se l'utente riduce il movimento, niente scala. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:active,
+  .btn-outline:active,
+  .nav-cta:active,
+  .nav-login:active,
+  .nav-logout:active,
+  .nav-panel:active,
+  .mob-link:active,
+  .btn:active { transform: none; }
+}
