@@ -1961,7 +1961,7 @@ async function elaboraDescPacchetto() {
     let rawText = '';
 
     if (apiKey.startsWith('gsk_')) {
-      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama3-8b-8192', 'gemma2-9b-it'];
+      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'openai/gpt-oss-20b', 'gemma2-9b-it'];
       let resp;
       for (const model of GROQ_MODELS) {
         resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1969,8 +1969,8 @@ async function elaboraDescPacchetto() {
           headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
           body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.4, max_tokens: 1500 })
         });
-        if (resp.status === 404) continue;
-        if (resp.status === 429) { await delay(3000); resp = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model,messages:[{role:'user',content:prompt}],temperature:0.4,max_tokens:1500}) }); if (resp.status===429||resp.status===404) continue; }
+        if (resp.status === 404 || resp.status === 400) continue;
+        if (resp.status === 429) { await delay(3000); resp = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${apiKey}`}, body:JSON.stringify({model,messages:[{role:'user',content:prompt}],temperature:0.4,max_tokens:1500}) }); if (resp.status===429||resp.status===404||resp.status===400) continue; }
         break;
       }
       if (!resp.ok) throw new Error(`Errore Groq ${resp.status}`);
@@ -2738,7 +2738,7 @@ async function strutturaConAI() {
 
     if (apiKey.startsWith('gsk_')) {
       // ── GROQ (llama) — 14.400 req/giorno gratis ──
-      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama3-8b-8192', 'gemma2-9b-it', 'mixtral-8x7b-32768'];
+      const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'openai/gpt-oss-20b', 'gemma2-9b-it'];
       let resp;
       for (const model of GROQ_MODELS) {
         resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -2751,7 +2751,7 @@ async function strutturaConAI() {
             max_tokens: 1200,
           })
         });
-        if (resp.status === 404) continue;
+        if (resp.status === 404 || resp.status === 400) continue;
         if (resp.status === 429) {
           btn.textContent = '✦ Quota piena, riprovo…';
           await delay(3000);
@@ -2761,7 +2761,7 @@ async function strutturaConAI() {
             headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.2, max_tokens: 1200 })
           });
-          if (resp.status === 429 || resp.status === 404) continue;
+          if (resp.status === 429 || resp.status === 404 || resp.status === 400) continue;
         }
         break;
       }
@@ -2796,13 +2796,13 @@ async function strutturaConAI() {
       for (const { v, m } of ATTEMPTS) {
         const url = `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${apiKey}`;
         resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
-        if (resp.status === 404) continue;
+        if (resp.status === 404 || resp.status === 400) continue;
         if (resp.status === 429) {
           btn.textContent = '✦ Quota piena, riprovo…';
           await delay(4000);
           btn.textContent = '✦ AI sta elaborando…';
           resp = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: reqBody });
-          if (resp.status === 429 || resp.status === 404) continue;
+          if (resp.status === 429 || resp.status === 404 || resp.status === 400) continue;
         }
         break;
       }
