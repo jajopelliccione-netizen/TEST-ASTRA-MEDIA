@@ -1359,7 +1359,13 @@
         allVetrina = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         allVetrina.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
       } catch (e) {
-        wrap.innerHTML = '<div class="empty-state"><p style="color:var(--pink);">Impossibile leggere la vetrina.<br><span style="font-size:.8rem;color:var(--text-muted);">Verifica le regole Firestore per la collezione <code>showcase</code>.</span></p></div>';
+        const isPerm = !!(e && (e.code === 'permission-denied' || /permission|insufficient/i.test(e.message || '')));
+        wrap.innerHTML = '<div class="empty-state"><p style="color:var(--pink);">Impossibile leggere la vetrina.<br>'
+          + '<span style="font-size:.8rem;color:var(--text-muted);">'
+          + (isPerm
+              ? 'Mancano i permessi: aggiungi la regola per la collezione <code>showcase</code> in Firebase → Firestore → Regole, poi ricarica.'
+              : 'Dettaglio: ' + esc((e && (e.code || e.message)) || 'errore sconosciuto'))
+          + '</span></p></div>';
         return;
       }
       renderVetrina();
