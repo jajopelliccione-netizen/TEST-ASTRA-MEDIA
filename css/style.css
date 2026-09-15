@@ -2467,7 +2467,7 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
   background: linear-gradient(180deg, var(--bg3), var(--bg2));
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 26px 22px 24px;
+  padding: 18px 20px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2483,14 +2483,14 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
 /* Logo tondo: l'immagine RIEMPIE il cerchio e viene ritagliata, cosi un logo
    su sfondo pieno non appare piu come un quadrato dentro il cerchio. */
 .cliente-logo {
-  width: 80px; height: 80px;
+  width: 60px; height: 60px;
   border-radius: 50%;
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 0 0 5px rgba(123,92,240,.07);
   overflow: hidden;
   flex-shrink: 0;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   display: flex; align-items: center; justify-content: center;
 }
 .cliente-logo img {
@@ -2501,21 +2501,21 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
 
 .cliente-nome {
   font-family: var(--font-head);
-  font-weight: 800; font-size: 1.02rem;
-  letter-spacing: -.015em; line-height: 1.25;
-  margin-bottom: 6px;
+  font-weight: 800; font-size: .96rem;
+  letter-spacing: -.015em; line-height: 1.22;
+  margin-bottom: 4px;
 }
 .cliente-desc {
-  font-size: .82rem; color: var(--text-muted);
-  line-height: 1.5; margin-bottom: 14px;
+  font-size: .78rem; color: var(--text-muted);
+  line-height: 1.45; margin-bottom: 11px;
 }
 .cliente-links {
-  display: flex; flex-wrap: wrap; gap: 7px;
+  display: flex; flex-wrap: wrap; gap: 6px;
   justify-content: center; margin-top: auto;
 }
 .cliente-links a {
-  font-size: .73rem; font-weight: 600;
-  padding: 7px 13px; border-radius: 99px;
+  font-size: .71rem; font-weight: 600;
+  padding: 6px 12px; border-radius: 99px;
   border: 1px solid var(--border);
   color: var(--text);
   background: rgba(255,255,255,.04);
@@ -2536,8 +2536,8 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
 }
 /* Telefono: 1 card a tutta larghezza (resta orizzontale) */
 @media (max-width: 768px) {
-  .cliente-card { flex-basis: 100%; padding: 24px 20px 22px; }
-  .cliente-logo { width: 76px; height: 76px; }
+  .cliente-card { flex-basis: 100%; padding: 18px 18px 17px; }
+  .cliente-logo { width: 58px; height: 58px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
