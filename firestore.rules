@@ -65,6 +65,10 @@ service cloud.firestore {
     }
 
     match /config/{doc} { allow read: if true; allow write: if isAdmin(); }
+
+    // Vetrina clienti: le card mostrate sulla home pubblica.
+    // Lettura libera (servono ai visitatori del sito), scrittura solo admin.
+    match /showcase/{id} { allow read: if true; allow write: if isAdmin(); }
     match /preventivi_bozze/{id} { allow read, write: if isAdmin(); }
 
     // Codici di attivazione ("primo accesso"): l'admin li crea/gestisce da

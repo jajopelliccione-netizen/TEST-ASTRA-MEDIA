@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -594,6 +594,21 @@
     </div>
   </section>
 
+  <!-- ═══════════════════════════════════ CLIENTI ═══════════════════════════════════ -->
+  <!-- Le card sono gestite dal pannello admin (Vetrina Clienti) e caricate da Firestore.
+       La sezione resta nascosta finché non c'è almeno una card. -->
+  <section id="clienti" style="display:none;">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">I Nostri Clienti</span>
+        <h2>Brand che crescono <span class="gradient-text">con noi</span></h2>
+        <p>Siti web, social e contenuti: ecco alcune delle realtà che seguiamo ogni giorno. Dai un'occhiata al loro mondo.</p>
+      </div>
+      <div class="clienti-scroll" id="clienti-scroll"></div>
+      <p class="clienti-hint">Scorri per vedere tutti →</p>
+    </div>
+  </section>
+
   <!-- ════════════════════════════════════ PARTNER ════════════════════════════════════ -->
   <section id="partner">
     <div class="container">
@@ -882,10 +897,42 @@
 
   <script type="module">
     window.addEventListener('load', async () => {
-      const [{ db }, { collection, addDoc, serverTimestamp, doc, getDoc }] = await Promise.all([
+      const [{ db }, { collection, addDoc, serverTimestamp, doc, getDoc, getDocs }] = await Promise.all([
         import('./js/firebase-config.js'),
         import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'),
       ]);
+
+      // ── VETRINA CLIENTI (gestita dal pannello admin) ──────────────
+      (async () => {
+        const escV = (s) => String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        try {
+          const snap = await getDocs(collection(db, 'showcase'));
+          const items = snap.docs.map(d => d.data())
+            .filter(v => v && (v.nome || v.logo))
+            .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+          if (!items.length) return;
+
+          const wrap = document.getElementById('clienti-scroll');
+          wrap.innerHTML = items.map(v => {
+            const links = (v.links || []).filter(l => l && l.url).slice(0, 4);
+            return `<article class="cliente-card">
+                <div class="cliente-logo">${v.logo ? `<img src="${escV(v.logo)}" alt="${escV(v.nome)}" loading="lazy">` : ''}</div>
+                <h3 class="cliente-nome">${escV(v.nome || '')}</h3>
+                ${v.descrizione ? `<p class="cliente-desc">${escV(v.descrizione)}</p>` : ''}
+                ${links.length ? `<div class="cliente-links">${links.map(l =>
+                  `<a href="${escV(l.url)}" target="_blank" rel="noopener noreferrer">${escV(l.label || 'Apri')}</a>`
+                ).join('')}</div>` : ''}
+              </article>`;
+          }).join('');
+
+          document.getElementById('clienti').style.display = '';
+          // più di 3 card: mostra il suggerimento di scorrimento
+          const hint = document.querySelector('.clienti-hint');
+          if (hint && items.length <= 3) hint.style.display = 'none';
+        } catch (_) { /* vetrina non disponibile: la sezione resta nascosta */ }
+      })();
 
       // ── CONFIG: promo + site settings in parallel ─────────────────
       const [promoSnap, siteSnap] = await Promise.all([
