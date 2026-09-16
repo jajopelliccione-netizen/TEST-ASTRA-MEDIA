@@ -2545,15 +2545,15 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
   .cliente-card {
     flex-basis: calc((100% - 56px) / 3);
     border-radius: 24px;
-    padding: 20px 28px 19px;
+    padding: 26px 28px 25px;
   }
   .cliente-logo {
     width: 70px; height: 70px;
     box-shadow: 0 0 0 6px rgba(123,92,240,.07);
-    margin-bottom: 11px;
+    margin-bottom: 14px;
   }
-  .cliente-nome { font-size: 1.1rem; letter-spacing: -.02em; margin-bottom: 5px; }
-  .cliente-desc { font-size: .85rem; line-height: 1.46; margin-bottom: 13px; }
+  .cliente-nome { font-size: 1.1rem; letter-spacing: -.02em; margin-bottom: 6px; }
+  .cliente-desc { font-size: .85rem; line-height: 1.5; margin-bottom: 16px; }
   .cliente-links { gap: 7px; }
   .cliente-links a { font-size: .77rem; padding: 7px 14px; }
   .clienti-hint { margin-top: 6px; }
