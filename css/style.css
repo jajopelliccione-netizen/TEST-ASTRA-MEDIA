@@ -2503,7 +2503,7 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
    scorrimento fluido, quindi resta attivo solo sul telefono, dove si scorre
    con il dito. */
 @media (min-width: 769px) {
-  .clienti-scroll { scroll-snap-type: none; }
+  .clienti-scroll { scroll-snap-type: none; gap: 26px; }
 }
 
 /* Logo tondo: l'immagine RIEMPIE il cerchio e viene ritagliata, cosi un logo
@@ -2534,6 +2534,14 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
 .cliente-desc {
   font-size: .78rem; color: var(--text-muted);
   line-height: 1.45; margin-bottom: 11px;
+  /* massimo 2 righe: senza questo limite una descrizione lunga alzerebbe
+     TUTTE le card (sono in flex, stanno alla piu alta) e su finestre strette
+     il formato diventerebbe quadrato invece che orizzontale */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .cliente-links {
   display: flex; flex-wrap: wrap; gap: 6px;
@@ -2591,10 +2599,48 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
   .clienti-nav:active:not(:disabled) { transform: translateY(-50%); }
 }
 
-/* Desktop: card piu grandi. Restano 3 visibili + uno spicchio della quarta
-   (fa capire che il carosello continua), quindi per ingrandirle la fascia
-   esce dal contenitore (1152px) e si allarga fino a 1440px, centrandosi con
-   margini negativi. Titolo e hint restano allineati al resto della pagina. */
+/* Desktop: 3 card visibili + uno spicchio della quarta (fa capire che il
+   carosello continua).
+   Le misure NON sono a gradini ma crescono con la finestra da 1025px a
+   1440px: con uno scalino secco a 1200px la card diventava improvvisamente
+   piu alta che larga, perche' il contenuto si ingrandiva prima che ci fosse
+   spazio in larghezza. Le clamp() tengono il rapporto intorno a 1.4 ovunque. */
+@media (min-width: 1025px) {
+  /* 3 card + 3 gap (26px) + spicchio della 4a (34px) = larghezza visibile */
+  .cliente-card {
+    flex-basis: calc((100% - 112px) / 3);
+    border-radius: 24px;
+    padding: clamp(18px, 3.86vw - 21.5px, 34px)
+             clamp(20px, 2.41vw - 4.7px, 30px)
+             clamp(17px, 3.61vw - 20px, 32px);
+  }
+  .cliente-logo {
+    width:  clamp(60px, 6.75vw - 9.2px, 88px);
+    height: clamp(60px, 6.75vw - 9.2px, 88px);
+    box-shadow: 0 0 0 7px rgba(123,92,240,.07);
+    margin-bottom: clamp(10px, 1.93vw - 9.8px, 18px);
+  }
+  .cliente-nome {
+    font-size: clamp(.96rem, .694vw + 8.25px, 1.14rem);
+    letter-spacing: -.02em;
+    margin-bottom: clamp(4px, .964vw - 5.9px, 8px);
+  }
+  .cliente-desc {
+    font-size: clamp(.78rem, .308vw + 9.32px, .86rem);
+    line-height: 1.5;
+    margin-bottom: clamp(11px, 2.17vw - 11.2px, 20px);
+  }
+  .cliente-links { gap: clamp(6px, .482vw + 1.1px, 8px); }
+  .cliente-links a {
+    font-size: clamp(.71rem, .27vw + 8.6px, .78rem);
+    padding: clamp(6px, .723vw - 1.4px, 9px) clamp(12px, .723vw + 4.6px, 15px);
+  }
+  .clienti-hint { margin-top: 6px; }
+}
+
+/* Da 1200px in su c'e' spazio per allargare la fascia oltre al contenitore
+   (1152px) fino a 1440px, centrandola con margini negativi. Titolo e hint
+   restano allineati al resto della pagina. */
 @media (min-width: 1200px) {
   .clienti-carousel {
     --vetrina-w: min(1440px, max(1152px, 100vw - 64px));
@@ -2602,28 +2648,15 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
     margin-left: calc((1152px - var(--vetrina-w)) / 2);
     margin-right: calc((1152px - var(--vetrina-w)) / 2);
   }
-  .clienti-scroll { gap: 28px; }
-  /* 3 card + 3 gap (28px) + spicchio della 4a (34px) = larghezza visibile */
-  .cliente-card {
-    flex-basis: calc((100% - 118px) / 3);
-    border-radius: 24px;
-    padding: 34px 30px 32px;
-  }
-  .cliente-logo {
-    width: 88px; height: 88px;
-    box-shadow: 0 0 0 7px rgba(123,92,240,.07);
-    margin-bottom: 18px;
-  }
-  .cliente-nome { font-size: 1.14rem; letter-spacing: -.02em; margin-bottom: 8px; }
-  .cliente-desc { font-size: .86rem; line-height: 1.55; margin-bottom: 20px; }
-  .cliente-links { gap: 8px; }
-  .cliente-links a { font-size: .78rem; padding: 9px 15px; }
-  .clienti-hint { margin-top: 6px; }
 }
 
-/* Tablet: 2 card visibili + spicchio della terza */
-@media (max-width: 1024px) {
-  .cliente-card { flex-basis: calc((100% - 78px) / 2); }
+/* Finestre medie (tablet e desktop stretti): 2 card + spicchio della terza.
+   Sotto i 1280px tre card starebbero a ~290px l'una: le pill dei link
+   andrebbero a capo su due righe e, essendo le card in flex (tutte alte
+   quanto la piu alta), il formato diventerebbe quadrato. Con due card la
+   larghezza torna sufficiente e il rapporto resta orizzontale. */
+@media (max-width: 1399px) {
+  .cliente-card { flex-basis: calc((100% - 86px) / 2); }
 }
 /* Telefono: 1 card a tutta larghezza (resta orizzontale) */
 @media (max-width: 768px) {

@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=18" />
+  <link rel="stylesheet" href="css/style.css?v=19" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -947,9 +947,14 @@
           const next = document.getElementById('clienti-next');
           const mqDesktop = window.matchMedia('(min-width: 769px)');
           const mqCalmo   = window.matchMedia('(prefers-reduced-motion: reduce)');
-          // effetti dinamici solo da tablet in su e se l'utente non ha chiesto
-          // di ridurre le animazioni; sul telefono si scorre a dito e basta
-          const dinamico = () => mqDesktop.matches && !mqCalmo.matches;
+          // La profondita 3D non e' movimento: e' il modo in cui le card sono
+          // disposte. Resta anche con "riduci animazioni" attivo, si limita a
+          // non aggiornarsi da sola (solo quando l'utente muove il carosello).
+          const profondita = () => mqDesktop.matches;
+          // Lo scorrimento automatico invece e' movimento che l'utente non ha
+          // chiesto: si spegne con "riduci animazioni". Sul telefono niente di
+          // tutto questo, si scorre a dito.
+          const autoScorre = () => mqDesktop.matches && !mqCalmo.matches;
 
           const maxScroll = () => Math.max(0, wrap.scrollWidth - wrap.clientWidth);
           // passo = larghezza di una card + il gap fra le card.
@@ -1014,9 +1019,13 @@
             pos = bersaglio = wrap.scrollLeft;
           };
 
+          // ridisegna la profondita senza animare nulla: serve quando lo
+          // scorrimento automatico e' spento ma le card si sono spostate
+          const aggiornaProfondita = () => { if (profondita()) coverflow(); else azzera3d(); };
+
           const tick = () => {
             raf = 0;
-            if (!dinamico()) { azzera3d(); return; }
+            if (!autoScorre()) { aggiornaProfondita(); return; }
             const max = maxScroll();
             if (max > 2) {
               // se il carosello si e' mosso per conto suo (trascinamento,
@@ -1037,11 +1046,11 @@
             coverflow();
             if (inVista) raf = requestAnimationFrame(tick);
           };
-          const avvia = () => { if (!raf && inVista && dinamico()) raf = requestAnimationFrame(tick); };
+          const avvia = () => { if (!raf && inVista && autoScorre()) raf = requestAnimationFrame(tick); };
 
           const vai = (dir) => {
             const p = passo();
-            if (dinamico()) {
+            if (autoScorre()) {
               // bersaglio agganciato alla griglia delle card, cosi i click
               // ripetuti non accumulano sbavature di mezzo pixel
               const base = manuale ? bersaglio : wrap.scrollLeft;
@@ -1065,13 +1074,16 @@
           wrap.addEventListener('pointerdown', prendiIlComando, { passive: true });
           wrap.addEventListener('touchstart', prendiIlComando, { passive: true });
 
-          wrap.addEventListener('scroll', sync, { passive: true });
-          window.addEventListener('resize', () => {
+          wrap.addEventListener('scroll', () => {
             sync();
-            if (dinamico()) avvia(); else azzera3d();
-          });
+            // con lo scorrimento automatico acceso ci pensa gia il ciclo di
+            // animazione; senza, la profondita va ricalcolata qui
+            if (!autoScorre()) aggiornaProfondita();
+          }, { passive: true });
+          const rivaluta = () => { sync(); aggiornaProfondita(); avvia(); };
+          window.addEventListener('resize', rivaluta);
           [mqDesktop, mqCalmo].forEach(mq => mq.addEventListener &&
-            mq.addEventListener('change', () => { if (dinamico()) avvia(); else azzera3d(); }));
+            mq.addEventListener('change', rivaluta));
 
           if ('IntersectionObserver' in window) {
             new IntersectionObserver((voci) => { inVista = voci[0].isIntersecting; avvia(); },
@@ -1079,7 +1091,7 @@
           } else { inVista = true; avvia(); }
 
           sync();
-          if (dinamico()) coverflow();
+          aggiornaProfondita();
         } catch (_) { /* vetrina non disponibile: la sezione resta nascosta */ }
       })();
 
