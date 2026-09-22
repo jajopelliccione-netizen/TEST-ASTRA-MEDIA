@@ -2446,12 +2446,21 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
    del carosello e, da desktop, ad allargare la fascia oltre al .container. */
 .clienti-carousel { position: relative; }
 
+/* --lift registrata come proprieta tipizzata: cosi il sollevamento in hover
+   puo essere animato mentre la rotazione 3D viene riscritta ogni frame dal JS
+   (se il browser non supporta @property il lift scatta senza easing, nulla di
+   rotto). */
+@property --lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
 .clienti-scroll {
   display: flex;
   gap: 24px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
+  /* punto di fuga al centro del carosello: da qui nasce l'effetto coverflow */
+  perspective: 1500px;
+  perspective-origin: 50% 46%;
   padding: 14px 0 28px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -2476,12 +2485,25 @@ a, button { -webkit-tap-highlight-color: rgba(123,92,240,.2); }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: transform .35s cubic-bezier(.4,0,.2,1), border-color .3s, box-shadow .35s;
+  /* --rot/--sc/--tz/--tx li scrive il JS in base alla distanza dal centro del
+     carosello (coverflow); --lift e' solo l'hover. Senza JS restano ai valori
+     iniziali e la trasformazione e' l'identita: la card e' semplicemente piatta.
+     --tx richiude verso il centro lo spazio che la rotazione lascia scoperto. */
+  transform: translateY(var(--lift, 0px)) translateX(var(--tx, 0px))
+             translateZ(var(--tz, 0px)) rotateY(var(--rot, 0deg)) scale(var(--sc, 1));
+  transition: --lift .35s cubic-bezier(.4,0,.2,1), border-color .3s, box-shadow .35s;
 }
 .cliente-card:hover {
-  transform: translateY(-5px);
+  --lift: -6px;
   border-color: rgba(123,92,240,.55);
   box-shadow: 0 18px 46px rgba(0,0,0,.5), 0 0 42px rgba(123,92,240,.16);
+}
+/* Da tablet in su il carosello e' pilotato dal JS (scorrimento legato allo
+   scroll della pagina + coverflow): lo snap darebbe strattoni contro lo
+   scorrimento fluido, quindi resta attivo solo sul telefono, dove si scorre
+   con il dito. */
+@media (min-width: 769px) {
+  .clienti-scroll { scroll-snap-type: none; }
 }
 
 /* Logo tondo: l'immagine RIEMPIE il cerchio e viene ritagliata, cosi un logo

@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=17" />
+  <link rel="stylesheet" href="css/style.css?v=18" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -940,32 +940,146 @@
           const hint = document.querySelector('.clienti-hint');
           if (hint && items.length <= 3) hint.style.display = 'none';
 
-          // ── Frecce laterali: scorrono una card alla volta ────────────
+          // ── Carosello: frecce, scorrimento legato alla pagina, 3D ────
+          const carousel = document.querySelector('.clienti-carousel');
+          const sezione  = document.getElementById('clienti');
           const prev = document.getElementById('clienti-prev');
           const next = document.getElementById('clienti-next');
-          if (prev && next) {
-            // passo = larghezza di una card + il gap fra le card
-            const step = () => {
-              const card = wrap.querySelector('.cliente-card');
-              if (!card) return wrap.clientWidth;
-              const gap = parseFloat(getComputedStyle(wrap).columnGap) || 0;
-              return card.getBoundingClientRect().width + gap;
-            };
-            const sync = () => {
-              // 2px di tolleranza: gli scroll frazionari non arrivano mai esatti
-              const max = wrap.scrollWidth - wrap.clientWidth;
-              const scrollabile = max > 2;
-              document.querySelector('.clienti-carousel').classList.toggle('no-nav', !scrollabile);
-              prev.disabled = wrap.scrollLeft <= 2;
-              next.disabled = wrap.scrollLeft >= max - 2;
-            };
-            const vai = (dir) => wrap.scrollBy({ left: dir * step(), behavior: 'smooth' });
-            prev.addEventListener('click', () => vai(-1));
-            next.addEventListener('click', () => vai(1));
-            wrap.addEventListener('scroll', sync, { passive: true });
-            window.addEventListener('resize', sync);
+          const mqDesktop = window.matchMedia('(min-width: 769px)');
+          const mqCalmo   = window.matchMedia('(prefers-reduced-motion: reduce)');
+          // effetti dinamici solo da tablet in su e se l'utente non ha chiesto
+          // di ridurre le animazioni; sul telefono si scorre a dito e basta
+          const dinamico = () => mqDesktop.matches && !mqCalmo.matches;
+
+          const maxScroll = () => Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+          // passo = larghezza di una card + il gap fra le card.
+          // Ricavato dallo scrollWidth e non da getBoundingClientRect: le card
+          // sono ruotate in 3D e il loro rettangolo a schermo non corrisponde
+          // piu alla larghezza di layout.
+          const passo = () => {
+            const n = wrap.querySelectorAll('.cliente-card').length;
+            if (!n) return wrap.clientWidth;
+            const gap = parseFloat(getComputedStyle(wrap).columnGap) || 0;
+            return (wrap.scrollWidth + gap) / n;
+          };
+          const sync = () => {
+            // 2px di tolleranza: gli scroll frazionari non arrivano mai esatti
+            const max = maxScroll();
+            if (carousel) carousel.classList.toggle('no-nav', max <= 2);
+            if (prev) prev.disabled = wrap.scrollLeft <= 2;
+            if (next) next.disabled = wrap.scrollLeft >= max - 2;
+          };
+
+          // avanzamento della sezione nella finestra:
+          // 0 = sta entrando dal basso, 1 = sta uscendo in alto
+          const avanzamento = () => {
+            const r = sezione.getBoundingClientRect();
+            const h = window.innerHeight || 1;
+            return Math.min(1, Math.max(0, (h - r.top) / (h + r.height)));
+          };
+
+          // coverflow: piu una card e' lontana dal centro, piu e' girata,
+          // rimpicciolita e spinta indietro nello spazio.
+          // Le posizioni arrivano da offsetLeft/offsetWidth (layout puro): con
+          // getBoundingClientRect la rotazione misurerebbe se stessa e il
+          // risultato oscillerebbe.
+          const coverflow = () => {
+            const mezza = wrap.clientWidth / 2 || 1;
+            wrap.querySelectorAll('.cliente-card').forEach(card => {
+              const x = card.offsetLeft - wrap.scrollLeft + card.offsetWidth / 2;
+              const t = Math.max(-1, Math.min(1, (x - mezza) / mezza));
+              const d = Math.abs(t);
+              card.style.setProperty('--rot', (-t * 14).toFixed(2) + 'deg');
+              card.style.setProperty('--sc', (1 - d * 0.04).toFixed(3));
+              card.style.setProperty('--tz', (-d * 45).toFixed(1) + 'px');
+              // rotazione e rimpicciolimento restringono la card: la riavvicino
+              // al centro cosi lo spazio fra le card resta uniforme
+              card.style.setProperty('--tx', (-t * 16).toFixed(1) + 'px');
+            });
+          };
+          const azzera3d = () => wrap.querySelectorAll('.cliente-card').forEach(c => {
+            c.style.removeProperty('--rot');
+            c.style.removeProperty('--sc');
+            c.style.removeProperty('--tz');
+            c.style.removeProperty('--tx');
+          });
+
+          // `pos` e' la posizione in virgola mobile che pilotiamo noi: leggere
+          // ogni frame wrap.scrollLeft (arrotondato dal browser) farebbe
+          // impantanare l'avvicinamento negli ultimi pixel.
+          let pos = wrap.scrollLeft, ultimoScritto = -1;
+          let bersaglio = pos, manuale = false, ancoraY = 0, raf = 0, inVista = false;
+          const prendiIlComando = () => {
+            manuale = true; ancoraY = window.scrollY;
+            pos = bersaglio = wrap.scrollLeft;
+          };
+
+          const tick = () => {
+            raf = 0;
+            if (!dinamico()) { azzera3d(); return; }
+            const max = maxScroll();
+            if (max > 2) {
+              // se il carosello si e' mosso per conto suo (trascinamento,
+              // tastiera, ancora interna) ripartiamo da dove si trova davvero
+              if (ultimoScritto >= 0 && Math.abs(wrap.scrollLeft - ultimoScritto) > 2) {
+                pos = wrap.scrollLeft;
+                if (manuale) bersaglio = pos;
+              }
+              // il comando torna allo scroll della pagina appena l'utente
+              // riprende a scorrere davvero (oltre 60px dal gesto manuale)
+              if (manuale && Math.abs(window.scrollY - ancoraY) > 60) manuale = false;
+              if (!manuale) bersaglio = avanzamento() * max;
+              pos += (bersaglio - pos) * 0.11;
+              if (Math.abs(bersaglio - pos) < 0.5) pos = bersaglio;
+              wrap.scrollLeft = pos;
+              ultimoScritto = wrap.scrollLeft;
+            }
+            coverflow();
+            if (inVista) raf = requestAnimationFrame(tick);
+          };
+          const avvia = () => { if (!raf && inVista && dinamico()) raf = requestAnimationFrame(tick); };
+
+          const vai = (dir) => {
+            const p = passo();
+            if (dinamico()) {
+              // bersaglio agganciato alla griglia delle card, cosi i click
+              // ripetuti non accumulano sbavature di mezzo pixel
+              const base = manuale ? bersaglio : wrap.scrollLeft;
+              const indice = Math.round(base / p) + dir;
+              bersaglio = Math.max(0, Math.min(maxScroll(), indice * p));
+              manuale = true; ancoraY = window.scrollY;
+              avvia();
+            } else {
+              wrap.scrollBy({ left: dir * p, behavior: 'smooth' });
+            }
+          };
+          if (prev) prev.addEventListener('click', () => vai(-1));
+          if (next) next.addEventListener('click', () => vai(1));
+
+          // gesti diretti sul carosello: il comando passa all'utente.
+          // La rotella conta solo se orizzontale, altrimenti scorrere la
+          // pagina con il mouse sopra alle card bloccherebbe l'animazione.
+          wrap.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) prendiIlComando();
+          }, { passive: true });
+          wrap.addEventListener('pointerdown', prendiIlComando, { passive: true });
+          wrap.addEventListener('touchstart', prendiIlComando, { passive: true });
+
+          wrap.addEventListener('scroll', sync, { passive: true });
+          window.addEventListener('resize', () => {
             sync();
-          }
+            if (dinamico()) avvia(); else azzera3d();
+          });
+          [mqDesktop, mqCalmo].forEach(mq => mq.addEventListener &&
+            mq.addEventListener('change', () => { if (dinamico()) avvia(); else azzera3d(); }));
+
+          if ('IntersectionObserver' in window) {
+            new IntersectionObserver((voci) => { inVista = voci[0].isIntersecting; avvia(); },
+              { threshold: 0 }).observe(sezione);
+          } else { inVista = true; avvia(); }
+
+          sync();
+          if (dinamico()) coverflow();
         } catch (_) { /* vetrina non disponibile: la sezione resta nascosta */ }
       })();
 
