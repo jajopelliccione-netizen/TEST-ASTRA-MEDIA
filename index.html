@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20" />
+  <link rel="stylesheet" href="css/style.css?v=21" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -946,18 +946,21 @@
           const prev = document.getElementById('clienti-prev');
           const next = document.getElementById('clienti-next');
           const mqDesktop = window.matchMedia('(min-width: 769px)');
-          const mqCalmo   = window.matchMedia('(prefers-reduced-motion: reduce)');
-          // La profondita 3D non e' movimento: e' il modo in cui le card sono
-          // disposte. Resta anche con "riduci animazioni" attivo, si limita a
-          // non aggiornarsi da sola (solo quando l'utente muove il carosello).
+          // La profondita 3D e lo scorrimento legato alla pagina valgono da
+          // tablet in su. Sul telefono no: li si scorre a dito.
           const profondita = () => mqDesktop.matches;
-          // Lo scorrimento del carosello segue la pagina da tablet in su.
-          // Sul telefono no: li si scorre a dito.
           const autoScorre = () => mqDesktop.matches;
-          // Con "riduci animazioni" il carosello si muove comunque, ma senza
-          // inerzia: la posizione segue esattamente quella dello scroll, cosi
-          // nulla continua a muoversi dopo che l'utente si e' fermato.
-          const senzaInerzia = () => mqCalmo.matches;
+
+          // Molla criticamente smorzata (zeta = 1): il carosello non insegue
+          // il bersaglio a strappi, parte piano, prende velocita e si ferma
+          // senza rimbalzare. Se il bersaglio cambia a meta' corsa riparte da
+          // dove si trova con la velocita che ha gia', quindi frecce e scroll
+          // non si azzuffano mai.
+          // Due tarature, perche' i due movimenti hanno intenzioni diverse:
+          // inseguire lo scroll vuole una molla morbida, che resti un po'
+          // indietro e dia il senso di peso; una freccia premuta vuole una
+          // risposta decisa, che arrivi e si fermi.
+          const FREQ_SEGUE = 1.0, FREQ_FRECCIA = 1.7;    // Hz
 
           const maxScroll = () => Math.max(0, wrap.scrollWidth - wrap.clientWidth);
           // passo = larghezza di una card + il gap fra le card.
@@ -983,7 +986,14 @@
           const avanzamento = () => {
             const r = sezione.getBoundingClientRect();
             const h = window.innerHeight || 1;
-            return Math.min(1, Math.max(0, (h - r.top) / (h + r.height)));
+            const p = Math.min(1, Math.max(0, (h - r.top) / (h + r.height)));
+            // Curva di avanzamento: smoothstep puro (p²(3-2p)) ha pendenza
+            // ZERO agli estremi e 1.5 al centro, quindi lasciava il carosello
+            // fermo a lungo per poi farlo schizzare e inchiodare in fondo.
+            // Mescolato al lineare la pendenza resta fra 0.65 e 1.18: parte
+            // subito, non ha strappi al centro e arriva in fondo piano.
+            const s = p * p * (3 - 2 * p);
+            return 0.35 * s + 0.65 * p;
           };
 
           // coverflow: piu una card e' lontana dal centro, piu e' girata,
@@ -1015,37 +1025,52 @@
           // `pos` e' la posizione in virgola mobile che pilotiamo noi: leggere
           // ogni frame wrap.scrollLeft (arrotondato dal browser) farebbe
           // impantanare l'avvicinamento negli ultimi pixel.
-          let pos = wrap.scrollLeft, ultimoScritto = -1;
+          let pos = wrap.scrollLeft, ultimoScritto = -1, vel = 0, ultimoT = 0;
           let bersaglio = pos, manuale = false, ancoraY = 0, raf = 0, inVista = false;
           const prendiIlComando = () => {
             manuale = true; ancoraY = window.scrollY;
-            pos = bersaglio = wrap.scrollLeft;
+            pos = bersaglio = wrap.scrollLeft; vel = 0;
           };
 
           // ridisegna la profondita senza animare nulla: serve quando lo
           // scorrimento automatico e' spento ma le card si sono spostate
           const aggiornaProfondita = () => { if (profondita()) coverflow(); else azzera3d(); };
 
-          const tick = () => {
+          const tick = (ora) => {
             raf = 0;
-            if (!autoScorre()) { aggiornaProfondita(); return; }
+            if (!autoScorre()) { aggiornaProfondita(); ultimoT = 0; return; }
+            // passo di tempo reale, non "un frame": cosi la molla si comporta
+            // uguale a 60, 120 o 144Hz. Il tetto a 50ms evita che, tornando su
+            // una scheda lasciata in background, un salto enorme la faccia
+            // esplodere.
+            const dt = ultimoT ? Math.min(0.05, (ora - ultimoT) / 1000) : 1 / 60;
+            ultimoT = ora;
+
             const max = maxScroll();
             if (max > 2) {
               // se il carosello si e' mosso per conto suo (trascinamento,
               // tastiera, ancora interna) ripartiamo da dove si trova davvero
               if (ultimoScritto >= 0 && Math.abs(wrap.scrollLeft - ultimoScritto) > 2) {
-                pos = wrap.scrollLeft;
+                pos = wrap.scrollLeft; vel = 0;
                 if (manuale) bersaglio = pos;
               }
               // il comando torna allo scroll della pagina appena l'utente
               // riprende a scorrere davvero (oltre 60px dal gesto manuale)
               if (manuale && Math.abs(window.scrollY - ancoraY) > 60) manuale = false;
               if (!manuale) bersaglio = avanzamento() * max;
-              if (senzaInerzia()) pos = bersaglio;
-              else {
-                pos += (bersaglio - pos) * 0.11;
-                if (Math.abs(bersaglio - pos) < 0.5) pos = bersaglio;
+
+              // integrazione della molla (Eulero semi-implicito)
+              const w = 2 * Math.PI * (manuale ? FREQ_FRECCIA : FREQ_SEGUE);
+              vel += (w * w * (bersaglio - pos) - 2 * w * vel) * dt;
+              pos += vel * dt;
+              // arrivata: azzero per non restare a vibrare su frazioni di pixel
+              if (Math.abs(bersaglio - pos) < 0.35 && Math.abs(vel) < 10) {
+                pos = bersaglio; vel = 0;
               }
+              // ai bordi la molla non deve continuare a caricarsi
+              if (pos < 0)   { pos = 0;   vel = 0; }
+              if (pos > max) { pos = max; vel = 0; }
+
               wrap.scrollLeft = pos;
               ultimoScritto = wrap.scrollLeft;
             }
@@ -1088,11 +1113,14 @@
           }, { passive: true });
           const rivaluta = () => { sync(); aggiornaProfondita(); avvia(); };
           window.addEventListener('resize', rivaluta);
-          [mqDesktop, mqCalmo].forEach(mq => mq.addEventListener &&
-            mq.addEventListener('change', rivaluta));
+          if (mqDesktop.addEventListener) mqDesktop.addEventListener('change', rivaluta);
 
           if ('IntersectionObserver' in window) {
-            new IntersectionObserver((voci) => { inVista = voci[0].isIntersecting; avvia(); },
+            new IntersectionObserver((voci) => {
+              inVista = voci[0].isIntersecting;
+              if (!inVista) ultimoT = 0;   // al rientro il primo dt riparte pulito
+              avvia();
+            },
               { threshold: 0 }).observe(sezione);
           } else { inVista = true; avvia(); }
 
