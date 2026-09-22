@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=16" />
+  <link rel="stylesheet" href="css/style.css?v=17" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -604,7 +604,15 @@
         <h2>Brand che crescono <span class="gradient-text">con noi</span></h2>
         <p>Siti web, social e contenuti: ecco alcune delle realtà che seguiamo ogni giorno. Dai un'occhiata al loro mondo.</p>
       </div>
-      <div class="clienti-scroll" id="clienti-scroll"></div>
+      <div class="clienti-carousel">
+        <button type="button" class="clienti-nav prev" id="clienti-prev" aria-label="Card precedente" aria-controls="clienti-scroll">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="clienti-scroll" id="clienti-scroll"></div>
+        <button type="button" class="clienti-nav next" id="clienti-next" aria-label="Card successiva" aria-controls="clienti-scroll">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
       <p class="clienti-hint">Scorri per vedere tutti →</p>
     </div>
   </section>
@@ -931,6 +939,33 @@
           // più di 3 card: mostra il suggerimento di scorrimento
           const hint = document.querySelector('.clienti-hint');
           if (hint && items.length <= 3) hint.style.display = 'none';
+
+          // ── Frecce laterali: scorrono una card alla volta ────────────
+          const prev = document.getElementById('clienti-prev');
+          const next = document.getElementById('clienti-next');
+          if (prev && next) {
+            // passo = larghezza di una card + il gap fra le card
+            const step = () => {
+              const card = wrap.querySelector('.cliente-card');
+              if (!card) return wrap.clientWidth;
+              const gap = parseFloat(getComputedStyle(wrap).columnGap) || 0;
+              return card.getBoundingClientRect().width + gap;
+            };
+            const sync = () => {
+              // 2px di tolleranza: gli scroll frazionari non arrivano mai esatti
+              const max = wrap.scrollWidth - wrap.clientWidth;
+              const scrollabile = max > 2;
+              document.querySelector('.clienti-carousel').classList.toggle('no-nav', !scrollabile);
+              prev.disabled = wrap.scrollLeft <= 2;
+              next.disabled = wrap.scrollLeft >= max - 2;
+            };
+            const vai = (dir) => wrap.scrollBy({ left: dir * step(), behavior: 'smooth' });
+            prev.addEventListener('click', () => vai(-1));
+            next.addEventListener('click', () => vai(1));
+            wrap.addEventListener('scroll', sync, { passive: true });
+            window.addEventListener('resize', sync);
+            sync();
+          }
         } catch (_) { /* vetrina non disponibile: la sezione resta nascosta */ }
       })();
 
