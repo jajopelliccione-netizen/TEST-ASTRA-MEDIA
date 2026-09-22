@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=19" />
+  <link rel="stylesheet" href="css/style.css?v=20" />
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -951,10 +951,13 @@
           // disposte. Resta anche con "riduci animazioni" attivo, si limita a
           // non aggiornarsi da sola (solo quando l'utente muove il carosello).
           const profondita = () => mqDesktop.matches;
-          // Lo scorrimento automatico invece e' movimento che l'utente non ha
-          // chiesto: si spegne con "riduci animazioni". Sul telefono niente di
-          // tutto questo, si scorre a dito.
-          const autoScorre = () => mqDesktop.matches && !mqCalmo.matches;
+          // Lo scorrimento del carosello segue la pagina da tablet in su.
+          // Sul telefono no: li si scorre a dito.
+          const autoScorre = () => mqDesktop.matches;
+          // Con "riduci animazioni" il carosello si muove comunque, ma senza
+          // inerzia: la posizione segue esattamente quella dello scroll, cosi
+          // nulla continua a muoversi dopo che l'utente si e' fermato.
+          const senzaInerzia = () => mqCalmo.matches;
 
           const maxScroll = () => Math.max(0, wrap.scrollWidth - wrap.clientWidth);
           // passo = larghezza di una card + il gap fra le card.
@@ -1038,8 +1041,11 @@
               // riprende a scorrere davvero (oltre 60px dal gesto manuale)
               if (manuale && Math.abs(window.scrollY - ancoraY) > 60) manuale = false;
               if (!manuale) bersaglio = avanzamento() * max;
-              pos += (bersaglio - pos) * 0.11;
-              if (Math.abs(bersaglio - pos) < 0.5) pos = bersaglio;
+              if (senzaInerzia()) pos = bersaglio;
+              else {
+                pos += (bersaglio - pos) * 0.11;
+                if (Math.abs(bersaglio - pos) < 0.5) pos = bersaglio;
+              }
               wrap.scrollLeft = pos;
               ultimoScritto = wrap.scrollLeft;
             }
