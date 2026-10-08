@@ -29,10 +29,33 @@ jobs:
           rsync -a \
             --exclude='functions/' \
             --exclude='firebase-functions/' \
+            --exclude='outreach/' \
             --exclude='.github/' \
             --exclude='_deploy/' \
             --exclude='.git/' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='*.db' \
+            --exclude='*.sqlite' \
+            --exclude='*.sqlite3' \
             . _deploy/
+
+      # Rete di sicurezza: il sito e' pubblico, quindi qualunque file finito
+      # per sbaglio in _deploy sarebbe scaricabile da chiunque. Se compare
+      # roba che non deve uscire, il deploy si ferma invece di pubblicarla.
+      - name: Verifica che non esca nulla di riservato
+        run: |
+          trovati=$(find _deploy \
+            \( -name '.env' -o -name '.env.*' -o -name '*.db' -o -name '*.sqlite*' \
+               -o -name '*.pem' -o -name '*.key' -o -name 'serviceAccount*.json' \) \
+            -not -path '*/node_modules/*' -print)
+          if [ -n "$trovati" ] || [ -d _deploy/outreach ]; then
+            echo "::error::Deploy interrotto: file riservati in _deploy"
+            echo "$trovati"
+            [ -d _deploy/outreach ] && echo "_deploy/outreach"
+            exit 1
+          fi
+          echo "Nessun file riservato: si procede."
 
       - uses: actions/configure-pages@v4
 

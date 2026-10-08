@@ -1,2 +1,32 @@
 .wrangler/
 node_modules/
+
+# ─────────────────────────────────────────────────────────────────────────
+#  ATTENZIONE: questo repository e' PUBBLICO.
+#  Tutto cio' che viene committato e' leggibile da chiunque su GitHub.
+#  Le righe qui sotto tengono fuori segreti e dati personali dei lead.
+#  Non rimuoverle e non forzare l'aggiunta con `git add -f`.
+# ─────────────────────────────────────────────────────────────────────────
+
+# Segreti
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+serviceAccount*.json
+
+# Database e dati dei lead (dati personali: non devono mai finire in git)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+outreach/data/
+outreach/**/esportazioni/
+outreach/**/screenshot/
+
+# Build
+outreach/**/.next/
+outreach/**/dist/
+outreach/**/build/
+.DS_Store

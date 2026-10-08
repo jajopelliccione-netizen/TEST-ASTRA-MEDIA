@@ -1,0 +1,488 @@
+/* Stessi colori e caratteri del sito astragency.it, cosi' lo strumento
+   interno non sembra un corpo estraneo. */
+:root {
+  --purple: #7b5cf0;
+  --purple-light: #b44fd8;
+  --pink: #ff2d78;
+  --cyan: #00f5ff;
+  --green: #00e5a0;
+  --amber: #ffb020;
+
+  --bg: #07060f;
+  --bg2: #0d0b1a;
+  --bg3: #120f22;
+  --text: #f0eeff;
+  --muted: #9b91c7;
+  --border: rgba(123, 92, 240, 0.25);
+  --border-forte: rgba(123, 92, 240, 0.5);
+
+  --font-head: 'Syne', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Guscio ─────────────────────────────────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  background: rgba(7, 6, 15, 0.86);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.nav-marchio {
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-right: 14px;
+  font-size: 1.02rem;
+}
+.nav-marchio span {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.nav a.voce {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: background 0.2s, color 0.2s;
+}
+.nav a.voce:hover {
+  background: rgba(123, 92, 240, 0.14);
+  color: var(--text);
+}
+.nav a.voce.attiva {
+  background: rgba(123, 92, 240, 0.22);
+  color: var(--text);
+}
+.nav .pastiglia {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--pink);
+  color: #fff;
+}
+.nav-spazio {
+  flex: 1;
+}
+
+.contenuto {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+h1 {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.55rem;
+  letter-spacing: -0.025em;
+  margin-bottom: 4px;
+}
+h2 {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  margin-bottom: 12px;
+}
+.sottotitolo {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+/* ── Riquadri ───────────────────────────────────────────────────────── */
+.riquadro {
+  background: linear-gradient(180deg, var(--bg3), var(--bg2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+.riquadro + .riquadro {
+  margin-top: 16px;
+}
+
+.griglia-stati {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.tessera {
+  background: linear-gradient(180deg, var(--bg3), var(--bg2));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.tessera:hover {
+  border-color: var(--border-forte);
+  transform: translateY(-2px);
+}
+.tessera .numero {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.7rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tessera .etichetta {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+/* ── Tabelle ────────────────────────────────────────────────────────── */
+.tabella {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+.tabella th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.tabella td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(123, 92, 240, 0.12);
+  vertical-align: middle;
+}
+.tabella tr:last-child td {
+  border-bottom: none;
+}
+.tabella tbody tr {
+  transition: background 0.15s;
+}
+.tabella tbody tr:hover {
+  background: rgba(123, 92, 240, 0.07);
+}
+.tabella .nome {
+  font-weight: 700;
+}
+.tabella .secondario {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.scorri-x {
+  overflow-x: auto;
+}
+
+/* ── Stato ──────────────────────────────────────────────────────────── */
+.stato {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.stato .punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.targhetta {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.targhetta.allarme {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+.targhetta.ok {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ── Bottoni ────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 90ms ease-out, opacity 0.2s;
+}
+.btn:hover {
+  background: rgba(123, 92, 240, 0.16);
+  border-color: var(--purple);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn.principale {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border-color: transparent;
+}
+.btn.principale:hover {
+  box-shadow: 0 0 22px rgba(123, 92, 240, 0.45);
+}
+.btn.verde {
+  border-color: var(--green);
+  color: var(--green);
+}
+.btn.verde:hover {
+  background: rgba(0, 229, 160, 0.14);
+}
+.btn.rosso {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+.btn.rosso:hover {
+  background: rgba(255, 45, 120, 0.14);
+}
+.btn.piccolo {
+  font-size: 0.76rem;
+  padding: 6px 12px;
+}
+.btn.whatsapp {
+  border-color: #25d366;
+  color: #25d366;
+}
+.btn.whatsapp:hover {
+  background: rgba(37, 211, 102, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active,
+  .tessera:hover {
+    transform: none;
+  }
+}
+
+/* ── Moduli ─────────────────────────────────────────────────────────── */
+.campo {
+  margin-bottom: 14px;
+}
+.campo label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+.campo textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.55;
+}
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: 2px solid var(--purple);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.campo .aiuto {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.riga-campi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 14px;
+}
+
+/* ── Avvisi ─────────────────────────────────────────────────────────── */
+.avviso {
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin-bottom: 18px;
+  border: 1px solid;
+}
+.avviso.attenzione {
+  background: rgba(255, 176, 32, 0.09);
+  border-color: rgba(255, 176, 32, 0.45);
+}
+.avviso.pericolo {
+  background: rgba(255, 45, 120, 0.09);
+  border-color: rgba(255, 45, 120, 0.45);
+}
+.avviso.info {
+  background: rgba(0, 245, 255, 0.07);
+  border-color: rgba(0, 245, 255, 0.35);
+}
+.avviso strong {
+  font-weight: 700;
+}
+
+.vuoto {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ── Email ──────────────────────────────────────────────────────────── */
+.email {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.email .oggetto {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.email .corpo {
+  white-space: pre-wrap;
+  font-size: 0.87rem;
+  line-height: 1.62;
+  color: #d9d4f5;
+}
+.email.entrata {
+  border-left: 3px solid var(--green);
+}
+.email.uscita {
+  border-left: 3px solid var(--purple);
+}
+
+.barra-azioni {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.due-colonne {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .due-colonne {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dato {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(123, 92, 240, 0.12);
+  font-size: 0.85rem;
+}
+.dato:last-child {
+  border-bottom: none;
+}
+.dato .chiave {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.dato .valore {
+  text-align: right;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.elenco-problemi {
+  list-style: none;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+.elenco-problemi li {
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 5px;
+  color: #d9d4f5;
+}
+.elenco-problemi li::before {
+  content: '▸';
+  position: absolute;
+  left: 4px;
+  color: var(--amber);
+}
+
+.orari {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

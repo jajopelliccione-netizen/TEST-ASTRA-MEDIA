@@ -1,0 +1,197 @@
+// Schema del sistema di outreach di Astra Agency.
+//
+// Nota su SQLite: non supporta gli enum nativi, quindi i campi "a scelta
+// fissa" sono stringhe e i valori ammessi stanno in src/lib/tipi.ts, che e'
+// l'unica fonte di verita'. Passando a Postgres si possono convertire in enum
+// senza toccare il resto del codice.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Un'attivita' da contattare.
+model Lead {
+  id             String  @id @default(cuid())
+  ragioneSociale String
+  settore        String
+  citta          String
+  provincia      String?
+  telefono       String?
+  email          String?
+  sitoUrl        String?
+
+  /// Da dove arriva: GOOGLE_MAPS | PAGINE_GIALLE | FACEBOOK_ADS | MANUALE
+  fonte    String  @default("MANUALE")
+  fonteUrl String?
+
+  /// DITTA_INDIVIDUALE | SOCIETA | SCONOSCIUTO.
+  /// Conta per il GDPR: per la ditta individuale i dati di contatto sono dati
+  /// personali, quindi serve piu' cautela e il Registro Opposizioni e' rilevante.
+  tipoSoggetto String @default("SCONOSCIUTO")
+
+  /// LEGITTIMO_INTERESSE | CONSENSO. Va registrata PRIMA di contattare.
+  baseGiuridica String @default("LEGITTIMO_INTERESSE")
+
+  /// NUOVO | ANALIZZATO | BOZZA_PRONTA | APPROVATA | INVIATA | RISPOSTA |
+  /// CALL_FISSATA | CLIENTE | SCARTATO | NON_CONTATTABILE
+  stato String @default("NUOVO")
+
+  note      String?
+  creatoIl  DateTime @default(now())
+  aggiornatoIl DateTime @updatedAt
+
+  analisi   AnalisiSito?
+  bozze     BozzaEmail[]
+  messaggi  Messaggio[]
+  call      Call[]
+  eventi    EventoLog[]
+
+  @@index([stato])
+  @@index([citta])
+  @@index([settore])
+}
+
+/// Esito dell'analisi automatica del sito del lead (passo 2 del flusso).
+model AnalisiSito {
+  id     String @id @default(cuid())
+  leadId String @unique
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  sitoEsiste    Boolean
+  urlAnalizzato String?
+  httpsOk       Boolean?
+  mobileOk      Boolean?
+  /// Largest Contentful Paint in millisecondi: quanto ci mette a mostrare qualcosa
+  lcpMs         Int?
+  pesoKb        Int?
+  /// 0-100: piu' e' basso, piu' il sito e' messo male (= lead piu' interessante)
+  punteggio     Int?
+
+  /// JSON: elenco di problemi trovati, es. ["non adatto al telefono", "nessun HTTPS"]
+  problemi    String @default("[]")
+  eseguitaIl  DateTime @default(now())
+}
+
+/// Testo email generato dall'AI, in attesa della mia approvazione (passo 3).
+model BozzaEmail {
+  id       String @id @default(cuid())
+  leadId   String
+  lead     Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  versione Int    @default(1)
+
+  oggetto String
+  corpo   String
+
+  modelloLlm String?
+
+  /// DA_APPROVARE | APPROVATA | RIFIUTATA | SOSTITUITA
+  stato         String  @default("DA_APPROVARE")
+  motivoRifiuto String?
+
+  creataIl DateTime  @default(now())
+  decisaIl DateTime?
+
+  inviata Messaggio[]
+
+  @@index([stato])
+}
+
+/// Ogni email scambiata con il lead, in uscita e in entrata.
+model Messaggio {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  /// USCITA | ENTRATA
+  direzione String
+
+  /// Message-ID del protocollo email: serve per agganciare le risposte al thread
+  messageId String? @unique
+  inReplyTo String?
+
+  mittente     String
+  destinatario String
+  oggetto      String
+  corpo        String
+
+  bozzaId String?
+  bozza   BozzaEmail? @relation(fields: [bozzaId], references: [id])
+
+  dataIl DateTime @default(now())
+
+  estrazione Estrazione?
+
+  @@index([leadId, dataIl])
+}
+
+/// Cosa l'AI ha capito da una risposta del cliente (passo 5).
+model Estrazione {
+  id          String    @id @default(cuid())
+  messaggioId String    @unique
+  messaggio   Messaggio @relation(fields: [messaggioId], references: [id], onDelete: Cascade)
+
+  /// ALTO | MEDIO | BASSO | NEGATIVO | NON_CHIARO
+  interesse String
+  riassunto String
+
+  telefono String?
+
+  /// JSON: [{ "giorno": "2026-10-14", "dalle": "15:00", "alle": "18:00" }]
+  disponibilita String @default("[]")
+  /// JSON: elenco di domande poste dal cliente
+  domande       String @default("[]")
+
+  /// L'AI non se l'e' sentita di decidere: va guardato a mano (passo 7)
+  richiedeAttenzione Boolean @default(false)
+  motivoAttenzione   String?
+
+  modelloLlm String?
+  creataIl   DateTime @default(now())
+}
+
+/// Call fissata con il lead (passi 6-7).
+model Call {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  inizio    DateTime
+  durataMin Int      @default(30)
+  meetUrl   String?
+
+  /// DA_CONFERMARE | CONFERMATA | FATTA | ANNULLATA
+  stato String @default("DA_CONFERMARE")
+
+  creataIl DateTime @default(now())
+
+  @@index([inizio])
+}
+
+/// Chi non va piu' contattato. Va controllata PRIMA di ogni invio.
+model Soppressione {
+  id     String @id @default(cuid())
+  email  String @unique
+  /// DISISCRITTO | BOUNCE | RECLAMO | RICHIESTA_CANCELLAZIONE | REGISTRO_OPPOSIZIONI
+  motivo String
+  note   String?
+  creataIl DateTime @default(now())
+}
+
+/// Diario delle azioni: serve a me per capire cosa e' successo e al GDPR per
+/// dimostrare come e quando un contatto e' stato trattato.
+model EventoLog {
+  id     String  @id @default(cuid())
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  tipo     String
+  dettaglio String?
+  creatoIl DateTime @default(now())
+
+  @@index([creatoIl])
+}
