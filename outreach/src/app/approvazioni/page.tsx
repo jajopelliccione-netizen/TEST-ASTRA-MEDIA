@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { leggiJson } from '@/lib/util';
 import { SchedaInvio, type DatiScheda } from '@/componenti/SchedaInvio';
 import { motiviPerNonInviare, inviateOggi } from '@/worker/invio';
+import { sincronizzaSoppressioni } from '@/worker/soppressioni';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,9 @@ export default async function DaInviare() {
     orderBy: { creataIl: 'asc' },
     include: { lead: { include: { analisi: true } } },
   });
+
+  // Una sola sincronizzazione per tutta la pagina, non una per scheda.
+  await sincronizzaSoppressioni();
 
   // I motivi di blocco si calcolano qui, una volta: cosi' il tasto arriva gia'
   // spento e con la spiegazione, invece di fallire dopo il click.
@@ -31,7 +35,7 @@ export default async function DaInviare() {
       oggetto: b.oggetto,
       corpo: b.corpo,
       modello: b.modelloLlm,
-      bloccanti: await motiviPerNonInviare(b.lead.email, b.corpo),
+      bloccanti: await motiviPerNonInviare(b.lead.email, b.corpo, { allinea: false }),
     })),
   );
 

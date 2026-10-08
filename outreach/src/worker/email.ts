@@ -13,6 +13,7 @@
  */
 
 import type { EsitoAnalisi } from './analisi';
+import { linkDisiscrizione } from './disiscrizione';
 
 export type DatiEmail = {
   ragioneSociale: string;
@@ -33,13 +34,17 @@ const MODELLI_GROQ = [
   'openai/gpt-oss-20b',
 ];
 
-/** Piè di pagina obbligatorio: identificazione del mittente e disiscrizione. */
-export function piePagina(): string {
+/**
+ * Pie' di pagina obbligatorio: chi scrive e come smettere di ricevere.
+ * L'indirizzo del destinatario serve a costruire il link di disiscrizione
+ * personalizzato: senza, il link resta generico e chi clicca deve digitare.
+ */
+export function piePagina(destinatario?: string | null): string {
   const nome = process.env.AZIENDA_RAGIONE_SOCIALE || 'Astra Agency';
   const piva = process.env.AZIENDA_PIVA || '';
   const contatto = process.env.REPLY_TO || process.env.MITTENTE_EMAIL || '';
   const privacy = process.env.URL_PRIVACY || '';
-  const disiscrizione = process.env.URL_DISISCRIZIONE || '';
+  const disiscrizione = linkDisiscrizione(destinatario);
 
   const righe = [
     '',
@@ -123,7 +128,7 @@ ${chiusura}
 Mi dica un paio di momenti in cui le è comodo e mi organizzo io.
 
 ${process.env.MITTENTE_NOME || 'Astra Agency'}
-${piePagina()}`;
+${piePagina(lead.email)}`;
 
   return { oggetto: oggettoDaProblemi(lead, a), corpo, modello: 'modello-interno' };
 }
@@ -188,7 +193,7 @@ ${a.problemi.map((p) => `- ${p}`).join('\n')}`;
 
       return {
         oggetto: oggetto.trim(),
-        corpo: `${corpo.trim()}\n\n${process.env.MITTENTE_NOME || 'Astra Agency'}\n${piePagina()}`,
+        corpo: `${corpo.trim()}\n\n${process.env.MITTENTE_NOME || 'Astra Agency'}\n${piePagina(lead.email)}`,
         modello,
       };
     } catch {

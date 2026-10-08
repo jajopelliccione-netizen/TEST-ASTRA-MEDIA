@@ -44,7 +44,18 @@ export default {
       return handleUpdateClientCredentials(request, env);
     }
 
+    if (path.endsWith('/disiscrizione')) {
+      return handleDisiscrizione(request, env);
+    }
+
+    if (request.method === 'GET' && path.endsWith('/disiscrizioni')) {
+      return handleElencoDisiscrizioni(request, env);
+    }
+
     if (request.method === 'GET' && path.endsWith('/debug')) {
+      // Era aperto a chiunque e mostrava l'email del service account, oltre a
+      // far partire una notifica di prova ai dispositivi admin.
+      if (!chiaveAdminValida(request, env)) return new Response('Not found', { status: 404 });
       return handleDebug(env);
     }
 
@@ -1137,4 +1148,222 @@ function jsonDebug(body) {
   return new Response(JSON.stringify(body, null, 2), {
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  DISISCRIZIONE dalle email commerciali
+//
+//  Il link dentro ogni email porta un token che contiene l'indirizzo e la
+//  sua firma. Il Worker verifica la firma e sa chi e': niente da digitare,
+//  niente archivio da consultare per validare.
+//
+//  Perche' il GET non disiscrive subito: i filtri antispam di Gmail e
+//  Outlook aprono i link delle email per controllarli. Se bastasse un GET,
+//  disiscriverebbero loro gente che non ha mai cliccato. Quindi il GET
+//  mostra una pagina con un bottone, e solo il POST agisce. Il pulsante
+//  "Annulla iscrizione" di Gmail invece manda gia' un POST, quindi li'
+//  resta un click solo.
+// ══════════════════════════════════════════════════════════════════════════
+
+function chiaveAdminValida(request, env) {
+  const attesa = env.ADMIN_API_KEY;
+  if (!attesa) return false;
+  const data = request.headers.get('X-Astra-Key') || '';
+  return confrontoCostante(data, attesa);
+}
+
+/** Confronto che non rivela quanti caratteri iniziali combaciano. */
+function confrontoCostante(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function b64url(bytes) {
+  let s = '';
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlInTesto(s) {
+  const base = s.replace(/-/g, '+').replace(/_/g, '/');
+  return atob(base + '='.repeat((4 - (base.length % 4)) % 4));
+}
+
+async function firmaEmail(email, segreto) {
+  const chiave = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(segreto),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+  );
+  const firma = await crypto.subtle.sign('HMAC', chiave, new TextEncoder().encode(email));
+  return b64url(new Uint8Array(firma));
+}
+
+/** Ricava l'indirizzo dal token, solo se la firma e' valida. */
+async function emailDaToken(token, segreto) {
+  const pezzi = String(token || '').split('.');
+  if (pezzi.length !== 2) return null;
+  let email;
+  try {
+    email = b64urlInTesto(pezzi[0]).toLowerCase().trim();
+  } catch {
+    return null;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) return null;
+  const atteso = await firmaEmail(email, segreto);
+  return confrontoCostante(atteso, pezzi[1]) ? email : null;
+}
+
+function paginaDisiscrizione({ titolo, messaggio, email, mostraBottone, azione }) {
+  return `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${titolo} — Astra Agency</title>
+<style>
+  :root{--purple:#7B5CF0;--pink:#FF2D78;--green:#00E5A0;--bg:#07060F;--bg2:#0D0B1A;
+        --bg3:#120F22;--text:#F0EEFF;--muted:#9B91C7;--border:rgba(123,92,240,.25)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;
+       align-items:center;justify-content:center;padding:24px;
+       font-family:system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+  .riquadro{background:linear-gradient(180deg,var(--bg3),var(--bg2));border:1px solid var(--border);
+            border-radius:20px;padding:36px 32px;max-width:460px;width:100%;text-align:center}
+  h1{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+  p{color:var(--muted);font-size:.95rem;line-height:1.6;margin-bottom:8px}
+  .indirizzo{color:var(--text);font-weight:700;overflow-wrap:anywhere}
+  button{margin-top:22px;width:100%;border:none;border-radius:12px;padding:15px 24px;
+         font-size:1rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;
+         background:linear-gradient(135deg,var(--purple),var(--pink))}
+  button:active{transform:scale(.98)}
+  .fatto{color:var(--green);font-size:2.6rem;margin-bottom:10px}
+  .piede{margin-top:24px;font-size:.78rem;color:var(--muted)}
+  .piede a{color:var(--purple);text-decoration:none}
+  input{width:100%;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid var(--border);
+        border-radius:12px;padding:14px;color:var(--text);font-size:16px;font-family:inherit}
+</style></head><body><div class="riquadro">
+${messaggio}
+${mostraBottone ? `<form method="POST" action="${azione}">
+  ${email ? '' : '<input type="email" name="email" placeholder="La tua email" required autocomplete="email">'}
+  <button type="submit">${email ? 'Confermo, non scrivetemi più' : 'Disiscrivimi'}</button>
+</form>` : ''}
+<div class="piede"><a href="https://astragency.it">astragency.it</a></div>
+</div></body></html>`;
+}
+
+function rispostaHtml(html, stato = 200) {
+  return new Response(html, {
+    status: stato,
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...CORS },
+  });
+}
+
+async function handleDisiscrizione(request, env) {
+  const url = new URL(request.url);
+  const segreto = env.UNSUBSCRIBE_SECRET;
+  const token = url.searchParams.get('t');
+
+  let email = null;
+  if (token && segreto) email = await emailDaToken(token, segreto);
+
+  // ── GET: chiedo conferma, non agisco ──────────────────────────────────
+  if (request.method === 'GET') {
+    if (email) {
+      return rispostaHtml(paginaDisiscrizione({
+        titolo: 'Conferma disiscrizione',
+        messaggio: `<h1>Vuoi non ricevere più nostre email?</h1>
+          <p>L'indirizzo è <span class="indirizzo">${email.replace(/[<>&"]/g, '')}</span></p>
+          <p>Basta un tocco qui sotto e non ti scriveremo più.</p>`,
+        email, mostraBottone: true, azione: url.pathname + url.search,
+      }));
+    }
+    // Link senza token o con token manomesso: chiedo l'indirizzo
+    return rispostaHtml(paginaDisiscrizione({
+      titolo: 'Disiscrizione',
+      messaggio: `<h1>Disiscriviti</h1>
+        <p>Scrivi l'indirizzo che non vuoi più sia contattato.</p>`,
+      email: null, mostraBottone: true, azione: url.pathname,
+    }));
+  }
+
+  if (request.method !== 'POST') return new Response('Not found', { status: 404 });
+
+  // ── POST: agisco ──────────────────────────────────────────────────────
+  if (!email) {
+    try {
+      const tipo = request.headers.get('content-type') || '';
+      if (tipo.includes('application/json')) {
+        email = String((await request.json()).email || '').toLowerCase().trim();
+      } else {
+        email = String((await request.formData()).get('email') || '').toLowerCase().trim();
+      }
+    } catch {
+      email = null;
+    }
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
+    return rispostaHtml(paginaDisiscrizione({
+      titolo: 'Indirizzo non valido',
+      messaggio: `<h1>Indirizzo non valido</h1><p>Controlla e riprova.</p>`,
+      email: null, mostraBottone: true, azione: url.pathname,
+    }), 400);
+  }
+
+  try {
+    const projectId = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const fsBase = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+    // L'indirizzo fa da identificativo: ripetere la disiscrizione sovrascrive
+    // lo stesso documento invece di crearne un altro.
+    const id = encodeURIComponent(email).replace(/\./g, '%2E');
+    await fsSet(fsBase, accessToken, `soppressioni/${id}`, {
+      email,
+      motivo: token ? 'DISISCRITTO' : 'DISISCRITTO_MANUALE',
+      creataIl: new Date().toISOString(),
+    });
+  } catch (e) {
+    // Non dico al visitatore che e' andata se non e' andata: se riprova,
+    // riprovo anch'io.
+    return rispostaHtml(paginaDisiscrizione({
+      titolo: 'Errore',
+      messaggio: `<h1>Qualcosa non ha funzionato</h1>
+        <p>Riprova fra poco, oppure scrivici a info@astragency.it e ti togliamo a mano.</p>`,
+      email: null, mostraBottone: false, azione: '',
+    }), 500);
+  }
+
+  return rispostaHtml(paginaDisiscrizione({
+    titolo: 'Disiscrizione completata',
+    messaggio: `<div class="fatto">✓</div>
+      <h1>Fatto</h1>
+      <p>Non riceverai più nostre email.</p>
+      <p>Se cambi idea, scrivici pure a info@astragency.it.</p>`,
+    email: null, mostraBottone: false, azione: '',
+  }));
+}
+
+/** Elenco per il sistema di outreach, che lo sincronizza prima di ogni invio. */
+async function handleElencoDisiscrizioni(request, env) {
+  if (!chiaveAdminValida(request, env)) {
+    return new Response(JSON.stringify({ errore: 'non autorizzato' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  try {
+    const projectId = env.FCM_PROJECT_ID;
+    const accessToken = await getAccessToken(env.FCM_CLIENT_EMAIL, env.FCM_PRIVATE_KEY);
+    const resp = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/soppressioni?pageSize=1000`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    const dati = await resp.json();
+    const elenco = (dati.documents || []).map(d => fsDecodeFields(d.fields || {}));
+    return new Response(JSON.stringify({ elenco }), {
+      status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ errore: e.message }), {
+      status: 500, headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }

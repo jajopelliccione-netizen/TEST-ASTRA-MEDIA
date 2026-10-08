@@ -71,6 +71,11 @@ service cloud.firestore {
     match /showcase/{id} { allow read: if true; allow write: if isAdmin(); }
     match /preventivi_bozze/{id} { allow read, write: if isAdmin(); }
 
+    // Chi ha chiesto di non essere più contattato. Ci scrive SOLO il
+    // Cloudflare Worker, che usa il service account e non passa di qui.
+    // Sono indirizzi email di persone: nessun accesso pubblico, mai.
+    match /soppressioni/{id} { allow read: if isAdmin(); allow write: if false; }
+
     // Codici di attivazione ("primo accesso"): l'admin li crea/gestisce da
     // qui, ma la loro validazione e il collegamento al cliente avvengono
     // SOLO tramite il Cloudflare Worker (service account, bypassa queste

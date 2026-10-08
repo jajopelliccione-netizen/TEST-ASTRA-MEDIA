@@ -15,6 +15,8 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import { db } from '@/lib/db';
 import { cosaMancaPerLegge } from './email';
+import { linkDisiscrizione } from './disiscrizione';
+import { sincronizzaSoppressioni } from './soppressioni';
 
 export type EsitoInvio =
   | { ok: true; simulato: boolean; messageId: string | null }
@@ -48,8 +50,19 @@ export async function inviateOggi(): Promise<number> {
 export async function motiviPerNonInviare(
   destinatario: string | null | undefined,
   corpo: string,
+  { allinea = true }: { allinea?: boolean } = {},
 ): Promise<string[]> {
   const motivi: string[] = [];
+
+  // Le disiscrizioni arrivano sul sito: prima di tutto ripesco l'elenco.
+  if (allinea) {
+    const sync = await sincronizzaSoppressioni();
+    if (!sync.ok && !sync.listaAffidabile) {
+      motivi.push(
+        `Non riesco a leggere le disiscrizioni dal sito (${sync.motivo}) e la copia locale è vecchia: non posso garantire di non scrivere a chi ha chiesto di non essere contattato.`,
+      );
+    }
+  }
 
   if (!destinatario || !EMAIL_VALIDA.test(destinatario)) {
     motivi.push('Manca un indirizzo email valido per questo lead.');
@@ -123,9 +136,11 @@ export async function inviaEmail(opzioni: {
       subject: oggetto,
       text: corpo,
       headers: {
-        // Permette al destinatario di disiscriversi dal suo client di posta:
-        // riduce molto la probabilita' che segni come spam invece di uscire.
-        'List-Unsubscribe': `<${process.env.URL_DISISCRIZIONE}>`,
+        // Fa comparire il pulsante "Annulla iscrizione" dentro Gmail, accanto
+        // al mittente: un tocco invece di cercare il link nel testo, e chi lo
+        // usa non preme "Spam". Il link e' personalizzato, altrimenti Gmail
+        // manderebbe la richiesta e non succederebbe niente.
+        'List-Unsubscribe': `<${linkDisiscrizione(destinatario)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
       },
     });
