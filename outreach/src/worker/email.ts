@@ -36,22 +36,21 @@ const MODELLI_GROQ = [
 /** Piè di pagina obbligatorio: identificazione del mittente e disiscrizione. */
 export function piePagina(): string {
   const nome = process.env.AZIENDA_RAGIONE_SOCIALE || 'Astra Agency';
-  const referente = process.env.AZIENDA_REFERENTE || '';
-  const indirizzo = process.env.AZIENDA_INDIRIZZO || '';
   const piva = process.env.AZIENDA_PIVA || '';
   const contatto = process.env.REPLY_TO || process.env.MITTENTE_EMAIL || '';
+  const privacy = process.env.URL_PRIVACY || '';
   const disiscrizione = process.env.URL_DISISCRIZIONE || '';
 
   const righe = [
     '',
     '—',
-    // Con la P.IVA e' l'azienda a identificarsi; senza (prestazione
-    // occasionale) il soggetto e' la persona fisica, quindi serve il nome.
-    referente ? `${nome} — ${referente}` : nome,
-    indirizzo,
+    nome,
     piva ? `P.IVA ${piva}` : '',
     contatto,
     'astragency.it',
+    // Chi siamo e come trattiamo i dati sta nell'informativa, non nel
+    // piede dell'email: un link invece di cinque righe di burocrazia.
+    privacy ? `Informativa privacy: ${privacy}` : '',
     '',
     disiscrizione
       ? `Se non desidera ricevere altre email da noi, può disiscriversi qui: ${disiscrizione}`
@@ -65,11 +64,11 @@ export function piePagina(): string {
  * Verifica che l'email sia spedibile per legge. Torna l'elenco di cosa manca:
  * se non e' vuoto, l'invio non deve partire.
  *
- * La P.IVA NON e' obbligatoria in se': lo e' identificarsi. Chi lavora in
- * prestazione occasionale non ne ha una, e in quel caso il soggetto e' la
- * persona fisica — quindi al suo posto servono nome e cognome del referente.
- * Uno dei due deve esserci: non si manda una email commerciale restando
- * anonimi dietro a un marchio.
+ * Il minimo perche' chi riceve sappia chi gli scrive e possa levarselo di
+ * torno: un nome, un indirizzo a cui rispondere, l'informativa privacy (dove
+ * stanno i dati del titolare per esteso) e una disiscrizione che funziona.
+ * La P.IVA non e' richiesta: chi lavora in prestazione occasionale non ne ha
+ * una, e la legge impone di identificarsi, non di avere una partita IVA.
  */
 export function cosaMancaPerLegge(corpo: string): string[] {
   const manca: string[] = [];
@@ -80,12 +79,10 @@ export function cosaMancaPerLegge(corpo: string): string[] {
 
   if (!process.env.AZIENDA_RAGIONE_SOCIALE) manca.push('AZIENDA_RAGIONE_SOCIALE non configurata');
 
-  if (!process.env.AZIENDA_PIVA && !process.env.AZIENDA_REFERENTE)
-    manca.push(
-      'serve AZIENDA_PIVA oppure, se lavori in prestazione occasionale, AZIENDA_REFERENTE con nome e cognome',
-    );
+  if (!process.env.REPLY_TO && !process.env.MITTENTE_EMAIL)
+    manca.push('manca un indirizzo a cui il destinatario possa rispondere');
 
-  if (!process.env.AZIENDA_INDIRIZZO) manca.push('AZIENDA_INDIRIZZO non configurato');
+  if (!process.env.URL_PRIVACY) manca.push('URL_PRIVACY non configurato (l’informativa privacy)');
 
   return manca;
 }
