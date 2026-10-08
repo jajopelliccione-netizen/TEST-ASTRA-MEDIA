@@ -1,16 +1,32 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import { NOME_COOKIE, sessioneValida } from '@/lib/sessione';
 
 /**
  * Barra di navigazione. Mostra due contatori perche' sono le uniche due code
  * che richiedono una mia azione: le email ferme in attesa di approvazione e le
  * risposte non ancora lavorate.
+ *
+ * Non compare, e soprattutto non interroga il database, senza una sessione
+ * valida: sulla pagina di accesso non c'e' niente da navigare, e chi non e'
+ * entrato non deve far partire query.
  */
 export async function Nav() {
-  const [daApprovare, risposteAperte] = await Promise.all([
-    db.bozzaEmail.count({ where: { stato: 'DA_APPROVARE' } }),
-    db.lead.count({ where: { stato: 'RISPOSTA' } }),
-  ]);
+  if (!(await sessioneValida((await cookies()).get(NOME_COOKIE)?.value))) return null;
+
+  // I contatori sono un di piu': se il database non risponde, la pagina deve
+  // aprirsi lo stesso invece di andare in errore per un numerino.
+  let daApprovare = 0;
+  let risposteAperte = 0;
+  try {
+    [daApprovare, risposteAperte] = await Promise.all([
+      db.bozzaEmail.count({ where: { stato: 'DA_APPROVARE' } }),
+      db.lead.count({ where: { stato: 'RISPOSTA' } }),
+    ]);
+  } catch {
+    /* nessun contatore, pazienza */
+  }
 
   return (
     <nav className="nav">

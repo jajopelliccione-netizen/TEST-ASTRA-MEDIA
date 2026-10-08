@@ -18,7 +18,7 @@ import { firmaEmail as firmaWorker, emailDaToken as emailDaTokenWorker } from '.
   let tuttoBene = true;
 
   for (const e of casi) {
-    const token = tokenDisiscrizione(e, SEGRETO);
+    const token = await tokenDisiscrizione(e, SEGRETO);
     const letto = await emailDaTokenWorker(token, SEGRETO);
     const ok = letto === e.toLowerCase();
     if (!ok) tuttoBene = false;
@@ -26,10 +26,10 @@ import { firmaEmail as firmaWorker, emailDaToken as emailDaTokenWorker } from '.
   }
 
   // Un token manomesso deve essere rifiutato
-  const buono = tokenDisiscrizione('vittima@esempio.it', SEGRETO);
+  const buono = await tokenDisiscrizione('vittima@esempio.it', SEGRETO);
   const manomesso = Buffer.from('altro@esempio.it').toString('base64url') + '.' + buono.split('.')[1];
   const r1 = await emailDaTokenWorker(manomesso, SEGRETO);
-  const r2 = emailDaToken(manomesso, SEGRETO);
+  const r2 = await emailDaToken(manomesso, SEGRETO);
   console.log(`${r1 === null && r2 === null ? 'OK  ' : 'ERRORE'}  token manomesso rifiutato da entrambi`);
   if (r1 !== null || r2 !== null) tuttoBene = false;
 

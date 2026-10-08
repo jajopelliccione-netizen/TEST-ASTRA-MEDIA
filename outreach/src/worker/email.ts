@@ -39,12 +39,12 @@ const MODELLI_GROQ = [
  * L'indirizzo del destinatario serve a costruire il link di disiscrizione
  * personalizzato: senza, il link resta generico e chi clicca deve digitare.
  */
-export function piePagina(destinatario?: string | null): string {
+export async function piePagina(destinatario?: string | null): Promise<string> {
   const nome = process.env.AZIENDA_RAGIONE_SOCIALE || 'Astra Agency';
   const piva = process.env.AZIENDA_PIVA || '';
   const contatto = process.env.REPLY_TO || process.env.MITTENTE_EMAIL || '';
   const privacy = process.env.URL_PRIVACY || '';
-  const disiscrizione = linkDisiscrizione(destinatario);
+  const disiscrizione = await linkDisiscrizione(destinatario);
 
   const righe = [
     '',
@@ -103,7 +103,7 @@ function oggettoDaProblemi(lead: DatiEmail, a: EsitoAnalisi): string {
   return `Due cose sul sito di ${lead.ragioneSociale}`;
 }
 
-function generaDaModello(lead: DatiEmail, a: EsitoAnalisi): EmailGenerata {
+async function generaDaModello(lead: DatiEmail, a: EsitoAnalisi): Promise<EmailGenerata> {
   const apertura = a.sitoEsiste
     ? `ho dato un'occhiata al sito di ${lead.ragioneSociale} e ho notato alcune cose che probabilmente vi stanno costando clienti.`
     : `cercavo ${lead.settore} a ${lead.citta} e sono arrivato a ${lead.ragioneSociale}, ma non ho trovato un sito: solo la scheda Google.`;
@@ -128,7 +128,7 @@ ${chiusura}
 Mi dica un paio di momenti in cui le è comodo e mi organizzo io.
 
 ${process.env.MITTENTE_NOME || 'Astra Agency'}
-${piePagina(lead.email)}`;
+${await piePagina(lead.email)}`;
 
   return { oggetto: oggettoDaProblemi(lead, a), corpo, modello: 'modello-interno' };
 }
@@ -193,7 +193,7 @@ ${a.problemi.map((p) => `- ${p}`).join('\n')}`;
 
       return {
         oggetto: oggetto.trim(),
-        corpo: `${corpo.trim()}\n\n${process.env.MITTENTE_NOME || 'Astra Agency'}\n${piePagina(lead.email)}`,
+        corpo: `${corpo.trim()}\n\n${process.env.MITTENTE_NOME || 'Astra Agency'}\n${await piePagina(lead.email)}`,
         modello,
       };
     } catch {
@@ -205,5 +205,5 @@ ${a.problemi.map((p) => `- ${p}`).join('\n')}`;
 
 /** Scrive l'email. Con l'LLM se possibile, altrimenti col modello interno. */
 export async function generaEmail(lead: DatiEmail, a: EsitoAnalisi): Promise<EmailGenerata> {
-  return (await generaConGroq(lead, a)) ?? generaDaModello(lead, a);
+  return (await generaConGroq(lead, a)) ?? (await generaDaModello(lead, a));
 }

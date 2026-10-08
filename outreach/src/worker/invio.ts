@@ -1,18 +1,20 @@
 /**
  * Passo 4: manda davvero l'email.
  *
+ * Usa l'API HTTP di Brevo e non SMTP. Due motivi: sui Worker di Cloudflare
+ * non si possono aprire connessioni SMTP, e comunque una chiamata HTTP dice
+ * molto piu' chiaramente cosa e' andato storto di un errore di protocollo.
+ *
  * Questo e' il punto in cui un errore costa caro: un invio sbagliato non si
  * annulla, e bruciare il dominio significa finire nello spam per mesi. Per
- * questo prima di consegnare qualunque messaggio ci sono cinque controlli, e
+ * questo prima di consegnare qualunque messaggio ci sono dei controlli, e
  * nessuno di essi dipende dal fatto che io me ne ricordi.
  *
  * L'interruttore principale e' INVIO_ATTIVO: finche' non vale "true" il
- * sistema si comporta normalmente ma NON consegna nulla. Serve a provare tutto
- * il giro — bozza, approvazione, tasto, stati — senza che parta una riga verso
- * una persona vera.
+ * sistema si comporta normalmente ma NON consegna nulla. Serve a provare
+ * tutto il giro senza che parta una riga verso una persona vera.
  */
 
-import nodemailer, { type Transporter } from 'nodemailer';
 import { db } from '@/lib/db';
 import { cosaMancaPerLegge } from './email';
 import { linkDisiscrizione } from './disiscrizione';
@@ -23,6 +25,7 @@ export type EsitoInvio =
   | { ok: false; motivo: string; bloccante: true };
 
 const EMAIL_VALIDA = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+const API_BREVO = 'https://api.brevo.com/v3/smtp/email';
 
 function invioAttivo(): boolean {
   return String(process.env.INVIO_ATTIVO).toLowerCase() === 'true';
@@ -37,9 +40,7 @@ function tettoGiornaliero(): number {
 export async function inviateOggi(): Promise<number> {
   const inizioGiorno = new Date();
   inizioGiorno.setHours(0, 0, 0, 0);
-  return db.messaggio.count({
-    where: { direzione: 'USCITA', dataIl: { gte: inizioGiorno } },
-  });
+  return db.messaggio.count({ where: { direzione: 'USCITA', dataIl: { gte: inizioGiorno } } });
 }
 
 /**
@@ -75,32 +76,19 @@ export async function motiviPerNonInviare(
   if (soppresso)
     motivi.push(`Questo indirizzo è nella lista di esclusione (${soppresso.motivo}): non va contattato.`);
 
-  const manca = cosaMancaPerLegge(corpo);
-  for (const m of manca) motivi.push(`Requisito di legge non soddisfatto: ${m}.`);
+  for (const m of cosaMancaPerLegge(corpo)) motivi.push(`Requisito di legge non soddisfatto: ${m}.`);
 
   const giaOggi = await inviateOggi();
   const tetto = tettoGiornaliero();
   if (giaOggi >= tetto)
     motivi.push(`Raggiunto il tetto di ${tetto} invii al giorno (${giaOggi} già partite). Riprova domani.`);
 
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD)
-    motivi.push('SMTP non configurato nel .env: non c’è da dove spedire.');
+  if (!process.env.BREVO_API_KEY)
+    motivi.push('BREVO_API_KEY non configurata: non c’è da dove spedire.');
 
   if (!process.env.MITTENTE_EMAIL) motivi.push('MITTENTE_EMAIL non configurata.');
 
   return motivi;
-}
-
-let trasportoCache: Transporter | null = null;
-function trasporto(): Transporter {
-  if (trasportoCache) return trasportoCache;
-  trasportoCache = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: { user: process.env.SMTP_USER!, pass: process.env.SMTP_PASSWORD! },
-  });
-  return trasportoCache;
 }
 
 /**
@@ -120,31 +108,51 @@ export async function inviaEmail(opzioni: {
   const motivi = await motiviPerNonInviare(destinatario, corpo);
   if (motivi.length > 0) return { ok: false, motivo: motivi.join(' '), bloccante: true };
 
-  const mittente = `${process.env.MITTENTE_NOME || 'Astra Agency'} <${process.env.MITTENTE_EMAIL}>`;
+  const mittenteEmail = process.env.MITTENTE_EMAIL!;
+  const mittenteNome = process.env.MITTENTE_NOME || 'Astra Agency';
+  const rispondiA = process.env.REPLY_TO;
   const simulato = !invioAttivo();
   let messageId: string | null = null;
 
   if (!simulato) {
-    const esito = await trasporto().sendMail({
-      from: mittente,
-      // Si manda dal sottodominio dedicato ma si risponde alla casella vera:
-      // cosi' la reputazione del mittente resta isolata, mentre le risposte
-      // arrivano dove le leggo gia' (ed e' la casella che il worker delle
-      // risposte andra' a controllare in IMAP).
-      replyTo: process.env.REPLY_TO || undefined,
-      to: destinatario,
-      subject: oggetto,
-      text: corpo,
+    const disiscrizione = await linkDisiscrizione(destinatario);
+    const risposta = await fetch(API_BREVO, {
+      method: 'POST',
       headers: {
-        // Fa comparire il pulsante "Annulla iscrizione" dentro Gmail, accanto
-        // al mittente: un tocco invece di cercare il link nel testo, e chi lo
-        // usa non preme "Spam". Il link e' personalizzato, altrimenti Gmail
-        // manderebbe la richiesta e non succederebbe niente.
-        'List-Unsubscribe': `<${linkDisiscrizione(destinatario)}>`,
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        'api-key': process.env.BREVO_API_KEY!,
+        'content-type': 'application/json',
+        accept: 'application/json',
       },
+      body: JSON.stringify({
+        sender: { name: mittenteNome, email: mittenteEmail },
+        to: [{ email: destinatario }],
+        ...(rispondiA ? { replyTo: { email: rispondiA, name: mittenteNome } } : {}),
+        subject: oggetto,
+        textContent: corpo,
+        headers: {
+          // Fa comparire il pulsante "Annulla iscrizione" dentro Gmail,
+          // accanto al mittente: chi lo usa non preme "Spam". Il link e'
+          // personalizzato, altrimenti Gmail manderebbe la richiesta e non
+          // succederebbe niente.
+          'List-Unsubscribe': `<${disiscrizione}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      }),
     });
-    messageId = esito.messageId ?? null;
+
+    if (!risposta.ok) {
+      const dettaglio = await risposta.text().catch(() => '');
+      await db.eventoLog.create({
+        data: { leadId, tipo: 'INVIO_FALLITO', dettaglio: `${risposta.status}: ${dettaglio.slice(0, 300)}` },
+      });
+      return {
+        ok: false,
+        motivo: `Brevo ha rifiutato l'invio (${risposta.status}). ${dettaglio.slice(0, 200)}`,
+        bloccante: true,
+      };
+    }
+
+    messageId = ((await risposta.json().catch(() => ({}))) as { messageId?: string }).messageId ?? null;
   }
 
   await db.messaggio.create({
@@ -153,7 +161,7 @@ export async function inviaEmail(opzioni: {
       bozzaId,
       direzione: 'USCITA',
       messageId,
-      mittente,
+      mittente: `${mittenteNome} <${mittenteEmail}>`,
       destinatario,
       oggetto,
       corpo: simulato ? `[SIMULATO — INVIO_ATTIVO non è true]\n\n${corpo}` : corpo,
