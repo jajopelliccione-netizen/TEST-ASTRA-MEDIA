@@ -1,7 +1,17 @@
 name = "astra-notify"
 main = "worker.js"
 compatibility_date = "2024-11-01"
-workers_dev = true
+
+# L'account che possiede la zona astragency.it. Senza questa riga wrangler
+# sceglie da solo fra gli account a cui hai accesso, e una volta ha pubblicato
+# in quello sbagliato: il codice finiva su un Worker che non serve il sito,
+# mentre astragency.it continuava a rispondere con la versione vecchia.
+account_id = "9693cab51386c13b9267c77ca8b2fbab"
+
+# Niente indirizzo pubblico *.workers.dev: il Worker deve rispondere solo
+# sulla rotta di astragency.it. Un secondo indirizzo raggiungibile da chiunque
+# e' solo un'altra porta da sorvegliare.
+workers_dev = false
 
 # Rende /api/* disponibile direttamente su astragency.it
 # (funziona solo se il dominio è gestito da Cloudflare DNS)
