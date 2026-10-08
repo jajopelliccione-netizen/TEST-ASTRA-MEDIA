@@ -81,14 +81,23 @@ cambia.
 | # | Passo del flusso | Stato |
 |---|------------------|-------|
 | 1 | Ricerca lead (Maps / Pagine Gialle / Facebook Ads) | da fare — intanto si inseriscono a mano |
-| 2 | Analisi del sito (esiste? quanto è messo male?) | da fare — lo schema è pronto |
-| 3 | Generazione email su misura | da fare |
-| 3b | **Approvazione manuale prima dell'invio** | ✅ fatto |
-| 4 | Invio con dominio dedicato, SPF/DKIM/DMARC | da fare |
+| 2 | Analisi del sito (esiste? quanto è messo male?) | ✅ fatto |
+| 3 | Generazione email su misura | ✅ fatto (LLM, con modello interno di riserva) |
+| 3b | Approvazione manuale prima dell'invio | ✅ fatto |
+| 4 | Invio con dominio dedicato, SPF/DKIM/DMARC | ✅ fatto — spento da `INVIO_ATTIVO` |
 | 5 | Lettura risposte e estrazione dati | da fare — la dashboard li mostra già |
-| 6 | **Dashboard** | ✅ fatto |
+| 6 | Dashboard (anche da telefono) | ✅ fatto |
 | 7 | Conferma call via email + Meet | parziale: la call si fissa, l'email di conferma no |
-| 8 | **Bottone WhatsApp dopo la risposta** | ✅ fatto |
+| 8 | Bottone WhatsApp dopo la risposta | ✅ fatto |
+| — | Disiscrizione con link personalizzato | ✅ fatto e verificato in rete |
+
+### Configurazione in rete, già fatta
+
+- **SPF** su `astragency.it` (prima non c'era: chiunque poteva spedire a nome tuo)
+- **`proposte.astragency.it`** autenticato su Brevo, con DKIM — il mittente è isolato
+  dal dominio con cui si lavora
+- **`/api/disiscrizione`** sul Worker: link firmato, conferma, scrittura su Firestore
+- **`/api/debug`** chiuso: era una GET aperta che mostrava l'email del service account
 
 La dashboard è costruita sullo schema definitivo: quando i worker arriveranno,
 riempiranno tabelle che le pagine già leggono. Non ci sarà da rifare nulla.
