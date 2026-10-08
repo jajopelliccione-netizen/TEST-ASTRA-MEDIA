@@ -10,7 +10,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Online serve Postgres: su Vercel il disco e' in sola lettura, quindi un
+  // file SQLite non si puo' scrivere. In locale si puo' restare su "sqlite"
+  // cambiando questa riga e DATABASE_URL.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

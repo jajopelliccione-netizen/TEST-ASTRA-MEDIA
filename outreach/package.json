@@ -12,7 +12,11 @@
     "db:studio": "prisma studio",
     "verifica": "cp ../cloudflare-worker/worker.js /tmp/_w.mjs && node --check /tmp/_w.mjs && tsx prove/firma.ts",
     "prove": "tsx prove/firma.ts",
-    "setup": "prisma db push && tsx prisma/seed.ts"
+    "setup": "prisma db push && tsx prisma/seed.ts",
+    "password": "tsx prove/password.ts",
+    "db:locale": "node scripts-locale.mjs sqlite && prisma generate",
+    "db:online": "node scripts-locale.mjs postgres && prisma generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

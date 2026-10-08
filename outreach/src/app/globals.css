@@ -824,3 +824,30 @@ h2 {
     font-size: 16px;
   }
 }
+
+/* ── Schermata di accesso ────────────────────────────────────────────── */
+.schermata-accesso {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modulo-accesso {
+  width: 100%;
+  max-width: 380px;
+}
+.marchio-accesso {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin-bottom: 22px;
+}
+.marchio-accesso span {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

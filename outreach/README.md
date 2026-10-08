@@ -60,21 +60,49 @@ aggiunge un worker a parte: il database resta il punto d'incontro.
 
 ---
 
-## Avvio
+## Dove gira
+
+La dashboard sta **online**, raggiungibile da telefono, tablet e computer.
+Non su `localhost`: altrimenti funzionerebbe solo sul Mac, e solo acceso.
+
+Questo pero' significa che l'indirizzo e' pubblico e dentro ci sono **dati
+personali di persone reali**. Perche' sia una cosa seria e non un foglio
+lasciato sul tavolo:
+
+- **nessuna pagina si apre senza password.** Il controllo sta nel
+  `middleware`, non nelle singole pagine: una pagina nuova nasce protetta,
+  invece di esserlo se qualcuno si ricorda di proteggerla;
+- la password non e' salvata da nessuna parte, solo la sua impronta
+  **PBKDF2 con 200.000 giri**, che rende lentissimo provarla a tentativi;
+- il cookie di sessione e' **httpOnly** (JavaScript non lo legge), firmato,
+  e vale 14 giorni;
+- senza `PASSWORD_HASH` e `SESSION_SECRET` il modulo di accesso si rifiuta
+  di funzionare, invece di lasciare aperto.
+
+### Messa online (Vercel + Neon)
 
 ```bash
 cd outreach
-npm install
-cp .env.example .env     # compila i valori
-npm run setup            # crea il database e inserisce i dati di esempio
-npm run dev              # http://localhost:3100
+npm run password -- "una password lunga e che non usi altrove"
 ```
 
-Il database è SQLite (`data/outreach.db`). Per passare a Postgres basta
-cambiare `provider` e `DATABASE_URL` in `prisma/schema.prisma`: il codice non
-cambia.
+Stampa `PASSWORD_HASH` e `SESSION_SECRET`. Poi su **vercel.com**: importa il
+repository, come cartella del progetto indica `outreach`, e nella scheda
+**Storage** aggiungi un database **Neon** (il piano gratuito basta):
+`DATABASE_URL` viene impostata da sola.
 
----
+Infine, in **Settings -> Environment Variables**, incolla tutte le righe di
+`.env.example` compilate.
+
+### Prove in locale
+
+```bash
+npm install
+npm run db:locale      # schema su SQLite, niente database esterno
+npm run setup
+npm run dev            # http://localhost:3100
+npm run db:online      # rimettilo su Postgres prima di pubblicare
+```
 
 ## A che punto siamo
 
