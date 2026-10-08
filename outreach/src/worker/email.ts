@@ -36,16 +36,21 @@ const MODELLI_GROQ = [
 /** Piè di pagina obbligatorio: identificazione del mittente e disiscrizione. */
 export function piePagina(): string {
   const nome = process.env.AZIENDA_RAGIONE_SOCIALE || 'Astra Agency';
+  const referente = process.env.AZIENDA_REFERENTE || '';
   const indirizzo = process.env.AZIENDA_INDIRIZZO || '';
   const piva = process.env.AZIENDA_PIVA || '';
+  const contatto = process.env.REPLY_TO || process.env.MITTENTE_EMAIL || '';
   const disiscrizione = process.env.URL_DISISCRIZIONE || '';
 
   const righe = [
     '',
     '—',
-    nome,
+    // Con la P.IVA e' l'azienda a identificarsi; senza (prestazione
+    // occasionale) il soggetto e' la persona fisica, quindi serve il nome.
+    referente ? `${nome} — ${referente}` : nome,
     indirizzo,
     piva ? `P.IVA ${piva}` : '',
+    contatto,
     'astragency.it',
     '',
     disiscrizione
@@ -59,15 +64,29 @@ export function piePagina(): string {
 /**
  * Verifica che l'email sia spedibile per legge. Torna l'elenco di cosa manca:
  * se non e' vuoto, l'invio non deve partire.
+ *
+ * La P.IVA NON e' obbligatoria in se': lo e' identificarsi. Chi lavora in
+ * prestazione occasionale non ne ha una, e in quel caso il soggetto e' la
+ * persona fisica — quindi al suo posto servono nome e cognome del referente.
+ * Uno dei due deve esserci: non si manda una email commerciale restando
+ * anonimi dietro a un marchio.
  */
 export function cosaMancaPerLegge(corpo: string): string[] {
   const manca: string[] = [];
+
   if (!process.env.URL_DISISCRIZIONE) manca.push('URL_DISISCRIZIONE non configurato nel .env');
   else if (!corpo.includes(process.env.URL_DISISCRIZIONE))
     manca.push('il link di disiscrizione non compare nel testo');
+
   if (!process.env.AZIENDA_RAGIONE_SOCIALE) manca.push('AZIENDA_RAGIONE_SOCIALE non configurata');
-  if (!process.env.AZIENDA_PIVA) manca.push('AZIENDA_PIVA non configurata');
+
+  if (!process.env.AZIENDA_PIVA && !process.env.AZIENDA_REFERENTE)
+    manca.push(
+      'serve AZIENDA_PIVA oppure, se lavori in prestazione occasionale, AZIENDA_REFERENTE con nome e cognome',
+    );
+
   if (!process.env.AZIENDA_INDIRIZZO) manca.push('AZIENDA_INDIRIZZO non configurato');
+
   return manca;
 }
 
