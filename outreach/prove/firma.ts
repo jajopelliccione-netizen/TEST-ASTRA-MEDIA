@@ -8,33 +8,10 @@ import { tokenDisiscrizione, emailDaToken } from '../src/worker/disiscrizione';
 
 const SEGRETO = 'segreto-di-prova-non-usare-in-produzione';
 
-// ── Copia esatta della logica del Worker (cloudflare-worker/worker.js) ──
-function b64url(bytes: Uint8Array) {
-  let s = '';
-  for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function firmaWorker(email: string, segreto: string) {
-  const chiave = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(segreto),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
-  );
-  const firma = await crypto.subtle.sign('HMAC', chiave, new TextEncoder().encode(email));
-  return b64url(new Uint8Array(firma));
-}
-function b64urlInTesto(s: string) {
-  const base = s.replace(/-/g, '+').replace(/_/g, '/');
-  return atob(base + '='.repeat((4 - (base.length % 4)) % 4));
-}
-async function emailDaTokenWorker(token: string, segreto: string) {
-  const pezzi = String(token || '').split('.');
-  if (pezzi.length !== 2) return null;
-  let email: string;
-  try { email = b64urlInTesto(pezzi[0]).toLowerCase().trim(); } catch { return null; }
-  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) return null;
-  const atteso = await firmaWorker(email, segreto);
-  return atteso === pezzi[1] ? email : null;
-}
+// Il Worker vero, non una copia: se qualcuno cambia la firma di la' e non
+// di qua, questa prova fallisce subito invece di lasciare link rotti in giro.
+// @ts-expect-error — JavaScript senza tipi
+import { firmaEmail as firmaWorker, emailDaToken as emailDaTokenWorker } from '../../cloudflare-worker/worker.js';
 
 (async () => {
   const casi = ['mario@esempio.it', 'INFO@Barberia-Centrale.IT', 'nome.cognome+tag@sotto.dominio.co.uk'];

@@ -1180,27 +1180,28 @@ function confrontoCostante(a, b) {
   return diff === 0;
 }
 
-function b64url(bytes) {
-  let s = '';
-  for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+// Per codificare in base64url c'e' gia' b64url() piu' in basso: accetta un
+// ArrayBuffer, che e' proprio quello che restituisce crypto.subtle.sign.
 function b64urlInTesto(s) {
   const base = s.replace(/-/g, '+').replace(/_/g, '/');
   return atob(base + '='.repeat((4 - (base.length % 4)) % 4));
 }
 
-async function firmaEmail(email, segreto) {
+// Esportate perche' la prova automatica del sistema di outreach le importi
+// davvero, invece di confrontarsi con una copia incollata che puo'
+// divergere senza che nessuno se ne accorga. Cloudflare usa solo
+// l'export default: questi non danno fastidio.
+export async function firmaEmail(email, segreto) {
   const chiave = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(segreto),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
   );
   const firma = await crypto.subtle.sign('HMAC', chiave, new TextEncoder().encode(email));
-  return b64url(new Uint8Array(firma));
+  return b64url(firma);
 }
 
 /** Ricava l'indirizzo dal token, solo se la firma e' valida. */
-async function emailDaToken(token, segreto) {
+export async function emailDaToken(token, segreto) {
   const pezzi = String(token || '').split('.');
   if (pezzi.length !== 2) return null;
   let email;
