@@ -114,6 +114,11 @@ export async function inviaEmail(opzioni: {
   if (!simulato) {
     const esito = await trasporto().sendMail({
       from: mittente,
+      // Si manda dal sottodominio dedicato ma si risponde alla casella vera:
+      // cosi' la reputazione del mittente resta isolata, mentre le risposte
+      // arrivano dove le leggo gia' (ed e' la casella che il worker delle
+      // risposte andra' a controllare in IMAP).
+      replyTo: process.env.REPLY_TO || undefined,
       to: destinatario,
       subject: oggetto,
       text: corpo,
