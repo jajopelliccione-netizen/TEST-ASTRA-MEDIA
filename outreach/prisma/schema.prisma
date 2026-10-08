@@ -74,6 +74,16 @@ model AnalisiSito {
 
   /// JSON: elenco di problemi trovati, es. ["non adatto al telefono", "nessun HTTPS"]
   problemi    String @default("[]")
+
+  /// Due righe su cosa fa davvero l'attivita', ricavate dal sito o dai dati
+  /// che abbiamo. Servono a me per capire a chi sto scrivendo senza aprire
+  /// dieci schede, e all'AI per scrivere un'email che non sembri un modulo.
+  riassuntoAttivita String?
+  /// Com'e' messo il sito, in una frase leggibile
+  riassuntoSito     String?
+  /// Titolo della home, utile per capire come si presentano
+  titoloSito        String?
+
   eseguitaIl  DateTime @default(now())
 }
 

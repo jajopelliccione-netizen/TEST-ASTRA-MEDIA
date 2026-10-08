@@ -486,3 +486,341 @@ h2 {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   SCHEDA "DA INVIARE": riassunto dell'attività, stato del sito, email,
+   tasto. È la pagina su cui passo più tempo, anche dal telefono.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.scheda-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.scheda-testa h2 {
+  margin-bottom: 2px;
+}
+.sottoriga {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.blocco {
+  margin-bottom: 14px;
+}
+.blocco h3 {
+  font-family: var(--font-head);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.blocco p {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #d9d4f5;
+  overflow-wrap: anywhere;
+}
+.collegamento {
+  color: var(--cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* L'email sta chiusa: in genere mi fido del riassunto e invio. Si apre solo
+   quando voglio controllare o correggere. */
+.email-pieghevole {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  margin-top: 4px;
+}
+.email-pieghevole > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.87rem;
+  font-weight: 700;
+}
+.email-pieghevole > summary::-webkit-details-marker {
+  display: none;
+}
+.email-pieghevole .riga-oggetto {
+  overflow-wrap: anywhere;
+}
+.email-pieghevole .apri {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--purple-light);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.email-pieghevole[open] > summary {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.btn.grande {
+  font-size: 0.95rem;
+  padding: 14px 24px;
+  width: 100%;
+}
+
+.riga-rifiuto {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.riga-rifiuto input {
+  flex: 1;
+  min-width: 170px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+}
+
+.avviso.ok-invio {
+  background: rgba(0, 229, 160, 0.09);
+  border-color: rgba(0, 229, 160, 0.45);
+}
+
+.contatore-invii {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.contatore-invii .barretta {
+  flex: 1;
+  max-width: 260px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.contatore-invii .riempimento {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TELEFONO
+   La tabella della pipeline non si può restringere: su schermo stretto
+   ogni riga diventa una scheda, usando le intestazioni come etichette.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 720px) {
+  .contenuto {
+    padding: 18px 14px 70px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+  .sottotitolo {
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+  }
+
+  /* Navigazione: il marchio va a capo da solo, le voci restano in riga */
+  .nav {
+    padding: 10px 14px;
+    gap: 4px;
+  }
+  .nav-marchio {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+  .nav a.voce {
+    padding: 7px 11px;
+    font-size: 0.82rem;
+  }
+  .nav-spazio {
+    display: none;
+  }
+  .nav .btn.piccolo {
+    margin-left: auto;
+  }
+
+  .riquadro {
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+  /* Le tessere di stato: due per riga invece di una colonna lunghissima */
+  .griglia-stati {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+  .tessera {
+    padding: 12px 13px;
+  }
+  .tessera .numero {
+    font-size: 1.45rem;
+  }
+  .tessera .etichetta {
+    font-size: 0.71rem;
+  }
+
+  /* Tabella -> schede. Le intestazioni spariscono e ogni cella porta la
+     propria etichetta, presa da data-etichetta. */
+  .tabella thead {
+    display: none;
+  }
+  .tabella,
+  .tabella tbody,
+  .tabella tr,
+  .tabella td {
+    display: block;
+    width: 100%;
+  }
+  .tabella tr {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .tabella td {
+    border: none;
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+  }
+  .tabella td::before {
+    content: attr(data-etichetta);
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    flex-shrink: 0;
+  }
+  /* La prima cella (nome attività) sta su tutta la riga, senza etichetta */
+  .tabella td:first-child {
+    display: block;
+    text-align: left;
+    padding-bottom: 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(123, 92, 240, 0.14);
+  }
+  .tabella td:first-child::before {
+    content: none;
+  }
+  .tabella .nome {
+    font-size: 0.97rem;
+  }
+  .tabella tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .scorri-x {
+    overflow-x: visible;
+  }
+
+  /* Due colonne -> una */
+  .due-colonne {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .riga-campi {
+    grid-template-columns: 1fr;
+  }
+
+  /* I tasti occupano la riga: più facili da centrare col pollice */
+  .barra-azioni .btn,
+  .riga-rifiuto .btn {
+    width: 100%;
+  }
+  .btn {
+    padding: 11px 16px;
+  }
+  .btn.grande {
+    padding: 15px 20px;
+    font-size: 1rem;
+  }
+
+  .scheda-testa h2 {
+    font-size: 1.02rem;
+  }
+  .email-pieghevole > summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .dato {
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+  }
+  .dato .valore {
+    text-align: left;
+  }
+
+  .orari {
+    gap: 7px;
+  }
+  .orari form {
+    flex: 1 1 calc(50% - 4px);
+  }
+  .orari .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contatore-invii .barretta {
+    max-width: none;
+  }
+
+  /* Il campo data-ora nativo su iOS deve restare leggibile */
+  .campo input[type='datetime-local'] {
+    min-height: 44px;
+  }
+}
+
+/* Schermi molto stretti */
+@media (max-width: 380px) {
+  .griglia-stati {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  .nav a.voce {
+    padding: 6px 9px;
+    font-size: 0.78rem;
+  }
+}
+
+/* iOS zooma sul campo se il testo è sotto i 16px: lo evito */
+@media (max-width: 720px) {
+  .campo input,
+  .campo select,
+  .campo textarea,
+  .riga-rifiuto input,
+  input[type='search'] {
+    font-size: 16px;
+  }
+}

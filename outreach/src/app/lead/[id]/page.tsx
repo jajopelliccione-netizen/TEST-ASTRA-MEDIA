@@ -12,7 +12,7 @@ import {
   type TipoSoggetto,
 } from '@/lib/tipi';
 import { dataLeggibile, leggiJson, linkWhatsapp } from '@/lib/util';
-import { cambiaStatoLead, eliminaLead } from '@/app/azioni';
+import { cambiaStatoLead, eliminaLead, preparaLead } from '@/app/azioni';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,13 +73,26 @@ export default async function DettaglioLead({ params }: { params: Promise<{ id: 
           {/* ── Analisi del sito ─────────────────────────────────── */}
           <div className="riquadro">
             <h2>Analisi del sito</h2>
-            {!lead.analisi ? (
-              <p className="secondario" style={{ fontSize: '.86rem' }}>
-                Non ancora analizzato. Lo farà il worker di analisi (passo 2), oppure puoi
-                aggiungere i dati a mano quando quella parte sarà pronta.
+
+            <form action={preparaLead} style={{ marginBottom: lead.analisi ? 16 : 0 }}>
+              <input type="hidden" name="id" value={lead.id} />
+              <button className="btn principale" type="submit">
+                {lead.analisi ? 'Rianalizza e riscrivi l’email' : 'Analizza e scrivi l’email'}
+              </button>
+              <p className="aiuto" style={{ marginTop: 6 }}>
+                Guarda il sito, trova i problemi e prepara l&apos;email. Nulla viene inviato: la
+                bozza finisce in «Da inviare».
               </p>
-            ) : (
+            </form>
+
+            {!lead.analisi ? null : (
               <>
+                {lead.analisi.riassuntoAttivita && (
+                  <section className="blocco">
+                    <h3>Cosa fa</h3>
+                    <p>{lead.analisi.riassuntoAttivita}</p>
+                  </section>
+                )}
                 <div className="dato">
                   <span className="chiave">Sito esistente</span>
                   <span className="valore">

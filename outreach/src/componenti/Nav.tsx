@@ -21,7 +21,7 @@ export async function Nav() {
         Pipeline
       </Link>
       <Link href="/approvazioni" className="voce">
-        Approvazioni
+        Da inviare
         {daApprovare > 0 && <span className="pastiglia">{daApprovare}</span>}
       </Link>
       <Link href="/risposte" className="voce">

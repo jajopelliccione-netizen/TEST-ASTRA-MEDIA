@@ -128,12 +128,12 @@ export default async function Pipeline({
                         <div className="secondario">{l.email ?? l.telefono ?? 'nessun contatto'}</div>
                       </Link>
                     </td>
-                    <td className="secondario">{l.settore}</td>
-                    <td className="secondario">
+                    <td className="secondario" data-etichetta="Settore">{l.settore}</td>
+                    <td className="secondario" data-etichetta="Città">
                       {l.citta}
                       {l.provincia ? ` (${l.provincia})` : ''}
                     </td>
-                    <td>
+                    <td data-etichetta="Sito">
                       {!l.analisi ? (
                         <span className="secondario">da analizzare</span>
                       ) : !l.analisi.sitoEsiste ? (
@@ -151,7 +151,7 @@ export default async function Pipeline({
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td data-etichetta="Stato">
                       <span className="stato">
                         <span
                           className="punto"
@@ -160,10 +160,10 @@ export default async function Pipeline({
                         {ETICHETTA_STATO[l.stato as StatoLead] ?? l.stato}
                       </span>
                     </td>
-                    <td className="secondario">
+                    <td className="secondario" data-etichetta="Fonte">
                       {ETICHETTA_FONTE[l.fonte as Fonte] ?? l.fonte}
                     </td>
-                    <td className="secondario">{dataBreve(l.aggiornatoIl)}</td>
+                    <td className="secondario" data-etichetta="Aggiornato">{dataBreve(l.aggiornatoIl)}</td>
                   </tr>
                 ))}
               </tbody>

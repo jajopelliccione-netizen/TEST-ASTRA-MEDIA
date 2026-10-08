@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { STATI_LEAD, type StatoLead } from '@/lib/tipi';
+import { analizzaSito } from '@/worker/analisi';
+import { generaEmail } from '@/worker/email';
+import { inviaEmail } from '@/worker/invio';
 
 /** Scrive una riga nel diario. Non deve mai far fallire l'azione principale. */
 async function registra(tipo: string, leadId?: string, dettaglio?: string) {
@@ -86,6 +89,116 @@ export async function eliminaLead(form: FormData) {
   await db.lead.delete({ where: { id } });
   revalidatePath('/');
   redirect('/');
+}
+
+// ── Analisi del sito, scrittura e invio ─────────────────────────────────
+
+/**
+ * Guarda il sito del lead, salva l'esito e scrive subito la bozza.
+ * Sono un'azione sola perche' dal mio punto di vista sono un gesto solo:
+ * "preparami questo lead".
+ */
+export async function preparaLead(form: FormData) {
+  const id = testo(form, 'id');
+  if (!id) return;
+
+  const lead = await db.lead.findUnique({ where: { id } });
+  if (!lead) return;
+
+  const esito = await analizzaSito({
+    ragioneSociale: lead.ragioneSociale,
+    settore: lead.settore,
+    citta: lead.citta,
+    sitoUrl: lead.sitoUrl,
+  });
+
+  const datiAnalisi = {
+    sitoEsiste: esito.sitoEsiste,
+    urlAnalizzato: esito.urlAnalizzato,
+    httpsOk: esito.httpsOk,
+    mobileOk: esito.mobileOk,
+    lcpMs: esito.tempoMs,
+    pesoKb: esito.pesoKb,
+    punteggio: esito.punteggio,
+    problemi: JSON.stringify(esito.problemi),
+    riassuntoAttivita: esito.riassuntoAttivita,
+    riassuntoSito: esito.riassuntoSito,
+    titoloSito: esito.titoloSito,
+    eseguitaIl: new Date(),
+  };
+
+  await db.analisiSito.upsert({
+    where: { leadId: id },
+    create: { leadId: id, ...datiAnalisi },
+    update: datiAnalisi,
+  });
+
+  const email = await generaEmail(
+    { ragioneSociale: lead.ragioneSociale, settore: lead.settore, citta: lead.citta, email: lead.email },
+    esito,
+  );
+
+  // Le bozze precedenti ancora in attesa vengono archiviate: ne vale una sola
+  await db.bozzaEmail.updateMany({
+    where: { leadId: id, stato: 'DA_APPROVARE' },
+    data: { stato: 'SOSTITUITA' },
+  });
+  const quante = await db.bozzaEmail.count({ where: { leadId: id } });
+
+  await db.bozzaEmail.create({
+    data: {
+      leadId: id,
+      versione: quante + 1,
+      oggetto: email.oggetto,
+      corpo: email.corpo,
+      modelloLlm: email.modello,
+      stato: 'DA_APPROVARE',
+    },
+  });
+
+  await db.lead.update({ where: { id }, data: { stato: 'BOZZA_PRONTA' } });
+  await registra('LEAD_PREPARATO', id, `punteggio ${esito.punteggio}, ${esito.problemi.length} problemi`);
+
+  revalidatePath('/');
+  revalidatePath('/approvazioni');
+  revalidatePath(`/lead/${id}`);
+}
+
+/** Approva e consegna in un gesto solo: e' il tasto "Invia" della dashboard. */
+export async function approvaEInvia(form: FormData) {
+  const id = testo(form, 'id');
+  if (!id) return { errore: 'Bozza non indicata.' };
+
+  const bozza = await db.bozzaEmail.findUnique({ where: { id }, include: { lead: true } });
+  if (!bozza) return { errore: 'Bozza non trovata.' };
+
+  // Il testo mostrato puo' essere stato corretto a mano: vale quello
+  const oggetto = testo(form, 'oggetto') || bozza.oggetto;
+  const corpo = testo(form, 'corpo') || bozza.corpo;
+
+  const esito = await inviaEmail({
+    leadId: bozza.leadId,
+    bozzaId: bozza.id,
+    destinatario: bozza.lead.email ?? '',
+    oggetto,
+    corpo,
+  });
+
+  if (!esito.ok) {
+    await registra('INVIO_BLOCCATO', bozza.leadId, esito.motivo);
+    revalidatePath('/approvazioni');
+    return { errore: esito.motivo };
+  }
+
+  await db.bozzaEmail.update({
+    where: { id },
+    data: { oggetto, corpo, stato: 'APPROVATA', decisaIl: new Date() },
+  });
+
+  revalidatePath('/approvazioni');
+  revalidatePath('/');
+  revalidatePath(`/lead/${bozza.leadId}`);
+  return { ok: true, simulato: esito.simulato };
 }
 
 // ── Approvazione email ──────────────────────────────────────────────────
