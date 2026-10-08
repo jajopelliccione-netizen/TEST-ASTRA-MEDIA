@@ -1,0 +1,19 @@
+# La dashboard gira su Netlify: runtime Node, dove Prisma funziona come e'
+# fatto per funzionare. Il piano gratuito consente l'uso commerciale (quello
+# di Vercel no: e' la ragione per cui Vercel era escluso in partenza).
+[build]
+  base    = "outreach"
+  command = "prisma generate && next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Strumento interno con dati personali: fuori dai motori di ricerca.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

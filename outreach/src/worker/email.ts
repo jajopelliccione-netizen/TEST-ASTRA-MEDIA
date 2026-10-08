@@ -183,7 +183,7 @@ ${a.problemi.map((p) => `- ${p}`).join('\n')}`;
       if (r.status === 400 || r.status === 404) continue;
       if (!r.ok) continue;
 
-      const dati = await r.json();
+      const dati = (await r.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const grezzo = dati?.choices?.[0]?.message?.content;
       if (!grezzo) continue;
 

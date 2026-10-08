@@ -79,20 +79,42 @@ lasciato sul tavolo:
 - senza `PASSWORD_HASH` e `SESSION_SECRET` il modulo di accesso si rifiuta
   di funzionare, invece di lasciare aperto.
 
-### Messa online (Vercel + Neon)
+### Messa online (Netlify + Neon, entrambi gratuiti)
 
 ```bash
 cd outreach
 npm run password -- "una password lunga e che non usi altrove"
 ```
 
-Stampa `PASSWORD_HASH` e `SESSION_SECRET`. Poi su **vercel.com**: importa il
-repository, come cartella del progetto indica `outreach`, e nella scheda
-**Storage** aggiungi un database **Neon** (il piano gratuito basta):
-`DATABASE_URL` viene impostata da sola.
+Stampa `PASSWORD_HASH` e `SESSION_SECRET`.
 
-Infine, in **Settings -> Environment Variables**, incolla tutte le righe di
-`.env.example` compilate.
+1. **neon.tech** — crea un progetto, copia la stringa di connessione
+   (`postgresql://...`). Piano gratuito, nessuna scadenza.
+2. **netlify.com** — collega il repository. `netlify.toml` dice gia' tutto:
+   cartella `outreach`, Node 22, build con Prisma.
+3. In **Site configuration -> Environment variables** incolla le righe di
+   `.env.example` compilate, compresa `DATABASE_URL` di Neon.
+4. Una volta sola, per creare le tabelle:
+   `DATABASE_URL="...neon..." npx prisma db push`
+5. Per avere `outreach.astragency.it` invece dell'indirizzo `.netlify.app`:
+   su Cloudflare aggiungi un record **CNAME** `outreach` che punta al nome
+   del sito Netlify.
+
+#### Perche' non Vercel, e perche' non Cloudflare
+
+**Vercel** era la scelta ovvia (Next.js e' loro), ma il piano gratuito
+Hobby **vieta l'uso commerciale**, e questo strumento serve a cercare
+clienti: sarebbero stati 20$/mese.
+
+**Cloudflare** sarebbe stato il posto naturale — dominio, DNS e Worker sono
+gia' li'. Ci ho provato davvero: adattatore OpenNext, database D1,
+configurazione completa. L'applicazione partiva e il login funzionava nel
+runtime di Cloudflare, ma **Prisma sui Worker pretende il suo motore
+nativo**, che li' non puo' esistere; anche il generatore dedicato a
+`workerd` se lo porta dietro. Le alternative erano riscrivere tutte le
+query in SQL a mano o rinunciare a Prisma: due settimane di lavoro per
+cambiare hosting. Netlify esegue Node, dove tutto questo semplicemente
+funziona, e il suo piano gratuito l'uso commerciale lo consente.
 
 ### Prove in locale
 

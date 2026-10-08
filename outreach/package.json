@@ -14,8 +14,6 @@
     "prove": "tsx prove/firma.ts",
     "setup": "prisma db push && tsx prisma/seed.ts",
     "password": "tsx prove/password.ts",
-    "db:locale": "node scripts-locale.mjs sqlite && prisma generate",
-    "db:online": "node scripts-locale.mjs postgres && prisma generate",
     "postinstall": "prisma generate"
   },
   "dependencies": {
