@@ -3,7 +3,9 @@
 # di Vercel no: e' la ragione per cui Vercel era escluso in partenza).
 [build]
   base    = "outreach"
-  command = "prisma generate && next build"
+  # `db push` crea le tabelle al primo deploy e non fa nulla nei successivi:
+  # cosi' non serve collegarsi al database dal Terminale per inizializzarlo.
+  command = "prisma generate && prisma db push --accept-data-loss && next build"
   publish = ".next"
 
 [build.environment]
